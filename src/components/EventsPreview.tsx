@@ -88,7 +88,7 @@ const EventsPreview = ({
           <p>{sanityEvent.description}</p>
           {sanityEvent.slug?.current && (
             <a className="button" href={`/event/${sanityEvent.slug?.current}`}>
-              View Event Info
+              Continue Reading
             </a>
           )}
         </div>
