@@ -1,14 +1,15 @@
 import { graphql, useStaticQuery } from "gatsby";
 import React, { FC } from "react";
-import { Helmet } from "react-helmet";
 import logo from "../images/1200w/logo-1200-cropped.png";
+
 interface SEOProps {
   title?: string;
   description?: string;
   image?: string;
   location?: Location;
-  children?: JSX.Element;
+  children?: React.ReactNode;
 }
+
 const SEO: FC<SEOProps> = ({
   children,
   location,
@@ -34,18 +35,26 @@ const SEO: FC<SEOProps> = ({
         ? "http://localhost:8000/"
         : "https://bluepathfinance.com/";
 
-  const seoTitle = site?.siteMetadata?.title ?? title ?? "Bluepath Finance";
-  const seoDescription = site?.siteMetadata?.description ?? description ?? "";
+  const seoTitle = title ?? site?.siteMetadata?.title ?? "Bluepath Finance";
+  const seoDescription = description ?? site?.siteMetadata?.description ?? "";
   const seoLogo = image ?? `${siteUrl}${logo.slice(1)}` ?? "";
-  // console.log('seoTitle', seoTitle);
-  // console.log('seoLogo', seoLogo);
-  // console.log('seoDescription', seoDescription);
+
   return (
-    <Helmet titleTemplate={`${seoTitle}`}>
+    <>
       <html lang="en" />
       <title>{seoTitle}</title>
       <meta name="viewport" content="width=device-width,initial-scale=1.0" />
       <meta name="description" content={seoDescription} />
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossOrigin="anonymous"
+      />
+      <link
+        href="https://fonts.googleapis.com/css?family=Roboto:100,200,300,400,400i,500,600,700&display=swap"
+        rel="stylesheet"
+      />
       {location && <meta property="og:url" content={location.href} />}
       <meta name="title" property="og:title" content={seoTitle} />
       <meta name="type" property="og:type" content="website" />
@@ -84,7 +93,7 @@ const SEO: FC<SEOProps> = ({
       <meta name="twitter:image:width" content={"336"} />
       <meta name="twitter:image:height" content={"176"} />
       {children}
-    </Helmet>
+    </>
   );
 };
 export default SEO;

@@ -3,7 +3,7 @@ import styled from "styled-components";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import HomeMain from "../components/HomeMain";
-import type { PageProps } from "gatsby";
+import type { HeadFC, PageProps } from "gatsby";
 import SEO from "../components/SEO";
 import { useInView } from "react-intersection-observer";
 
@@ -74,17 +74,16 @@ const IndexPage = ({ location }: PageProps) => {
     }
   };
   return (
-    <>
-      <SEO />
-      <div className="home">
-        <StyledHeaderWrapper ref={ref}>
-          <Header location={location} />
-        </StyledHeaderWrapper>
-        <HomeMain footerRef={footerRef} />
-        <Footer location={location} ref={footerRef.ref} />
-      </div>
-    </>
+    <div className="home">
+      <StyledHeaderWrapper ref={ref}>
+        <Header location={location} />
+      </StyledHeaderWrapper>
+      <HomeMain footerRef={footerRef} />
+      <Footer location={location} ref={footerRef.ref} />
+    </div>
   );
 };
+
+export const Head: HeadFC = () => <SEO />;
 
 export default IndexPage;

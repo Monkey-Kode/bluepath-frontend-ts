@@ -3,21 +3,16 @@ import React from 'react';
 // import styled from 'styled-components';
 import StyleBackgroundImage from '../styles/StyleBackgroundImage';
 import { ContactBody } from './ContactBody';
-import SEO from './SEO';
 import { convertToBgImage } from 'gbimage-bridge';
 
 function Contact({ sanityPage }: { sanityPage: Queries.SanityPage }) {
   const {
-    _id,
     Heading,
     background,
     mobilebackground,
     backgroundColor,
-    content,
-    description,
     id,
     name,
-    seotitle,
     boxLocation,
     richcontent,
   } = sanityPage;
@@ -34,7 +29,7 @@ function Contact({ sanityPage }: { sanityPage: Queries.SanityPage }) {
     }
   }
   // const { remoteRichContent } = useRichPageData(_id);
-  const bgColor = backgroundColor ? backgroundColor.hex : '#fff';
+  const bgColor = backgroundColor?.hex ?? '#fff';
 
   let boxAlign = 'left';
   if (boxLocation) {
@@ -47,7 +42,6 @@ function Contact({ sanityPage }: { sanityPage: Queries.SanityPage }) {
 
   return (
     <>
-      <SEO title={String(seotitle)} description={String(description)} />
       <div className={boxAlign}>
         {background?.asset?.gatsbyImageData && (
           <GatsbyImage
@@ -58,7 +52,7 @@ function Contact({ sanityPage }: { sanityPage: Queries.SanityPage }) {
         )}
         {sectionBg ? (
           <StyleBackgroundImage
-            id={id}
+            id={id ?? undefined}
             Tag="section"
             {...bgImage}
             backgroundColor={bgColor}
@@ -71,7 +65,7 @@ function Contact({ sanityPage }: { sanityPage: Queries.SanityPage }) {
             />
           </StyleBackgroundImage>
         ) : (
-          <section id={String(id)} style={{ backgroundColor: String(bgColor) }}>
+          <section id={id ?? undefined} style={{ backgroundColor: bgColor }}>
             <ContactBody
               id={id}
               Heading={Heading}

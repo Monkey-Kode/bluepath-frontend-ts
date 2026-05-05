@@ -15,6 +15,7 @@ const config: GatsbyConfig = {
   // If you use VSCode you can also use the GraphQL plugin
   // Learn more at: https://gatsby.dev/graphql-typegen
   graphqlTypegen: true,
+  trailingSlash: 'always',
   plugins: [
     {
       resolve: 'gatsby-source-sanity',
@@ -44,20 +45,7 @@ const config: GatsbyConfig = {
       },
       __key: 'images',
     },
-    {
-      resolve: `gatsby-plugin-google-fonts`,
-      options: {
-        fonts: [`Roboto\:100,200,300,400,400i,500,600,700`],
-        display: 'swap',
-      },
-    },
     `gatsby-plugin-smoothscroll`,
-    {
-      resolve: `gatsby-plugin-typography`,
-      options: {
-        pathToConfigModule: `src/utils/typography`,
-      },
-    },
     {
       resolve: 'gatsby-plugin-react-svg',
       options: {

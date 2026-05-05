@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { graphql, PageProps } from 'gatsby';
+import { graphql, HeadProps, PageProps } from 'gatsby';
 import SEO from '../components/SEO';
 import styled from 'styled-components';
 import { PortableText } from '@portabletext/react';
@@ -54,7 +54,6 @@ function Event({
     : null;
   return (
     <div className="event">
-      <SEO title={content?.description ?? 'Event Page'} />
       <Header location={location} />
       <StyledMain>
         <div className="wrap event-content">
@@ -78,6 +77,10 @@ function Event({
     </div>
   );
 }
+
+export const Head = ({ data: { content } }: HeadProps<Queries.EventQuery>) => (
+  <SEO title={content?.description ?? 'Event Page'} />
+);
 
 export const query = graphql`
   query Event($slug: String!) {

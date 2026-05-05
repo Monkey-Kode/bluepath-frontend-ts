@@ -1,5 +1,5 @@
 import React from 'react';
-import { graphql, PageProps } from 'gatsby';
+import { graphql, HeadProps, PageProps } from 'gatsby';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import IndividualPageContent from '../components/IndividualPageContent';
@@ -36,13 +36,19 @@ const Page = ({
   const contentType = sanityPage?.contentType?.name;
   return (
     <div className="page">
-      <SEO title={sanityPage?.seotitle ?? 'Page'} />
       <Header location={location} />
       {innerContent(contentType, sanityPage as Queries.SanityPage)}
       <Footer location={location} />
     </div>
   );
 };
+
+export const Head = ({ data: { sanityPage } }: HeadProps<Queries.PageQuery>) => (
+  <SEO
+    title={sanityPage?.seotitle ?? 'Page'}
+    description={sanityPage?.description ?? undefined}
+  />
+);
 export const query = graphql`
   query Page($slug: String!) {
     sanityPage(slug: { current: { eq: $slug } }) {
