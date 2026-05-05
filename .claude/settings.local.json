@@ -40,7 +40,27 @@
       "mcp__netlify__netlify-deploy-services-reader",
       "Bash(netlify api:*)",
       "Bash(python3 -c ':*)",
-      "Bash(netlify deploy:*)"
+      "Bash(netlify deploy:*)",
+      "mcp__netlify__netlify-project-services-reader",
+      "Bash(npm view *)",
+      "Skill(agent-browser)",
+      "Bash(agent-browser --session bp-prod open https://bluepathfinance.com/impact/)",
+      "Bash(agent-browser --session bp-prod wait --load networkidle)",
+      "Bash(agent-browser --session bp-prod set viewport 1440 900)",
+      "Bash(agent-browser --session bp-prod screenshot --full /tmp/bp-prod-impact.png)",
+      "Bash(agent-browser --session bp-local open http://localhost:8888/impact/)",
+      "Bash(agent-browser --session bp-local wait --load networkidle)",
+      "Bash(agent-browser --session bp-local set viewport 1440 900)",
+      "Bash(agent-browser --session bp-local screenshot --full /tmp/bp-local-impact.png)",
+      "Bash(agent-browser --session bp-local screenshot --full /tmp/bp-local-impact-fixed.png)",
+      "Bash(agent-browser close *)",
+      "Bash(agent-browser --session bp-local network requests --type script)",
+      "Bash(agent-browser --session bp-local open http://localhost:8888/connect/)",
+      "Bash(agent-browser --session bp-local screenshot --full /tmp/local-connect.png)",
+      "Bash(agent-browser --session bp-prod open https://bluepathfinance.com/connect/)",
+      "Bash(agent-browser --session bp-prod screenshot --full /tmp/prod-connect.png)",
+      "Bash(agent-browser *)",
+      "Bash(awk *)"
     ]
   },
   "enabledMcpjsonServers": [

@@ -13,7 +13,7 @@ publish = "/public"
 ## (optional) Settings for Netlify Dev
 ## https://github.com/netlify/cli/blob/master/docs/netlify-dev.md#project-detection
 [dev]
-command = "yarn run start" # Command to start your dev server
+command = "pnpm run start" # Command to start your dev server
 # port = 8000 # Port that the dev server will be listening on
 publish = "/public" # Folder with the static content for _redirect file
 # more info on configuring this file: https://www.netlify.com/docs/netlify-toml-reference/
