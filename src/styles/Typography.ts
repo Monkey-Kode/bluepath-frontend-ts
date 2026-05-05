@@ -1,6 +1,9 @@
 import { createGlobalStyle } from 'styled-components';
+import { typographyStyles } from '../utils/typography';
 
 const Typography = createGlobalStyle`
+    ${typographyStyles}
+
     body *{
         letter-spacing: 1.2px;
     }
