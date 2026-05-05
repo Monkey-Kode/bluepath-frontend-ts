@@ -1,7 +1,7 @@
 import React, { Dispatch, SetStateAction } from 'react';
 import styled from 'styled-components';
 import classNames from 'classnames';
-const StyledBurger = styled.button`
+const StyledBurger = styled.button<{ $open: boolean }>`
   display: none;
   @media (max-width: 800px) {
     position: absolute;
@@ -25,26 +25,26 @@ const StyledBurger = styled.button`
     div {
       width: 2rem;
       height: 0.17rem;
-      background: ${({ open }) => (open ? 'white' : 'var(--blue)')};
+      background: ${({ $open }) => ($open ? 'white' : 'var(--blue)')};
       border-radius: 10px;
       transition: all 0.3s linear;
       position: relative;
       transform-origin: 1px;
 
       :first-child {
-        transform: ${({ open }) =>
-          open ? 'rotate(45deg) translate(0, -6px)' : 'rotate(0)'};
+        transform: ${({ $open }) =>
+          $open ? 'rotate(45deg) translate(0, -6px)' : 'rotate(0)'};
       }
 
       :nth-child(2) {
-        opacity: ${({ open }) => (open ? '0' : '1')};
-        transform: ${({ open }) =>
-          open ? 'translateX(20px)' : 'translateX(0)'};
+        opacity: ${({ $open }) => ($open ? '0' : '1')};
+        transform: ${({ $open }) =>
+          $open ? 'translateX(20px)' : 'translateX(0)'};
       }
 
       :nth-child(3) {
-        transform: ${({ open }) =>
-          open ? 'rotate(-45deg) translate(2px, 3px)' : 'rotate(0)'};
+        transform: ${({ $open }) =>
+          $open ? 'rotate(-45deg) translate(2px, 3px)' : 'rotate(0)'};
       }
     }
   }
@@ -60,7 +60,7 @@ function BurgerMenu({
   return (
     <StyledBurger
       className={classNames({ open }, 'burger-menu')}
-       open={open}
+      $open={open}
       onClick={() => setOpen(!open)}
     >
       <div />

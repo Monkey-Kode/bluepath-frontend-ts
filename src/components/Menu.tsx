@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import scrollTo from 'gatsby-plugin-smoothscroll';
 // import Logo from './Logo';
 
-const StyledMenu = styled.nav`
+const StyledMenu = styled.nav<{ $open: boolean }>`
   margin: 1.75rem 0;
   font-size: 1rem;
   @media (max-width: 1080px) {
@@ -18,8 +18,8 @@ const StyledMenu = styled.nav`
       flex-direction: column;
       justify-content: center;
       background: var(--blue);
-      transform: ${({ open }) =>
-        open ? 'translateX(0)' : 'translateX(-100%)'};
+      transform: ${({ $open }) =>
+        $open ? 'translateX(0)' : 'translateX(-100%)'};
       height: 100vh;
       text-align: left;
       padding: 8%;
@@ -146,7 +146,7 @@ function Menu({
     nodes
   ) as Queries.MenuQuery['allSanityNavigation']['nodes'];
   return (
-    <StyledMenu className={siteLocation} open={open}>
+    <StyledMenu className={siteLocation} $open={open}>
       <StyledMenuUl>
         {navigation.map(
           ({

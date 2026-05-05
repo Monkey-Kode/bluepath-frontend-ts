@@ -9,14 +9,12 @@ import ImpactThumb from "./ImpactThumb";
 import classNames from "classnames";
 import { GatsbyImage, getImage } from "gatsby-plugin-image";
 import { convertToBgImage } from "gbimage-bridge";
-import { IBackgroundImageProps } from "gatsby-background-image"; // or wherever your types are from
 
-interface StyleBackgroundImageProps extends IBackgroundImageProps {
-  Tag?: "div" | "section";
-  backgroundColor?: string;
-  className?: string;
-  css?: any; // Replace with your specific CSS type if available
-}
+const StyledImpactBackground = styled(StyleBackgroundImage)`
+  flex-direction: column;
+  min-height: 150vh;
+  height: auto;
+`;
 
 const StyledImpactWrapper = styled.div`
   width: 100%;
@@ -176,7 +174,7 @@ function Impact({ sanityPage }: { sanityPage: Queries.SanityPage }) {
       }
     }
   `);
-  const bgColor = backgroundColor ? backgroundColor.hex : "#fff";
+  const bgColor = backgroundColor?.hex ?? "#fff";
   const thumbs = sortObject(
     nodes,
   ) as Queries.ImpactQuery["allSanityImpact"]["nodes"];
@@ -196,19 +194,12 @@ function Impact({ sanityPage }: { sanityPage: Queries.SanityPage }) {
           />
         )}
         {sectionBg ? (
-          <StyleBackgroundImage
-            id={id as string | undefined} // Type assertion approach
-            // OR
-            id={typeof id === "string" ? id : undefined} // Type guard approach
+          <StyledImpactBackground
+            id={id ?? undefined}
             Tag="section"
-            {...(bgImage as IBackgroundImageProps)} // Type assertion for spread props
-            backgroundColor={bgColor as string}
+            {...bgImage}
+            backgroundColor={bgColor}
             className="impact"
-            css={{
-              flexDirection: "column",
-              minHeight: "150vh",
-              height: "auto",
-            }}
           >
             <StyledCarbonSection className="impact">
               <StyledCarbonContent>
@@ -255,9 +246,9 @@ function Impact({ sanityPage }: { sanityPage: Queries.SanityPage }) {
                 </StyledInfos>
               </StyledContent>
             </div>
-          </StyleBackgroundImage>
+          </StyledImpactBackground>
         ) : (
-          <section id={id}></section>
+          <section id={id ?? undefined}></section>
         )}
       </StyledImpactWrapper>
     </>

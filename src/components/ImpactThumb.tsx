@@ -46,10 +46,12 @@ function ImpactThumb({
           setFirstClick(false);
         }}
       >
-        <StyledIcon
-          image={image?.asset?.gatsbyImageData || undefined}
-          alt={`${name} icon`} // Add alt prop if required
-        />
+        {image?.asset?.gatsbyImageData && (
+          <StyledIcon
+            image={image.asset.gatsbyImageData}
+            alt={`${name} icon`}
+          />
+        )}
         <StyledH2>{name}</StyledH2>
       </BlueBox>
     </StyledWrap>

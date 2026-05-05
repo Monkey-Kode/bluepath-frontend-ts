@@ -31,11 +31,9 @@ const Events = ({
   },
   location,
 }: PageProps<Queries.AllEventsQuery>) => {
-  //   console.log('data', data);
-  // need to sort nodes by eventAt date
-  const sortedEvents = nodes.sort((a, b) => {
-    const aDate = new Date(a.eventAt);
-    const bDate = new Date(b.eventAt);
+  const sortedEvents = [...nodes].sort((a, b) => {
+    const aDate = new Date(a.eventAt ?? '');
+    const bDate = new Date(b.eventAt ?? '');
     return bDate.getTime() - aDate.getTime();
   });
   return (

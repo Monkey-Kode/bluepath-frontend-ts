@@ -216,7 +216,7 @@ const Form = ({ sanityPage }: { sanityPage: Queries.SanityPage }) => {
     Heading: sectionHeading,
     boxLocation,
   } = sanityPage;
-  const bgColor = backgroundColor ? backgroundColor.hex : '#fff';
+  const bgColor = backgroundColor?.hex ?? '#fff';
   let boxAlign = 'left';
   if (boxLocation) {
     boxAlign = boxLocation;
@@ -230,7 +230,7 @@ const Form = ({ sanityPage }: { sanityPage: Queries.SanityPage }) => {
       {background ? (
         <div className={boxAlign}>
           <StyleBackgroundImage
-            id={id}
+            id={id ?? undefined}
             Tag="section"
             backgroundColor={bgColor}
             {...bgImage}
@@ -242,7 +242,7 @@ const Form = ({ sanityPage }: { sanityPage: Queries.SanityPage }) => {
         </div>
       ) : (
         <div className={boxAlign}>
-          <section id={id}>
+          <section id={id ?? undefined}>
             <div>
               <FormBody name={name} sectionHeading={sectionHeading}></FormBody>
             </div>

@@ -71,18 +71,13 @@ function Mute() {
   return <span id="mute-icon">MUTE</span>;
 }
 
-type Video = HTMLSourceElement & {
-  play: () => void;
-  pause: () => void;
-  muted: boolean;
-};
 function Video({
   content,
 }: {
   content: ArrElement<Queries.HomeMainQuery["allSanityHomesections"]["nodes"]>;
 }) {
-  const videoRef = useRef<Video>(null);
-  const videoSrcRef = useRef<Video>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoSrcRef = useRef<HTMLSourceElement>(null);
   const {
     allSanityHomevideo: { nodes },
   }: Queries.VideoQuery = useStaticQuery(graphql`
