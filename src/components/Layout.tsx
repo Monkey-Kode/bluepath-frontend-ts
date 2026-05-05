@@ -1,16 +1,18 @@
-import React, { FC } from 'react';
+import React from 'react';
 import GlobalStyles from '../styles/GlobalStyles';
 import Typography from '../styles/Typography';
+import TypographyBase from '../styles/TypographyBase';
 import MapStyles from '../styles/MapStyles';
 export const Layout = ({
   children,
 }: {
-  children: JSX.Element | JSX.Element[];
+  children: React.ReactNode;
 }) => {
   return (
     <>
-      <GlobalStyles></GlobalStyles>
-      <Typography></Typography>
+      <TypographyBase />
+      <GlobalStyles />
+      <Typography />
       <MapStyles />
       {children}
     </>
