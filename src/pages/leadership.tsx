@@ -75,7 +75,7 @@ const BioCard = styled.article`
 
   .bio-header {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     flex-wrap: wrap;
     gap: 0.75rem;
     margin: 0 0 1rem;
@@ -93,10 +93,8 @@ const BioCard = styled.article`
   .bio-divider {
     display: inline-block;
     width: 1px;
-    align-self: stretch;
+    height: 1.75rem;
     background: var(--orange);
-    height: 1.5rem;
-    transform: translateY(0.25rem);
   }
 
   .bio-role {
