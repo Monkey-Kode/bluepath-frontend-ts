@@ -6,14 +6,6 @@ import { graphql, useStaticQuery } from "gatsby";
 import StickyNationalProjects from "./StickyNationalProjects";
 import { InViewHookResponse, useInView } from "react-intersection-observer";
 
-// Define the type for the footerRef prop
-export type FooterRefProp = {
-  ref: (node?: Element | null) => void;
-  inView: boolean;
-  entry: IntersectionObserverEntry | undefined;
-};
-
-// Define the props for the HomeMain component
 interface HomeMainProps {
   footerRef: InViewHookResponse;
 }

@@ -52,9 +52,7 @@ const StyledHeaderWrapper = styled.div`
 
 const IndexPage = ({ location }: PageProps) => {
   const ref = useRef<HTMLDivElement>(null);
-  const footerRef = useInView({
-    threshold: 0.5,
-  });
+  const footerRef = useInView({ threshold: 0.5 });
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
     return () => {

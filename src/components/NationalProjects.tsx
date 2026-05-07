@@ -6,7 +6,7 @@ import { getImageComponent } from "../utils/ImageSelector";
 import { extractState } from "../utils/extractState";
 const StyledNationalProjects = styled.div`
   --color-orange: hsla(34, 85%, 53%, 1);
-  --border: 2px solid var(--color-orange);
+  --border: 1px solid var(--color-orange);
   --bottom-margin: 1rem;
   background-color: white;
   display: flex;
@@ -14,46 +14,37 @@ const StyledNationalProjects = styled.div`
   color: var(--blue);
   @media (min-width: 1025px) {
     display: grid;
-    grid-template-columns: 1fr 10fr;
+    grid-template-columns: auto 1fr;
     width: 100%;
     align-items: center;
-    padding-block: 0;
-    padding-inline: 2rem;
+    padding-block: 1rem;
+    padding-inline: 0;
     background-color: white;
-    padding-block: 0.5rem;
   }
 `;
 
 const Heading = styled.h2`
   font-family: 'Inter', Helvetica, Arial, sans-serif;
-  font-size: 1rem;
+  font-size: 1.5rem;
   color: var(--blue);
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  padding-block-start: 2rem;
-  text-align: left;
+  font-weight: 400;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding-inline: 0;
+  text-align: left;
+  line-height: 1.15;
+  max-width: 10ch;
+  margin: 0;
+  padding-block: 0;
+  padding-inline: 0 1.5rem;
   display: flex;
-  justify-content: center;
-  padding-block-end: 1.5rem;
-  border-bottom: var(--border);
-  @media (min-width: 1025px) {
-    padding-block: 0;
-    margin-block: 0;
-    padding-inline-end: 2rem;
-    border-bottom: none;
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-    align-items: center;
-    border-right: var(--border);
-    padding-inline: 0;
-    margin-inline-end: 1rem;
-  }
+  align-items: center;
+
   @media (max-width: 1024px) {
     border-top: var(--border);
-    padding-block: 0.25rem;
+    padding-block: 0.5rem 1rem;
     margin-block-start: 1rem;
+    text-align: center;
+    justify-content: center;
   }
 `;
 
