@@ -72,7 +72,7 @@ const StyledPage = styled.main`
     color: var(--blue);
     text-transform: uppercase;
     letter-spacing: 0.02em;
-    font-size: clamp(1.75rem, 3.5vw, 2.25rem);
+    font-size: var(--text-h1);
     line-height: 1.1;
     margin: 0 0 2.5rem;
     text-wrap: balance;
@@ -154,7 +154,7 @@ const Row = styled.article`
     font-family: 'Lora', Georgia, serif;
     font-weight: 700;
     color: var(--blue);
-    font-size: clamp(1.75rem, 2.5vw, 2.25rem);
+    font-size: var(--text-h1);
     line-height: 1.2;
     margin: 0;
     text-wrap: balance;

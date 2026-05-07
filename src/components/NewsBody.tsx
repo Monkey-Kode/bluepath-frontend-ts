@@ -36,10 +36,10 @@ const StyledArticleBody = styled.div`
     font-weight: 600;
   }
   h2 {
-    font-size: 1.5rem;
+    font-size: var(--text-h2);
   }
   h3 {
-    font-size: 1.125rem;
+    font-size: var(--text-h3);
   }
 
   ul,

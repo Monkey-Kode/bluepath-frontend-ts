@@ -54,7 +54,7 @@ const StyledArticle = styled.main`
     font-family: 'Inter', Helvetica, Arial, sans-serif;
     font-weight: 700;
     color: #000;
-    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    font-size: var(--text-h1);
     line-height: 1.2;
     margin: 0 0 1.5rem;
     text-wrap: balance;

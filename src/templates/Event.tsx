@@ -67,7 +67,7 @@ const StyledMain = styled.main`
     font-family: 'Lora', Georgia, serif;
     font-weight: 700;
     color: var(--blue);
-    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-size: var(--text-h1);
     line-height: 1.2;
     margin: 0 0 1.5rem;
     text-wrap: balance;
@@ -94,13 +94,13 @@ const StyledMain = styled.main`
     }
 
     h2 {
-      font-size: 1.5rem;
+      font-size: var(--text-h2);
       font-weight: 700;
       margin: 1.5rem 0 0.5rem;
     }
 
     h3 {
-      font-size: 1.125rem;
+      font-size: var(--text-h3);
       font-weight: 700;
       margin: 1.25rem 0 0.5rem;
     }

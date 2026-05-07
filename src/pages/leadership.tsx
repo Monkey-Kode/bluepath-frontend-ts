@@ -42,7 +42,7 @@ const StyledLeadership = styled.main`
     color: var(--blue);
     text-transform: uppercase;
     letter-spacing: 0.02em;
-    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-size: var(--text-h1);
     line-height: 1.1;
     margin: 0 2.5rem 2.5rem;
   }
@@ -85,7 +85,7 @@ const BioCard = styled.article`
     font-family: 'Lora', Georgia, serif;
     font-weight: 700;
     color: var(--blue);
-    font-size: 1.75rem;
+    font-size: var(--text-h1);
     line-height: 1.1;
     margin: 0;
   }
@@ -210,7 +210,7 @@ const Card = styled.button<{ $expanded: boolean }>`
     font-family: 'Lora', Georgia, serif;
     font-weight: 700;
     color: var(--blue);
-    font-size: 1.5rem;
+    font-size: var(--text-h3);
     margin: 0 0 0.4rem;
     line-height: 1.2;
   }
@@ -229,7 +229,7 @@ const Card = styled.button<{ $expanded: boolean }>`
     color: var(--blue);
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    font-size: 1rem;
+    font-size: var(--text-eyebrow);
     font-weight: 500;
     line-height: 1.3;
     margin: 0;

@@ -32,11 +32,7 @@ const Heading = styled.h2`
   margin: 0 0 2rem;
   text-wrap: balance;
   max-width: 1100px;
-  font-size: clamp(2rem, 4vw, 4rem);
-
-  @media (min-width: 1280px) {
-    font-size: 4rem;
-  }
+  font-size: var(--text-display);
 `;
 
 const Divider = styled.hr`
