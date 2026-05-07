@@ -12,8 +12,9 @@ import { headerOffset } from '../styles/mixins';
 
 const StyledMain = styled.main`
   background: #fff;
-  color: var(--blue);
+  color: #000;
   ${headerOffset}
+  padding-top: calc(var(--header-height, 100px) + 4rem);
   padding-bottom: 5rem;
   padding-inline: 1.25rem;
 
@@ -39,47 +40,92 @@ const StyledMain = styled.main`
   }
 
   .event-meta {
-    font-family: 'Inter', Helvetica, Arial, sans-serif;
-    font-size: 0.8125rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--gray2);
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1rem;
-    margin-bottom: 0.75rem;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+    font-family: 'Inter', Helvetica, Arial, sans-serif;
+  }
 
-    .label {
-      color: var(--blue);
-      font-weight: 700;
-    }
+  .event-date {
+    color: var(--blue);
+    font-style: italic;
+    font-size: 0.9375rem;
+    font-weight: 400;
+  }
+
+  .event-publication {
+    color: var(--blue);
+    font-style: italic;
+    font-weight: 700;
+    font-size: 1.0625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   h1 {
     font-family: 'Lora', Georgia, serif;
-    font-weight: 500;
+    font-weight: 700;
     color: var(--blue);
     font-size: clamp(2rem, 4vw, 2.75rem);
     line-height: 1.2;
     margin: 0 0 1.5rem;
+    text-wrap: balance;
   }
 
   .event-body {
     margin-bottom: 2rem;
-  }
+    font-family: 'Lora', Georgia, serif;
+    color: #000;
+    line-height: 1.5;
+    font-size: 1rem;
 
-  .rsvp-card {
-    background: rgba(0, 65, 129, 0.04);
-    border: 1px solid rgba(0, 65, 129, 0.15);
-    padding: 1.5rem;
-    margin-top: 2rem;
+    p,
+    h2,
+    h3,
+    li,
+    blockquote {
+      color: #000;
+      font-family: 'Lora', Georgia, serif;
+    }
+
+    p {
+      margin: 0 0 1rem;
+    }
 
     h2 {
-      font-family: 'Lora', Georgia, serif;
-      font-weight: 500;
-      color: var(--blue);
       font-size: 1.5rem;
-      margin: 0 0 1rem;
+      font-weight: 700;
+      margin: 1.5rem 0 0.5rem;
+    }
+
+    h3 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      margin: 1.25rem 0 0.5rem;
+    }
+
+    ul,
+    ol {
+      margin: 0 0 1rem 1.25rem;
+    }
+
+    blockquote {
+      border-left: 3px solid var(--orange);
+      padding-left: 1.25rem;
+      margin: 1.5rem 0;
+      font-style: italic;
+    }
+  }
+
+  .rsvp {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin-top: 1.5rem;
+
+    @media (min-width: 800px) {
+      max-width: 500px;
     }
 
     label {
@@ -90,30 +136,70 @@ const StyledMain = styled.main`
     textarea,
     select {
       background: #fff;
-      border: 1px solid rgba(0, 65, 129, 0.25);
-      margin-bottom: 0.75rem;
-      padding: 0.6rem 0.75rem;
+      border: 1px solid var(--gray-light);
+      border-radius: 0;
+      margin-bottom: 0.6rem;
+      padding: 0.65rem 0.75rem;
+      font-family: 'Inter', Helvetica, Arial, sans-serif;
+      color: var(--gray-light);
+      font-size: 0.875rem;
+
       &::placeholder {
+        color: var(--gray-light);
         text-transform: uppercase;
         letter-spacing: 0.06em;
-        font-size: 0.8125rem;
-        color: var(--gray2);
+        font-size: 1.25rem;
       }
     }
 
+    .submit-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      margin-top: 1rem;
+    }
+
+    .submit-triangle {
+      width: 23px;
+      height: 27px;
+      fill: #fff;
+      stroke: var(--orange);
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+      display: block;
+      transform-origin: center;
+      transition:
+        fill 0.25s ease,
+        transform 0.4s cubic-bezier(0.5, 1.6, 0.5, 1);
+    }
+
+    .submit-row:hover .submit-triangle,
+    .submit-row:focus-within .submit-triangle {
+      fill: var(--orange);
+      transform: translateX(4px) scale(1.12);
+    }
+
     button[type='submit'] {
-      background: var(--blue);
-      color: #fff;
+      background: #fff;
+      color: var(--gray-light);
+      border: 1px solid var(--gray-light);
+      border-radius: 0;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      font-size: 0.8125rem;
-      font-weight: 700;
-      padding: 0.75rem 1.75rem;
-      border: none;
+      letter-spacing: 0.5px;
+      font-size: 1.25rem;
+      font-weight: 500;
+      padding: 0.5rem;
       cursor: pointer;
+      transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+
       &:hover {
         background: var(--orange);
-        color: var(--blue);
+        color: #fff;
+        border-color: var(--orange);
       }
     }
   }
@@ -131,7 +217,6 @@ function Event({
     ? (() => {
       const [year, month, day] = content.eventAt!.split('-').map(Number);
       return new Date(year, month - 1, day).toLocaleDateString('en-US', {
-        weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -148,9 +233,9 @@ function Event({
           </div>
           <div>
             <div className="event-meta">
-              {eventDate && <span>{eventDate}</span>}
+              {eventDate && <span className="event-date">{eventDate}</span>}
               {content?.publication && (
-                <span className="label">{content.publication}</span>
+                <span className="event-publication">{content.publication}</span>
               )}
             </div>
             {content?.name && <h1>{content.name}</h1>}
@@ -162,8 +247,7 @@ function Event({
                 />
               </div>
             )}
-            <div className="rsvp-card">
-              <h2>RSVP</h2>
+            <div className="rsvp">
               <FormBasic name={content?.name} />
             </div>
           </div>

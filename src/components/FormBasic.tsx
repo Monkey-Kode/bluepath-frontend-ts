@@ -92,7 +92,17 @@ const FormBasic = ({ name }: { name: string | null | undefined }) => {
         value={state.details}
         onChange={handleChange}
       />
-      <button type="submit">Submit</button>
+      <div className="submit-row">
+        <svg
+          className="submit-triangle"
+          viewBox="0 0 20 24"
+          preserveAspectRatio="xMidYMid meet"
+          aria-hidden="true"
+        >
+          <polygon points="2,2 18,12 2,22" />
+        </svg>
+        <button type="submit">Submit</button>
+      </div>
     </form>
   );
 };
