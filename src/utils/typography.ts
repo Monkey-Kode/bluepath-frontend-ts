@@ -1,6 +1,6 @@
 import Typography from 'typography';
 const typography = new Typography({
-  baseFontSize: '18px',
+  baseFontSize: '16px',
   baseLineHeight: 1.666,
   headerFontFamily: ['Lora', 'Georgia', 'serif'],
   bodyFontFamily: ['Inter', 'Helvetica', 'Arial', 'sans-serif'],

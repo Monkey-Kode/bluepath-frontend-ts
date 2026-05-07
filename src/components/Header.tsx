@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { graphql, useStaticQuery } from "gatsby";
 import Logo from "./Logo";
 import Nav from "./Nav";
@@ -53,6 +53,25 @@ function Header({
 }: {
   location?: Location | null | undefined;
 }) {
+  const headerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const node = headerRef.current;
+    if (!node || typeof window === "undefined") return;
+    const setHeight = () => {
+      const h = node.getBoundingClientRect().height;
+      document.documentElement.style.setProperty("--header-height", `${h}px`);
+    };
+    setHeight();
+    const ro = new ResizeObserver(setHeight);
+    ro.observe(node);
+    window.addEventListener("resize", setHeight);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", setHeight);
+    };
+  }, []);
+
   const { sanitySiteSettings } = useStaticQuery(graphql`
     query Header {
       sanitySiteSettings {
@@ -83,7 +102,7 @@ function Header({
   `);
 
   return (
-    <StyledHeader>
+    <StyledHeader ref={headerRef}>
       <div className="wrap">
         <LogoWrap>
           <Logo className="dark-logo" image={sanitySiteSettings.logoDark} />
