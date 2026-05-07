@@ -76,6 +76,10 @@ const StyledPage = styled.main`
     line-height: 1.1;
     margin: 0 0 2.5rem;
     text-wrap: balance;
+
+    @media (max-width: 800px) {
+      margin-bottom: 0;
+    }
   }
 `;
 

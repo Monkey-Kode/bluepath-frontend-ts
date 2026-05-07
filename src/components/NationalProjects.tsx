@@ -12,13 +12,14 @@ const StyledNationalProjects = styled.div`
   display: flex;
   flex-direction: column;
   color: var(--blue);
+  padding-inline: 1.5rem;
   @media (min-width: 1025px) {
     display: grid;
     grid-template-columns: auto 1fr;
     width: 100%;
     align-items: center;
     padding-block: 1rem;
-    padding-inline: 0;
+    padding-inline: 2rem;
     background-color: white;
   }
 `;
@@ -32,12 +33,18 @@ const Heading = styled.h2`
   text-transform: uppercase;
   text-align: left;
   line-height: 1.15;
-  max-width: 10ch;
   margin: 0;
   padding-block: 0;
   padding-inline: 0 1.5rem;
   display: flex;
   align-items: center;
+
+  @media (min-width: 1025px) {
+    /* Forces "NATIONAL PROJECTS" to wrap to two lines beside the projects.
+       Limited to desktop because on mobile the heading reads as a single
+       full-width line above the project cards. */
+    max-width: 10ch;
+  }
 
   @media (max-width: 1024px) {
     border-top: var(--border);

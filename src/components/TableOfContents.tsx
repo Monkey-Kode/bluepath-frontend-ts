@@ -60,7 +60,7 @@ const TilesRow = styled.ul`
   flex-wrap: wrap;
 
   @media (max-width: 800px) {
-    gap: 1rem;
+    gap: 0.25rem;
     padding: 1.25rem 0;
   }
 `;
