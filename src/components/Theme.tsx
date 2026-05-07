@@ -3,7 +3,7 @@ import { css, createGlobalStyle } from 'styled-components';
 import { fluidRange, math, rem } from 'polished';
 
 export const MAX_CONTENT_WIDTH = rem('1440px');
-export const fontStack = `Poppins, Telegraf, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'`;
+export const fontStack = `Inter, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'`;
 
 export const COLOR = {
   WHITE: '#FFFFFF',
