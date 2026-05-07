@@ -8,15 +8,14 @@ import Footer from '../components/Footer';
 import SEO from '../components/SEO';
 import FormBasic from '../components/FormBasic';
 import { newsBodyComponents } from '../components/NewsBody';
+import { headerOffset } from '../styles/mixins';
 
 const StyledMain = styled.main`
   background: #fff;
   color: var(--blue);
-  padding: calc(var(--mobile-header-height) + 1.5rem) 1.25rem 5rem;
-
-  @media (min-width: 800px) {
-    padding-top: 160px;
-  }
+  ${headerOffset}
+  padding-bottom: 5rem;
+  padding-inline: 1.25rem;
 
   .event-wrap {
     max-width: 1100px;

@@ -6,6 +6,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import SEO from '../components/SEO';
 import sortObject from '../utils/sortObject';
+import { headerOffset } from '../styles/mixins';
 
 type TeamNode = {
   id: string;
@@ -23,11 +24,12 @@ type LeadershipData = { allSanityTeam: { nodes: TeamNode[] } };
 const StyledLeadership = styled.main`
   background: #fff;
   color: var(--blue);
-  padding: calc(var(--mobile-header-height) + 1.5rem) 1.25rem 5rem;
+  ${headerOffset}
+  padding-bottom: 5rem;
+  padding-inline: 1.25rem;
   position: relative;
 
   @media (min-width: 800px) {
-    padding-top: 160px;
     padding-left: 6rem;
     padding-right: 2rem;
   }

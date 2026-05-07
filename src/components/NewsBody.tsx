@@ -5,17 +5,18 @@ import getYouTubeId from 'get-youtube-id';
 
 const StyledArticleBody = styled.div`
   font-family: 'Inter', Helvetica, Arial, sans-serif;
-  color: var(--blue);
-  line-height: 1.7;
-  font-size: 1.0625rem;
+  color: #000;
+  line-height: 1;
+  font-size: 1rem;
 
   p {
-    color: var(--blue);
-    margin: 0 0 1.25rem;
+    color: #000;
+    margin: 0 0 1rem;
+    line-height: 1.5;
   }
 
   a {
-    color: var(--blue);
+    color: #000;
     text-decoration: underline;
     text-transform: none;
     font-weight: 500;
@@ -28,35 +29,37 @@ const StyledArticleBody = styled.div`
 
   h2,
   h3 {
-    font-family: 'Lora', Georgia, serif;
-    color: var(--blue);
-    margin: 2.25rem 0 0.75rem;
-    line-height: 1.25;
-    font-weight: 500;
+    font-family: 'Inter', Helvetica, Arial, sans-serif;
+    color: #000;
+    margin: 1.75rem 0 0.5rem;
+    line-height: 1.5;
+    font-weight: 600;
   }
   h2 {
-    font-size: 1.875rem;
+    font-size: 1.5rem;
   }
   h3 {
-    font-size: 1.375rem;
+    font-size: 1.125rem;
   }
 
   ul,
   ol {
-    margin: 0 0 1.25rem 1.25rem;
+    margin: 0 0 1rem 1.25rem;
     padding: 0;
+    line-height: 1.5;
   }
   li {
-    margin-bottom: 0.5rem;
-    color: var(--blue);
+    margin-bottom: 0.4rem;
+    color: #000;
+    line-height: 1.5;
   }
 
   blockquote {
-    margin: 1.75rem 0;
+    margin: 1.5rem 0;
     padding: 0 0 0 1.25rem;
     border-left: 3px solid var(--orange);
     font-style: italic;
-    color: var(--blue);
+    color: #000;
   }
 
   strong {
@@ -64,7 +67,7 @@ const StyledArticleBody = styled.div`
   }
 
   .callout {
-    color: var(--blue);
+    color: #000;
     font-weight: 700;
   }
 `;
