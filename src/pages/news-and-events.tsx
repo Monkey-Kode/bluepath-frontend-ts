@@ -62,7 +62,7 @@ const StyledPage = styled.main`
   padding-inline: 1.25rem;
 
   .archive-wrap {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
   }
 

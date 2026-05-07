@@ -75,7 +75,9 @@
       "Bash(grep -v \"^$\\\\|webpack-dev\\\\|update-browserslist\\\\|browsers data\\\\|run.*:$\\\\|Why you\\\\|caniuse-lite\\\\|node:\\\\|util._extend\")",
       "Bash(echo \"---tsc=$?\")",
       "Bash(echo \"---gatsby tsc=$?\")",
-      "Bash(echo \"---sanity tsc=$?\")"
+      "Bash(echo \"---sanity tsc=$?\")",
+      "Bash(git -C /Users/jullweber/Sites/bluepath/bluepath-sanity commit --amend -m \"feat\\(schemas/news\\): add featured image field with dimension guidance\")",
+      "Bash(git -C /Users/jullweber/Sites/bluepath/bluepath-sanity log --oneline -3)"
     ]
   },
   "enabledMcpjsonServers": [

@@ -18,7 +18,7 @@ const StyledMain = styled.main`
   padding-inline: 1.25rem;
 
   .event-wrap {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
     display: grid;
     grid-template-columns: 360px 1fr;
@@ -129,14 +129,14 @@ function Event({
     : null;
   const eventDate = content?.eventAt
     ? (() => {
-        const [year, month, day] = content.eventAt!.split('-').map(Number);
-        return new Date(year, month - 1, day).toLocaleDateString('en-US', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        });
-      })()
+      const [year, month, day] = content.eventAt!.split('-').map(Number);
+      return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    })()
     : null;
   return (
     <div className="event">
