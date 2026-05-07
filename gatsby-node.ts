@@ -1,5 +1,4 @@
-import type { BuildArgs, GatsbyNode, PageProps } from "gatsby";
-// const path = require('path');
+import type { BuildArgs, GatsbyNode } from "gatsby";
 import { resolve } from "path";
 import { ArrElement } from "./src/types";
 
@@ -100,15 +99,64 @@ async function getEvents({ graphql, actions }: BuildArgs) {
         return null;
       }
       actions.createPage({
-        path: `event/${event.slug.current}`,
+        path: `events/${event.slug.current}`,
         component: pageTemplate,
         context: {
           slug: event.slug.current,
         },
       });
+      // Preserve old singular `/event/:slug` URL — redirect to canonical.
+      actions.createRedirect({
+        fromPath: `/event/${event.slug.current}`,
+        toPath: `/events/${event.slug.current}`,
+        isPermanent: true,
+        redirectInBrowser: true,
+      });
     },
   );
 }
+
+async function getNews({ graphql, actions }: BuildArgs) {
+  const newsTemplate = resolve("./src/templates/NewsArticle.tsx");
+  const { data }: any = await graphql(`
+    query GetNews {
+      allSanityNews {
+        nodes {
+          slug {
+            current
+          }
+        }
+      }
+    }
+  `);
+  data?.allSanityNews.nodes.forEach(
+    (article: { slug?: { current?: string | null } | null } | null) => {
+      const slug = article?.slug?.current;
+      if (!slug) return;
+      actions.createPage({
+        path: `news/${slug}`,
+        component: newsTemplate,
+        context: { slug },
+      });
+    },
+  );
+}
+
 export const createPages: GatsbyNode["createPages"] = async (params) => {
-  await Promise.all([getPages(params), getEvents(params)]);
+  await Promise.all([getPages(params), getEvents(params), getNews(params)]);
+
+  // Exact-match redirect: /events → /news-and-events.
+  // Detail routes /events/:slug are unaffected because createRedirect uses exact paths.
+  params.actions.createRedirect({
+    fromPath: "/events",
+    toPath: "/news-and-events",
+    isPermanent: true,
+    redirectInBrowser: true,
+  });
+  params.actions.createRedirect({
+    fromPath: "/events/",
+    toPath: "/news-and-events",
+    isPermanent: true,
+    redirectInBrowser: true,
+  });
 };
