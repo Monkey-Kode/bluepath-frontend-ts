@@ -82,7 +82,6 @@ export const query = graphql`
           marks
           text
         }
-        list
         style
         _type
         _key

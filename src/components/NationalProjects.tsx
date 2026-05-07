@@ -25,9 +25,11 @@ const StyledNationalProjects = styled.div`
 `;
 
 const Heading = styled.h2`
-  font-size: 1.670625rem;
-  color: var(--color-blue);
-  font-weight: 300;
+  font-family: 'Inter', Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  color: var(--blue);
+  font-weight: 700;
+  letter-spacing: 0.18em;
   padding-block-start: 2rem;
   text-align: left;
   text-transform: uppercase;
@@ -41,6 +43,12 @@ const Heading = styled.h2`
     margin-block: 0;
     padding-inline-end: 2rem;
     border-bottom: none;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    align-items: center;
+    border-right: var(--border);
+    padding-inline: 0;
+    margin-inline-end: 1rem;
   }
   @media (max-width: 1024px) {
     border-top: var(--border);
