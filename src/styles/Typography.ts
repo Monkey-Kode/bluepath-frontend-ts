@@ -5,7 +5,7 @@ const Typography = createGlobalStyle`
     ${typographyStyles}
 
     body *{
-        letter-spacing: 1.2px;
+        letter-spacing: normal;
     }
     p, h1, h2, h3, h4, h5{
         color: white;

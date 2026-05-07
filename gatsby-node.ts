@@ -2,6 +2,15 @@ import type { BuildArgs, GatsbyNode } from "gatsby";
 import { resolve } from "path";
 import { ArrElement } from "./src/types";
 
+// Sanity `page` slugs that must NOT be auto-routed because a hand-built
+// Gatsby page in `src/pages/` owns that path and supplies the new design.
+// Without this, gatsby-node's createPage runs after file-system pages and wins
+// the route collision, falling back to the legacy Page.tsx template.
+const STATIC_PAGE_SLUGS = new Set([
+  "leadership",
+  "news-and-events",
+]);
+
 const getPages = async ({ graphql, actions }: BuildArgs) => {
   const pageTemplate = resolve("./src/templates/Page.tsx");
   const { data }: any = await graphql(`
@@ -48,15 +57,14 @@ const getPages = async ({ graphql, actions }: BuildArgs) => {
   `);
   data?.allSanityPage.nodes.forEach(
     (page: ArrElement<Queries.GetPagesQuery["allSanityPage"]["nodes"]>) => {
-      if (page?.slug?.current) {
-        actions.createPage({
-          path: `${page.slug.current}`,
-          component: pageTemplate,
-          context: {
-            slug: page.slug.current,
-          },
-        });
-      }
+      const slug = page?.slug?.current;
+      if (!slug) return;
+      if (STATIC_PAGE_SLUGS.has(slug)) return;
+      actions.createPage({
+        path: slug,
+        component: pageTemplate,
+        context: { slug },
+      });
     },
   );
 };
