@@ -6,6 +6,8 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import SEO from '../components/SEO';
 import NewsBody from '../components/NewsBody';
+import BluePathLogo from '../images/dark-logo336.svg';
+import { headerOffset } from '../styles/mixins';
 
 type NewsArticleData = {
   article: {
@@ -28,73 +30,55 @@ type NewsArticleData = {
 
 const StyledArticle = styled.main`
   background: #fff;
-  color: var(--blue);
-  padding: calc(var(--mobile-header-height) + 1.5rem) 1.25rem 5rem;
-
-  @media (min-width: 800px) {
-    padding-top: 160px;
-  }
+  color: #000;
+  ${headerOffset}
+  padding-bottom: 5rem;
+  padding-inline: 1.25rem;
 
   .article-wrap {
-    max-width: 720px;
+    max-width: 800px;
     margin: 0 auto;
   }
 
   .brand-mark {
-    font-family: 'Inter', Helvetica, Arial, sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    font-size: 0.75rem;
-    color: var(--blue);
-    text-align: center;
-    margin-bottom: 1.5rem;
-  }
-
-  .publication {
-    font-family: 'Inter', Helvetica, Arial, sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-size: 0.8125rem;
-    color: var(--gray2);
-    margin-bottom: 0.75rem;
+    margin: 0 0 2rem;
+    svg,
+    img {
+      display: block;
+      max-width: 168px;
+      height: auto;
+    }
   }
 
   h1 {
-    font-family: 'Lora', Georgia, serif;
-    font-weight: 500;
-    color: var(--blue);
-    font-size: clamp(2rem, 4vw, 2.75rem);
-    line-height: 1.2;
-    margin: 0 0 0.75rem;
-  }
-
-  .subhead {
-    font-family: 'Lora', Georgia, serif;
-    font-weight: 400;
-    font-style: italic;
-    font-size: 1.25rem;
-    color: var(--blue);
-    margin: 0 0 1.5rem;
-  }
-
-  .date-stamp {
     font-family: 'Inter', Helvetica, Arial, sans-serif;
-    font-size: 0.875rem;
-    color: var(--gray2);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 2rem;
-    display: block;
+    font-weight: 700;
+    color: #000;
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    line-height: 1.2;
+    margin: 0 0 1.5rem;
+    text-wrap: balance;
   }
 
   figure.hero {
-    margin: 0 0 2rem;
+    margin: 0 0 1rem;
     .gatsby-image-wrapper,
     img {
       width: 100%;
       height: auto;
       display: block;
     }
+  }
+
+  .date-stamp {
+    font-family: 'Inter', Helvetica, Arial, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #000;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 1.5rem 0 2rem;
+    display: block;
   }
 `;
 
@@ -107,10 +91,10 @@ function NewsArticle({
     : null;
   const publishedAt = article?.publishedAt
     ? new Date(article.publishedAt).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
     : null;
 
   return (
@@ -118,18 +102,16 @@ function NewsArticle({
       <Header location={location} />
       <StyledArticle>
         <article className="article-wrap">
-          <div className="brand-mark">BluePath Finance</div>
-          {article?.publication && (
-            <div className="publication">{article.publication}</div>
-          )}
+          <div className="brand-mark" aria-label="BluePath Finance">
+            <BluePathLogo />
+          </div>
           {article?.title && <h1>{article.title}</h1>}
-          {article?.subhead && <p className="subhead">{article.subhead}</p>}
-          {publishedAt && <time className="date-stamp">{publishedAt}</time>}
           {hero && (
             <figure className="hero">
               <GatsbyImage image={hero} alt={article?.title ?? 'Article hero image'} />
             </figure>
           )}
+          {publishedAt && <time className="date-stamp">{publishedAt}</time>}
           {article?._rawBody ? <NewsBody value={article._rawBody} /> : null}
         </article>
       </StyledArticle>
