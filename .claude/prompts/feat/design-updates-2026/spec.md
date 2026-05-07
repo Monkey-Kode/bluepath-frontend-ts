@@ -77,23 +77,23 @@ The current site has no real publishing surface. The single Sanity `event` docum
 
 **1d. Studio Presentation.** Configure `presentationTool` in `sanity.config.ts` with `resolve.locations` per:
 
-| Schema type            | Studio preview URL                                       |
-| ---------------------- | -------------------------------------------------------- |
-| `news`                 | `/news/:slug`                                            |
-| `event`                | `/events/:slug`                                          |
-| `page`                 | `/${slug}` (renders the route; not block-by-block edit)  |
-| `navigation`           | `/`                                                      |
-| `homevideo`            | `/`                                                      |
-| `homesections`         | `/`                                                      |
-| `carousel`             | `/`                                                      |
-| `carouselLink`         | `/`                                                      |
-| `casestudies`          | `/projects/`                                             |
-| `team`                 | `/leadership`                                            |
-| `impact`               | `/impact`                                                |
-| `carbonoffsets`        | `/impact`                                                |
-| `carbonoffsetstabs`    | `/impact`                                                |
-| `carbonoffsetsHexagon` | `/impact`                                                |
-| `address`              | `/connect`                                               |
+| Schema type            | Studio preview URL                                      |
+| ---------------------- | ------------------------------------------------------- |
+| `news`                 | `/news/:slug`                                           |
+| `event`                | `/events/:slug`                                         |
+| `page`                 | `/${slug}` (renders the route; not block-by-block edit) |
+| `navigation`           | `/`                                                     |
+| `homevideo`            | `/`                                                     |
+| `homesections`         | `/`                                                     |
+| `carousel`             | `/`                                                     |
+| `carouselLink`         | `/`                                                     |
+| `casestudies`          | `/projects/`                                            |
+| `team`                 | `/leadership`                                           |
+| `impact`               | `/impact`                                               |
+| `carbonoffsets`        | `/impact`                                               |
+| `carbonoffsetstabs`    | `/impact`                                               |
+| `carbonoffsetsHexagon` | `/impact`                                               |
+| `address`              | `/connect`                                              |
 
 `siteSettings` and `contentType` are intentionally omitted — they have no meaningful single-page preview.
 

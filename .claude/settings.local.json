@@ -77,7 +77,8 @@
       "Bash(echo \"---gatsby tsc=$?\")",
       "Bash(echo \"---sanity tsc=$?\")",
       "Bash(git -C /Users/jullweber/Sites/bluepath/bluepath-sanity commit --amend -m \"feat\\(schemas/news\\): add featured image field with dimension guidance\")",
-      "Bash(git -C /Users/jullweber/Sites/bluepath/bluepath-sanity log --oneline -3)"
+      "Bash(git -C /Users/jullweber/Sites/bluepath/bluepath-sanity log --oneline -3)",
+      "Bash(git fetch *)"
     ]
   },
   "enabledMcpjsonServers": [
