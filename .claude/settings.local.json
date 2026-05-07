@@ -72,7 +72,10 @@
       "Bash(pkill -9 -f \"gatsby develop\")",
       "Bash(grep -rn \"^\\\\s*list$\\\\|^\\\\s*list[[:space:]]\" /Users/jullweber/Sites/bluepath/bluepath-gatsby-ts/src --include=\"*.tsx\" --include=\"*.ts\")",
       "Bash(echo \"---tsc exit=$?\")",
-      "Bash(grep -v \"^$\\\\|webpack-dev\\\\|update-browserslist\\\\|browsers data\\\\|run.*:$\\\\|Why you\\\\|caniuse-lite\\\\|node:\\\\|util._extend\")"
+      "Bash(grep -v \"^$\\\\|webpack-dev\\\\|update-browserslist\\\\|browsers data\\\\|run.*:$\\\\|Why you\\\\|caniuse-lite\\\\|node:\\\\|util._extend\")",
+      "Bash(echo \"---tsc=$?\")",
+      "Bash(echo \"---gatsby tsc=$?\")",
+      "Bash(echo \"---sanity tsc=$?\")"
     ]
   },
   "enabledMcpjsonServers": [

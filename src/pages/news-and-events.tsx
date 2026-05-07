@@ -22,6 +22,7 @@ type NewsNode = {
   excerpt?: string | null;
   publishedAt?: string | null;
   slug?: SanitySlug;
+  featuredImage?: SanityImage;
   heroImage?: SanityImage;
 };
 
@@ -91,9 +92,12 @@ const Row = styled.article`
   }
 
   .row-image {
+    display: block;
     width: 100%;
     max-width: 273px;
+    padding: 0;
     border: 1px solid var(--blue);
+    line-height: 0;
     .gatsby-image-wrapper {
       width: 100%;
       height: auto;
@@ -252,20 +256,24 @@ const NewsAndEventsPage = ({
   const items = useMemo<ArchiveItem[]>(() => {
     const newsItems: ArchiveItem[] = data.allSanityNews.nodes
       .filter((n: NewsNode) => n.slug?.current && n.publishedAt)
-      .map((n: NewsNode) => ({
-        kind: 'news',
-        id: n.id,
-        slug: n.slug!.current!,
-        title: n.title ?? 'Untitled',
-        subhead: n.subhead ?? null,
-        label: n.publication ?? null,
-        excerpt: n.excerpt ?? null,
-        date: formatDate(n.publishedAt),
-        sortKey: new Date(n.publishedAt!).getTime(),
-        image: n.heroImage?.asset?.gatsbyImageData
-          ? getImage(n.heroImage.asset.gatsbyImageData)
-          : null,
-      }));
+      .map((n: NewsNode) => {
+        const archiveImage =
+          n.featuredImage?.asset?.gatsbyImageData ??
+          n.heroImage?.asset?.gatsbyImageData ??
+          null;
+        return {
+          kind: 'news',
+          id: n.id,
+          slug: n.slug!.current!,
+          title: n.title ?? 'Untitled',
+          subhead: n.subhead ?? null,
+          label: n.publication ?? null,
+          excerpt: n.excerpt ?? null,
+          date: formatDate(n.publishedAt),
+          sortKey: new Date(n.publishedAt!).getTime(),
+          image: archiveImage ? getImage(archiveImage) : null,
+        };
+      });
 
     const eventItems: ArchiveItem[] = data.allSanityEvent.nodes
       .filter((e: EventNode) => e.slug?.current && e.eventAt)
@@ -304,7 +312,7 @@ const NewsAndEventsPage = ({
               item.kind === 'news' ? 'CONTINUE READING' : 'VIEW EVENT DETAILS';
             return (
               <Row key={item.id} className={item.kind}>
-                <div className="row-image">
+                <Link to={href} className="row-image" aria-label={item.title}>
                   {item.image ? (
                     <GatsbyImage
                       image={item.image}
@@ -314,7 +322,7 @@ const NewsAndEventsPage = ({
                   ) : (
                     <div className="placeholder" aria-hidden />
                   )}
-                </div>
+                </Link>
                 <div className="row-content">
                   <div className="row-meta">
                     {item.date && <span className="row-date">{item.date}</span>}
@@ -373,6 +381,11 @@ export const query = graphql`
         publishedAt
         slug {
           current
+        }
+        featuredImage {
+          asset {
+            gatsbyImageData(width: 600, layout: CONSTRAINED, placeholder: BLURRED)
+          }
         }
         heroImage {
           asset {
