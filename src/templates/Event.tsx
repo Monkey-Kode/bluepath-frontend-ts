@@ -1,46 +1,122 @@
 import React from 'react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
 import { graphql, HeadProps, PageProps } from 'gatsby';
-import SEO from '../components/SEO';
 import styled from 'styled-components';
 import { PortableText } from '@portabletext/react';
 import { GatsbyImage, getImage } from 'gatsby-plugin-image';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import SEO from '../components/SEO';
 import FormBasic from '../components/FormBasic';
+import { newsBodyComponents } from '../components/NewsBody';
 
 const StyledMain = styled.main`
-  background: rgb(57, 105, 170);
-  background: linear-gradient(
-    159deg,
-    rgba(42, 117, 185, 1) 0%,
-    rgba(78, 155, 227, 1) 24%,
-    rgba(0, 65, 131, 1) 60%,
-    rgba(25, 65, 129, 1) 100%
-  );
-  color: black;
-  margin-top: 100px;
-  .event-content {
-    max-width: 1200px;
+  background: #fff;
+  color: var(--blue);
+  padding: calc(var(--mobile-header-height) + 1.5rem) 1.25rem 5rem;
+
+  @media (min-width: 800px) {
+    padding-top: 160px;
+  }
+
+  .event-wrap {
+    max-width: 1100px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 360px 1fr;
+    gap: 3.5rem;
     align-items: flex-start;
-    justify-items: center;
-    @media (max-width: 800px) {
+
+    @media (max-width: 900px) {
       grid-template-columns: 1fr;
+      gap: 2rem;
     }
   }
-  .event-text {
-    padding: 12.5% 2em;
-    @media (max-width: 800px) {
-      padding: 1em 2em;
+
+  .event-image {
+    .gatsby-image-wrapper {
+      width: 100%;
+      height: auto;
     }
   }
-  label {
-    display: none;
+
+  .event-meta {
+    font-family: 'Inter', Helvetica, Arial, sans-serif;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--gray2);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin-bottom: 0.75rem;
+
+    .label {
+      color: var(--blue);
+      font-weight: 700;
+    }
   }
-  input {
-    margin-bottom: 0.35em;
+
+  h1 {
+    font-family: 'Lora', Georgia, serif;
+    font-weight: 500;
+    color: var(--blue);
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    line-height: 1.2;
+    margin: 0 0 1.5rem;
+  }
+
+  .event-body {
+    margin-bottom: 2rem;
+  }
+
+  .rsvp-card {
+    background: rgba(0, 65, 129, 0.04);
+    border: 1px solid rgba(0, 65, 129, 0.15);
+    padding: 1.5rem;
+    margin-top: 2rem;
+
+    h2 {
+      font-family: 'Lora', Georgia, serif;
+      font-weight: 500;
+      color: var(--blue);
+      font-size: 1.5rem;
+      margin: 0 0 1rem;
+    }
+
+    label {
+      display: none;
+    }
+
+    input,
+    textarea,
+    select {
+      background: #fff;
+      border: 1px solid rgba(0, 65, 129, 0.25);
+      margin-bottom: 0.75rem;
+      padding: 0.6rem 0.75rem;
+      &::placeholder {
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-size: 0.8125rem;
+        color: var(--gray2);
+      }
+    }
+
+    button[type='submit'] {
+      background: var(--blue);
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      padding: 0.75rem 1.75rem;
+      border: none;
+      cursor: pointer;
+      &:hover {
+        background: var(--orange);
+        color: var(--blue);
+      }
+    }
   }
 `;
 
@@ -50,26 +126,47 @@ function Event({
 }: PageProps<Queries.EventQuery> & { location: Location }) {
   const richText = content?.content ?? null;
   const image = content?.image?.asset?.gatsbyImageData
-    ? getImage(content?.image?.asset?.gatsbyImageData)
+    ? getImage(content.image.asset.gatsbyImageData)
+    : null;
+  const eventDate = content?.eventAt
+    ? (() => {
+        const [year, month, day] = content.eventAt!.split('-').map(Number);
+        return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
+      })()
     : null;
   return (
     <div className="event">
       <Header location={location} />
       <StyledMain>
-        <div className="wrap event-content">
-          {image && (
-            <div>
-              <GatsbyImage image={image} alt="Event Image" />
+        <div className="event-wrap">
+          <div className="event-image">
+            {image && <GatsbyImage image={image} alt={content?.name ?? 'Event'} />}
+          </div>
+          <div>
+            <div className="event-meta">
+              {eventDate && <span>{eventDate}</span>}
+              {content?.publication && (
+                <span className="label">{content.publication}</span>
+              )}
             </div>
-          )}
-          <div className="event-text">
-            {content && <h2>{content.name}</h2>}
-            {richText && richText !== null && (
-              <div>
-                <PortableText value={richText as any} />
+            {content?.name && <h1>{content.name}</h1>}
+            {richText && (
+              <div className="event-body">
+                <PortableText
+                  value={richText as never}
+                  components={newsBodyComponents}
+                />
               </div>
             )}
-            <FormBasic name={content?.name} />
+            <div className="rsvp-card">
+              <h2>RSVP</h2>
+              <FormBasic name={content?.name} />
+            </div>
           </div>
         </div>
       </StyledMain>
@@ -79,7 +176,7 @@ function Event({
 }
 
 export const Head = ({ data: { content } }: HeadProps<Queries.EventQuery>) => (
-  <SEO title={content?.description ?? 'Event Page'} />
+  <SEO title={content?.name ?? 'Event'} description={content?.description ?? undefined} />
 );
 
 export const query = graphql`
@@ -88,7 +185,6 @@ export const query = graphql`
       content {
         _key
         style
-        list
         _type
         _rawChildren
         __typename
@@ -104,10 +200,11 @@ export const query = graphql`
       eventAt
       image {
         asset {
-          gatsbyImageData(width: 2000, layout: CONSTRAINED, placeholder: NONE)
+          gatsbyImageData(width: 720, layout: CONSTRAINED, placeholder: BLURRED)
         }
       }
       name
+      publication
       slug {
         current
       }
