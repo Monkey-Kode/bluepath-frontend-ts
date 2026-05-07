@@ -142,6 +142,8 @@ const Row = styled.article`
     color: var(--blue);
     font-weight: 600;
     font-style: italic;
+    font-size:1.25rem;
+    padding-block-end: .75rem;
   }
 
   h2 {

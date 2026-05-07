@@ -58,7 +58,7 @@ const StyledMain = styled.main`
     color: var(--blue);
     font-style: italic;
     font-weight: 700;
-    font-size: 1.0625rem;
+    font-size: 1.25rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
