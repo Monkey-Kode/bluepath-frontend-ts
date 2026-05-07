@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import SEO from '../components/SEO';
+import { headerOffset } from '../styles/mixins';
 
 const PAGE_SIZE = 10;
 
@@ -16,6 +17,7 @@ type SanityImage = {
 type NewsNode = {
   id: string;
   title?: string | null;
+  subhead?: string | null;
   publication?: string | null;
   excerpt?: string | null;
   publishedAt?: string | null;
@@ -38,37 +40,25 @@ type NewsAndEventsData = {
   allSanityEvent: { nodes: EventNode[] };
 };
 
-type ArchiveItem =
-  | {
-      kind: 'news';
-      id: string;
-      slug: string;
-      title: string;
-      label: string | null;
-      excerpt: string | null;
-      date: string;
-      sortKey: number;
-      image: ReturnType<typeof getImage> | null;
-    }
-  | {
-      kind: 'event';
-      id: string;
-      slug: string;
-      title: string;
-      label: string | null;
-      excerpt: string | null;
-      date: string;
-      sortKey: number;
-      image: ReturnType<typeof getImage> | null;
-    };
+type ArchiveItem = {
+  kind: 'news' | 'event';
+  id: string;
+  slug: string;
+  title: string;
+  subhead: string | null;
+  label: string | null;
+  excerpt: string | null;
+  date: string;
+  sortKey: number;
+  image: ReturnType<typeof getImage> | null;
+};
 
 const StyledPage = styled.main`
   background: #fff;
   color: var(--blue);
-  padding: calc(var(--mobile-header-height) + 1.5rem) 1.25rem 5rem;
-  @media (min-width: 800px) {
-    padding-top: 160px;
-  }
+  ${headerOffset}
+  padding-bottom: 5rem;
+  padding-inline: 1.25rem;
 
   .archive-wrap {
     max-width: 1100px;
@@ -76,104 +66,139 @@ const StyledPage = styled.main`
   }
 
   h1.archive-heading {
-    font-family: 'Lora', Georgia, serif;
-    font-weight: 500;
+    font-family: 'Inter', Helvetica, Arial, sans-serif;
+    font-weight: 700;
     color: var(--blue);
-    font-size: clamp(2.25rem, 5vw, 3.5rem);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-size: clamp(1.75rem, 3.5vw, 2.25rem);
     line-height: 1.1;
     margin: 0 0 2.5rem;
+    text-wrap: balance;
   }
 `;
 
 const Row = styled.article`
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 2rem;
+  grid-template-columns: 273px 1fr;
+  gap: 2.5rem;
   align-items: flex-start;
-  padding: 2rem 0;
-  border-top: 1px solid rgba(0, 65, 129, 0.18);
-
-  &:last-child {
-    border-bottom: 1px solid rgba(0, 65, 129, 0.18);
-  }
+  padding: 2.5rem 0;
 
   @media (max-width: 800px) {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 1.25rem;
   }
 
   .row-image {
-    .gatsby-image-wrapper,
+    width: 100%;
+    max-width: 273px;
+    border: 1px solid var(--blue);
+    .gatsby-image-wrapper {
+      width: 100%;
+      height: auto;
+    }
+    .gatsby-image-wrapper img {
+      object-fit: contain !important;
+    }
     .placeholder {
       width: 100%;
-      aspect-ratio: 4 / 3;
+      aspect-ratio: 273 / 387;
       background: rgba(0, 65, 129, 0.08);
     }
+  }
+
+  &.news .row-image {
+    border-color: var(--orange);
   }
 
   .row-content {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
   }
 
   .row-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
     font-family: 'Inter', Helvetica, Arial, sans-serif;
     font-size: 0.8125rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: var(--gray2);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1rem;
   }
 
-  .row-meta .label {
+  .row-date {
+    color: var(--blue);
+    font-weight: 300;
+    font-style: italic;
+  }
+
+  .row-publication {
     color: var(--blue);
     font-weight: 600;
+    font-style: italic;
   }
 
   h2 {
     font-family: 'Lora', Georgia, serif;
-    font-weight: 500;
+    font-weight: 700;
     color: var(--blue);
-    font-size: 1.875rem;
+    font-size: clamp(1.75rem, 2.5vw, 2.25rem);
     line-height: 1.2;
     margin: 0;
+    text-wrap: balance;
     a {
       color: var(--blue);
       text-decoration: none;
       text-transform: none;
       font-weight: inherit;
-      display: inline;
       padding: 0;
+      display: inline;
+      transition: color 0.3s ease;
       &:hover {
         color: var(--orange);
       }
     }
   }
 
-  .row-excerpt {
-    font-family: 'Inter', Helvetica, Arial, sans-serif;
+  .row-subhead {
+    font-family: 'Lora', Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.125rem;
+    line-height: 1.4;
     color: var(--blue);
     margin: 0;
+    text-wrap: balance;
+  }
+
+  .row-excerpt {
+    font-family: 'Lora', Georgia, serif;
+    color: #000;
+    margin: 0;
     line-height: 1.65;
+    font-size: 1rem;
   }
 
   .row-cta {
     margin-top: 0.5rem;
     a {
+      display: inline-block;
+      background: var(--blue);
+      color: #fff;
       font-family: 'Inter', Helvetica, Arial, sans-serif;
-      color: var(--blue);
       text-transform: uppercase;
       letter-spacing: 0.12em;
       font-size: 0.8125rem;
-      font-weight: 700;
+      font-weight: 400;
       text-decoration: none;
-      display: inline-block;
-      padding: 0;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
       &:hover {
-        color: var(--orange);
+        background: var(--orange);
+        color: #fff;
       }
     }
   }
@@ -184,20 +209,21 @@ const LoadMoreWrap = styled.div`
   margin-top: 3rem;
 
   button {
-    background: transparent;
-    border: 2px solid var(--blue);
-    color: var(--blue);
-    padding: 0.75rem 2rem;
+    background: var(--blue);
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    padding: 0.5rem 0.75rem;
     font-family: 'Inter', Helvetica, Arial, sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.12em;
     font-size: 0.8125rem;
-    font-weight: 700;
+    font-weight: 400;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease;
 
     &:hover {
-      background: var(--blue);
+      background: var(--orange);
       color: #fff;
     }
   }
@@ -216,7 +242,6 @@ const formatDate = (iso: string | null | undefined) => {
 
 const eventDateToISO = (eventAt: string | null | undefined) => {
   if (!eventAt) return null;
-  // Sanity stores event.eventAt as a date string. Treat as midnight local.
   return `${eventAt}T00:00:00`;
 };
 
@@ -232,7 +257,8 @@ const NewsAndEventsPage = ({
         id: n.id,
         slug: n.slug!.current!,
         title: n.title ?? 'Untitled',
-        label: n.publication ?? 'News',
+        subhead: n.subhead ?? null,
+        label: n.publication ?? null,
         excerpt: n.excerpt ?? null,
         date: formatDate(n.publishedAt),
         sortKey: new Date(n.publishedAt!).getTime(),
@@ -248,7 +274,8 @@ const NewsAndEventsPage = ({
         id: e.id,
         slug: e.slug!.current!,
         title: e.name ?? 'Untitled event',
-        label: e.publication ?? 'Event',
+        subhead: null,
+        label: e.publication ?? null,
         excerpt: e.description ?? null,
         date: formatDate(eventDateToISO(e.eventAt)),
         sortKey: new Date(eventDateToISO(e.eventAt) ?? 0).getTime(),
@@ -274,27 +301,36 @@ const NewsAndEventsPage = ({
             const href =
               item.kind === 'news' ? `/news/${item.slug}` : `/events/${item.slug}`;
             const ctaLabel =
-              item.kind === 'news' ? 'Continue Reading' : 'View Event Details';
+              item.kind === 'news' ? 'CONTINUE READING' : 'VIEW EVENT DETAILS';
             return (
-              <Row key={item.id}>
+              <Row key={item.id} className={item.kind}>
                 <div className="row-image">
                   {item.image ? (
-                    <GatsbyImage image={item.image} alt={item.title} />
+                    <GatsbyImage
+                      image={item.image}
+                      alt={item.title}
+                      objectFit="contain"
+                    />
                   ) : (
                     <div className="placeholder" aria-hidden />
                   )}
                 </div>
                 <div className="row-content">
                   <div className="row-meta">
-                    <span>{item.date}</span>
-                    {item.label && <span className="label">{item.label}</span>}
+                    {item.date && <span className="row-date">{item.date}</span>}
+                    {item.label && (
+                      <span className="row-publication">{item.label}</span>
+                    )}
                   </div>
                   <h2>
                     <Link to={href}>{item.title}</Link>
                   </h2>
+                  {item.subhead && (
+                    <p className="row-subhead">{item.subhead}</p>
+                  )}
                   {item.excerpt && <p className="row-excerpt">{item.excerpt}</p>}
                   <div className="row-cta">
-                    <Link to={href}>{ctaLabel} →</Link>
+                    <Link to={href}>{ctaLabel}</Link>
                   </div>
                 </div>
               </Row>
@@ -306,7 +342,7 @@ const NewsAndEventsPage = ({
                 type="button"
                 onClick={() => setVisible((v) => v + PAGE_SIZE)}
               >
-                Load More
+                LOAD MORE
               </button>
             </LoadMoreWrap>
           )}
@@ -331,6 +367,7 @@ export const query = graphql`
       nodes {
         id
         title
+        subhead
         publication
         excerpt
         publishedAt
