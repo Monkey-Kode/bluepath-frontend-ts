@@ -60,12 +60,34 @@
       "Bash(agent-browser --session bp-prod open https://bluepathfinance.com/connect/)",
       "Bash(agent-browser --session bp-prod screenshot --full /tmp/prod-connect.png)",
       "Bash(agent-browser *)",
-      "Bash(awk *)"
+      "Bash(awk *)",
+      "Bash(grep -oE '\\(p,\\\\s*h1[^{]*\\\\{[^}]*color:white\\)' public/connect/index.html)",
+      "Bash(python3 -c ' *)",
+      "Bash(gh issue *)",
+      "Bash(pkill -f \"gatsby develop\\\\|netlify dev\")",
+      "Bash(echo \"---exit=$?\")",
+      "Bash(xargs kill -9)",
+      "Bash(pkill -9 -f \"gatsby develop\\\\|netlify dev\\\\|node.*gatsby\")",
+      "Bash(xargs -r kill -9)",
+      "Bash(pkill -9 -f \"gatsby develop\")",
+      "Bash(grep -rn \"^\\\\s*list$\\\\|^\\\\s*list[[:space:]]\" /Users/jullweber/Sites/bluepath/bluepath-gatsby-ts/src --include=\"*.tsx\" --include=\"*.ts\")",
+      "Bash(echo \"---tsc exit=$?\")",
+      "Bash(grep -v \"^$\\\\|webpack-dev\\\\|update-browserslist\\\\|browsers data\\\\|run.*:$\\\\|Why you\\\\|caniuse-lite\\\\|node:\\\\|util._extend\")"
     ]
   },
   "enabledMcpjsonServers": [
     "context7",
     "Sanity",
     "netlify"
-  ]
+  ],
+  "skillOverrides": {
+    "find-skills": "off",
+    "mk:accessibility-compliance": "off",
+    "mk:documentation": "off",
+    "mk:git": "off",
+    "mk:node": "off",
+    "vercel:frontend-design": "off",
+    "vercel:react-best-practices": "off",
+    "vercel:web-design-guidelines": "name-only"
+  }
 }
