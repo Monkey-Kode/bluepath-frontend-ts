@@ -83,7 +83,9 @@
       "WebSearch",
       "WebFetch(domain:opennext.js.org)",
       "WebFetch(domain:www.netlify.com)",
-      "Bash(grep -rn \"graphql\\\\`\\\\|useStaticQuery\" src/ --include=\"*.tsx\" --include=\"*.ts\" -l)"
+      "Bash(grep -rn \"graphql\\\\`\\\\|useStaticQuery\" src/ --include=\"*.tsx\" --include=\"*.ts\" -l)",
+      "Bash(gh repo *)",
+      "Bash(gh api *)"
     ]
   },
   "enabledMcpjsonServers": [

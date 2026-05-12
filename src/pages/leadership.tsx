@@ -26,7 +26,6 @@ const StyledLeadership = styled.main`
   background: #fff;
   color: var(--blue);
   ${headerOffset}
-  padding-top: calc(var(--header-height, 100px) + 4rem);
   padding-bottom: 5rem;
   padding-inline: 1.25rem;
   position: relative;

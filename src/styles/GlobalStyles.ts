@@ -14,11 +14,11 @@ const GlobalStyles = createGlobalStyle`
         /* Fluid type scale.
            Linear interpolation between mobile (375px) and desktop (1280px).
            Formula: clamp(mobileMin, intercept_rem + slope_vw, desktopMax). */
-        --text-display: clamp(2rem, 1.17rem + 3.54vw, 4rem);   /* hero / display */
+        --text-display: clamp(2rem, 1.17rem + 3.54vw, 3.6rem);   /* hero / display */
         --text-h1: clamp(1.75rem, 1.34rem + 1.77vw, 2.75rem);  /* page titles */
         --text-h2: clamp(1.5rem, 1.29rem + 0.88vw, 2rem);      /* section / row titles, body h2 */
-        --text-h3: clamp(1.125rem, 0.97rem + 0.66vw, 1.5rem);  /* subheadings, card names */
-        --text-eyebrow: clamp(1rem, 0.9rem + 0.44vw, 1.25rem); /* small labels, eyebrows */
+        --text-h3: clamp(1.125rem, 0.97rem + 0.66vw, 1.25rem);  /* subheadings, card names */
+        --text-eyebrow: clamp(1rem, 0.9rem + 0.44vw, 1rem); /* small labels, eyebrows */
         --mobile: 800;
         --tablet: 1024;
         --portrait: 768;
@@ -46,6 +46,10 @@ const GlobalStyles = createGlobalStyle`
         margin:0;
         box-sizing: border-box;
         scroll-behavior: smooth;
+    }
+
+    html {
+        scroll-padding-top: var(--header-height);
     }
 
     * {

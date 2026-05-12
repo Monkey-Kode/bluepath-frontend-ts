@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { graphql, Link, type PageProps, type HeadProps } from 'gatsby';
 import { GatsbyImage, getImage, type IGatsbyImageData } from 'gatsby-plugin-image';
 import styled from 'styled-components';
@@ -304,6 +304,10 @@ const NewsAndEventsPage = ({
   const [visible, setVisible] = useState(PAGE_SIZE);
   const shown = items.slice(0, visible);
   const hasMore = visible < items.length;
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <div>

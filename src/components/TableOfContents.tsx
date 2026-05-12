@@ -7,6 +7,7 @@ import { InViewHookResponse } from "react-intersection-observer";
 
 const StyledRoot = styled.div`
   --color-blue: #1d4483;
+  scroll-margin-top: var(--header-height);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -77,6 +78,7 @@ const Tile = styled.li`
 `;
 
 const TileFigure = styled.figure<{ imageUrl: string }>`
+  position: relative;
   width: 140px;
   height: 140px;
   margin: 0;
@@ -86,34 +88,49 @@ const TileFigure = styled.figure<{ imageUrl: string }>`
   background-repeat: no-repeat;
   clip-path: url('#tofClipPath');
 
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.35);
+  }
+
   @media (max-width: 800px) {
     width: 80px;
     height: 80px;
   }
 `;
 
-const VisuallyHiddenLink = styled.a`
+const TileLink = styled.a`
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  text-indent: -9999px;
-  white-space: nowrap;
-  color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
   padding: 0;
-  display: block;
+`;
+
+const TileLabel = styled.span`
+  color: #fff;
+  text-transform: uppercase;
+  font-family: 'Inter', Helvetica, Arial, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-align: center;
+  line-height: 1.1;
+  font-size: clamp(0.75rem, 0.6rem + 0.6vw, 0.85rem);
+  padding-inline: 0.25rem;
 `;
 
 const Body = styled.div`
-  max-width: 900px;
+  max-width: 680px;
   text-align: center;
   padding: 2rem 0;
   font-family: 'Inter', Helvetica, Arial, sans-serif;
   color: var(--color-blue);
   line-height: 1.6;
-  font-size: 1rem;
+  font-size: 1.125rem;
 
   p {
     margin: 0 0 1rem;
@@ -187,9 +204,9 @@ export default function TableOfContents({
                 aria-label={section.image.alt}
                 role="img"
               />
-              <VisuallyHiddenLink href={`#${section.anchorId}`}>
-                {section.heading}
-              </VisuallyHiddenLink>
+              <TileLink href={`#${section.anchorId}`}>
+                <TileLabel>{section.heading}</TileLabel>
+              </TileLink>
             </Tile>
           ))}
         </TilesRow>

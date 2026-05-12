@@ -59,8 +59,6 @@ function FormBody({
   if (name === 'Assessment Request') {
     message =
       'Summary of proposed project, including technologies and preferred financing structure';
-  } else if (name === 'Project Submission') {
-    message = 'Technologies or financial focus';
   }
   const boxAlign = boxLocation || 'left';
   return (

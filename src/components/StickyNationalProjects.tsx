@@ -34,37 +34,27 @@ export default function StickyNationalProjects({
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const update = () => {
-      // Pull the live rect from the observed TOF section. We need a real-time
-      // measurement (not the cached intersection entry) because intersection
-      // entries only update on threshold crossings, not on every scroll.
-      const target = tableOfContentsRef.entry?.target;
-      const rect = target?.getBoundingClientRect();
-      const scrolledPast = rect ? rect.bottom <= 0 : false;
+    const apply = () => {
+      const sectionStartY =
+        tableOfContentsRef.entry?.boundingClientRect.top ?? 0;
+      const currentScrollY = window.scrollY;
 
       if (footerRef.inView) {
-        // Footer in view — hide so it doesn't overlap.
         controls.start({ opacity: 0, y: "100%" });
         setShouldStickyBeVisible(false);
-      } else if (scrolledPast) {
-        // TOF section (and its embedded NationalProjects) has fully scrolled
-        // out of viewport — animate the sticky copy up.
+      } else if (currentScrollY >= sectionStartY) {
         controls.start({ opacity: 1, y: 0 });
         setShouldStickyBeVisible(true);
       } else {
-        // Either the section is still in view (embedded copy is visible) or
-        // we haven't reached it yet — keep the sticky tucked offscreen.
         controls.start({ opacity: 0, y: "100%" });
         setShouldStickyBeVisible(false);
       }
     };
 
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
+    apply();
+    window.addEventListener("scroll", apply, { passive: true });
     return () => {
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", apply);
     };
   }, [footerRef.inView, tableOfContentsRef.entry, controls]);
 
@@ -72,7 +62,7 @@ export default function StickyNationalProjects({
     <StickWrapper
       initial={{ opacity: 0, y: "100%" }}
       animate={controls}
-      transition={{ duration: 0.4, ease: "easeOut" }}
+      transition={{ duration: 0.5 }}
     >
       {shouldStickyBeVisible && <NationalProjects caseStudies={caseStudies} />}
     </StickWrapper>
