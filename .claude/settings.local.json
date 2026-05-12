@@ -78,7 +78,12 @@
       "Bash(echo \"---sanity tsc=$?\")",
       "Bash(git -C /Users/jullweber/Sites/bluepath/bluepath-sanity commit --amend -m \"feat\\(schemas/news\\): add featured image field with dimension guidance\")",
       "Bash(git -C /Users/jullweber/Sites/bluepath/bluepath-sanity log --oneline -3)",
-      "Bash(git fetch *)"
+      "Bash(git fetch *)",
+      "WebFetch(domain:www.sanity.io)",
+      "WebSearch",
+      "WebFetch(domain:opennext.js.org)",
+      "WebFetch(domain:www.netlify.com)",
+      "Bash(grep -rn \"graphql\\\\`\\\\|useStaticQuery\" src/ --include=\"*.tsx\" --include=\"*.ts\" -l)"
     ]
   },
   "enabledMcpjsonServers": [
