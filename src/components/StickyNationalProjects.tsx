@@ -32,9 +32,41 @@ export default function StickyNationalProjects({
 }: StickyNationalProjectsProps) {
   const controls = useAnimation();
   const [shouldStickyBeVisible, setShouldStickyBeVisible] = useState(false);
-  const isStickyActive = tableOfContentsRef.inView && !footerRef.inView;
+  const [isPastTableOfContents, setIsPastTableOfContents] = useState(false);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const update = () => {
+      const target = tableOfContentsRef.entry?.target as HTMLElement | undefined;
+      if (!target) {
+        setIsPastTableOfContents(false);
+        return;
+      }
+
+      const headerHeight =
+        parseFloat(
+          getComputedStyle(document.documentElement).getPropertyValue(
+            "--header-height",
+          ),
+        ) || 0;
+      setIsPastTableOfContents(
+        window.scrollY >= target.offsetTop - headerHeight - 1,
+      );
+    };
+
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, [tableOfContentsRef.entry]);
+
+  useEffect(() => {
+    const isStickyActive = isPastTableOfContents && !footerRef.inView;
     let isMounted = true;
 
     if (isStickyActive) {
@@ -54,7 +86,7 @@ export default function StickyNationalProjects({
     return () => {
       isMounted = false;
     };
-  }, [controls, isStickyActive]);
+  }, [controls, footerRef.inView, isPastTableOfContents]);
 
   return (
     <StickWrapper

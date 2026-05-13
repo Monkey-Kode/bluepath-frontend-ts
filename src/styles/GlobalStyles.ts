@@ -19,6 +19,8 @@ const GlobalStyles = createGlobalStyle`
         --text-h2: clamp(1.5rem, 1.29rem + 0.88vw, 2rem);      /* section / row titles, body h2 */
         --text-h3: clamp(1.125rem, 0.97rem + 0.66vw, 1.25rem);  /* subheadings, card names */
         --text-eyebrow: clamp(1rem, 0.9rem + 0.44vw, 1rem); /* small labels, eyebrows */
+        --text-fine: clamp(0.75rem, 0.7rem + 0.22vw, 0.875rem); /* fine print, captions */
+        --text-micro: clamp(0.625rem, 0.57rem + 0.22vw, 0.75rem); /* micro labels, smallest */
         --mobile: 800;
         --tablet: 1024;
         --portrait: 768;
@@ -50,7 +52,7 @@ const GlobalStyles = createGlobalStyle`
 
     html {
         scroll-padding-top: var(--header-height);
-        scroll-snap-type: y proximity;
+        scroll-snap-type: y mandatory;
     }
 
     * {

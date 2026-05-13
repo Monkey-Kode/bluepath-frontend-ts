@@ -227,7 +227,7 @@ const Card = styled.button<{ $expanded: boolean }>`
     color: var(--blue);
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    font-size: var(--text-eyebrow);
+    font-size: var(--text-micro);
     font-weight: 500;
     line-height: 1.3;
     margin: 0;
