@@ -24,7 +24,7 @@ const StyledRoot = styled.div`
 `;
 
 const Heading = styled.h2`
-  font-family: 'Lora', Georgia, serif;
+  font-family: 'Libre Baskerville', Georgia, serif;
   font-weight: 800;
   color: var(--color-blue);
   text-align: center;

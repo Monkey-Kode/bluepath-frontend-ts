@@ -9,11 +9,11 @@ const StyledHeader = styled.header`
   top: 0;
   left: 0;
   width: 100%;
-  box-shadow: -1px 4px 13px 0px rgb(0 0 0 / 20%);
   z-index: 10;
-  background-color: rgba(255, 255, 255, 1);
+  background-color: var(--white);
   transition: background-color 0.24s ease-in-out;
   z-index: 10000;
+  padding-block: 20px;
   padding-left: 7%;
   padding-right: 7%;
   @media (min-width: 800px) {

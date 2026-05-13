@@ -24,7 +24,7 @@ const StyledNotFound = styled.main`
   }
 
   .code {
-    font-family: 'Lora', Georgia, serif;
+    font-family: 'Libre Baskerville', Georgia, serif;
     font-weight: 700;
     color: var(--blue);
     font-size: clamp(5rem, 14vw, 10rem);
@@ -44,7 +44,6 @@ const StyledNotFound = styled.main`
     font-family: 'Inter', Helvetica, Arial, sans-serif;
     font-weight: 700;
     color: var(--blue);
-    text-transform: uppercase;
     letter-spacing: 0.04em;
     font-size: clamp(1.25rem, 2vw, 1.75rem);
     line-height: 1.2;
@@ -52,7 +51,7 @@ const StyledNotFound = styled.main`
   }
 
   p {
-    font-family: 'Lora', Georgia, serif;
+    font-family: 'Libre Baskerville', Georgia, serif;
     color: #000;
     font-size: 1rem;
     line-height: 1.6;

@@ -28,7 +28,7 @@ const StyledHeaderWrapper = styled.div`
       font-weight: 100;
     }
     &.show {
-      background-color: rgba(255, 255, 255, 1);
+      background-color: var(--white);
       .burger-menu:not(.open) {
         div {
           background-color: var(--blue);

@@ -76,7 +76,7 @@ const PullQuote = styled.figure`
   margin: 2rem 0;
   padding: 1.5rem 1.5rem 1.5rem 2rem;
   border-left: 4px solid var(--orange);
-  font-family: 'Lora', Georgia, serif;
+  font-family: 'Libre Baskerville', Georgia, serif;
   font-size: 1.5rem;
   line-height: 1.4;
   color: var(--blue);

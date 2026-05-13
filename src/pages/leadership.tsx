@@ -40,7 +40,6 @@ const StyledLeadership = styled.main`
     font-family: 'Inter', Helvetica, Arial, sans-serif;
     font-weight: 700;
     color: var(--blue);
-    text-transform: uppercase;
     letter-spacing: 0.02em;
     font-size: var(--text-h1);
     line-height: 1.1;
@@ -67,34 +66,36 @@ const BioCard = styled.article`
   }
 
   .bio-image {
-    .gatsby-image-wrapper {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+
+    .gatsby-image-wrapper,
+    .gatsby-image-wrapper img {
       width: 100%;
-      height: auto;
+      height: 100%;
+    }
+
+    img {
+      object-fit: cover;
     }
   }
 
   .bio-header {
     display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.75rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
     margin: 0 0 1rem;
   }
 
   .bio-name {
-    font-family: 'Lora', Georgia, serif;
+    font-family: 'Libre Baskerville', Georgia, serif;
     font-weight: 700;
     color: var(--blue);
-    font-size: var(--text-h1);
+    font-size: var(--text-h2);
     line-height: 1.1;
     margin: 0;
-  }
-
-  .bio-divider {
-    display: inline-block;
-    width: 1px;
-    height: 1.75rem;
-    background: var(--orange);
   }
 
   .bio-role {
@@ -102,7 +103,7 @@ const BioCard = styled.article`
     color: var(--blue);
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    font-size: var(--text-h2);
+    font-size: var(--text-h3);
     font-weight: 400;
     margin: 0;
   }
@@ -149,7 +150,7 @@ const CarouselTrack = styled.div`
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 225px;
-  gap: 1.5rem;
+  gap: 3rem;
   overflow-x: auto;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
@@ -180,7 +181,7 @@ const Card = styled.button<{ $expanded: boolean }>`
   flex-direction: column;
   background: transparent;
   border: 0;
-  padding: 0;
+  padding: 0 0 1rem;
   text-align: center;
   cursor: pointer;
   width: 225px;
@@ -192,7 +193,7 @@ const Card = styled.button<{ $expanded: boolean }>`
     width: 100%;
     aspect-ratio: 4 / 5;
     overflow: hidden;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
     .gatsby-image-wrapper,
     .gatsby-image-wrapper img {
       width: 100%;
@@ -205,7 +206,7 @@ const Card = styled.button<{ $expanded: boolean }>`
 
   .name {
     display: block;
-    font-family: 'Lora', Georgia, serif;
+    font-family: 'Libre Baskerville', Georgia, serif;
     font-weight: 700;
     color: var(--blue);
     font-size: var(--text-h3);
@@ -218,13 +219,13 @@ const Card = styled.button<{ $expanded: boolean }>`
     height: 1px;
     background: var(--orange);
     width: 100%;
-    margin: 0 0 0.4rem;
+    margin: 0.5rem 0;
   }
 
   .role {
     display: block;
     font-family: 'Inter', Helvetica, Arial, sans-serif;
-    color: var(--blue);
+    color: #000;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-size: var(--text-micro);
@@ -271,7 +272,7 @@ const ArrowButton = styled.button<{ $direction: 'left' | 'right' }>`
   }
 `;
 
-const SCROLL_NUDGE = 240; // Card width + gap
+const SCROLL_NUDGE = 273; // Card width (225) + gap (3rem = 48)
 
 // Spring tuned for smooth, interruptible layout shifts. Framer's spring is
 // inherently cancelable — re-toggling the bio mid-animation continues from the
@@ -374,13 +375,7 @@ const LeadershipPage = ({
                       <header className="bio-header">
                         <h2 className="bio-name">{expanded.name}</h2>
                         {expanded.role && (
-                          <>
-                            <span
-                              className="bio-divider"
-                              aria-hidden="true"
-                            />
-                            <p className="bio-role">{expanded.role}</p>
-                          </>
+                          <p className="bio-role">{expanded.role}</p>
                         )}
                       </header>
                       <div className="bio-content">

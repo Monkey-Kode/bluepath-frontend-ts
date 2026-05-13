@@ -64,7 +64,7 @@ const StyledMain = styled.main`
   }
 
   h1 {
-    font-family: 'Lora', Georgia, serif;
+    font-family: 'Libre Baskerville', Georgia, serif;
     font-weight: 700;
     color: var(--blue);
     font-size: var(--text-h1);
@@ -75,7 +75,7 @@ const StyledMain = styled.main`
 
   .event-body {
     margin-bottom: 2rem;
-    font-family: 'Lora', Georgia, serif;
+    font-family: 'Libre Baskerville', Georgia, serif;
     color: #000;
     line-height: 1.5;
     font-size: 1rem;
@@ -86,7 +86,7 @@ const StyledMain = styled.main`
     li,
     blockquote {
       color: #000;
-      font-family: 'Lora', Georgia, serif;
+      font-family: 'Libre Baskerville', Georgia, serif;
     }
 
     p {

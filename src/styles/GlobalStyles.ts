@@ -39,6 +39,7 @@ const GlobalStyles = createGlobalStyle`
         --big-heading-padding: .5rem;
         --box-width: 725px;
         --white: #fff;
+        --surface-muted: #f6f7f9;
     }
 
 
@@ -284,6 +285,14 @@ const GlobalStyles = createGlobalStyle`
         margin: 0 calc(50% - 50vw);
         max-width: 100vw;
         width: 100vw;
+    }
+
+    .home .box {
+        background: var(--white);
+        * { color: var(--blue); }
+        h2, h3 { color: var(--blue); }
+        p { color: #000; }
+        a { color: var(--blue); }
     }
 
     .hidden {

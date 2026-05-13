@@ -8,7 +8,7 @@ import Menu from "./Menu";
 import DarkLogo from "../images/dark-logo336.svg";
 
 const FooterStyles = styled.footer`
-  /* background-color: var(--blue); */
+  background-color: var(--surface-muted);
   align-items: center;
 
   width: 100vw;

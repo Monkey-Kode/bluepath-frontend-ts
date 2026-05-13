@@ -70,11 +70,9 @@ const StyledPage = styled.main`
     font-family: 'Inter', Helvetica, Arial, sans-serif;
     font-weight: 700;
     color: var(--blue);
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    font-size: var(--text-h1);
+    font-size: var(--text-h2);
     line-height: 1.1;
-    margin: 0 0 2.5rem;
+    margin: 2rem 0 2.5rem;
     text-wrap: balance;
 
     @media (max-width: 800px) {
@@ -151,10 +149,10 @@ const Row = styled.article`
   }
 
   h2 {
-    font-family: 'Lora', Georgia, serif;
+    font-family: 'Libre Baskerville', Georgia, serif;
     font-weight: 700;
     color: var(--blue);
-    font-size: var(--text-h1);
+    font-size: var(--text-h2);
     line-height: 1.2;
     margin: 0;
     text-wrap: balance;
@@ -173,7 +171,7 @@ const Row = styled.article`
   }
 
   .row-subhead {
-    font-family: 'Lora', Georgia, serif;
+    font-family: 'Libre Baskerville', Georgia, serif;
     font-style: italic;
     font-weight: 400;
     font-size: 1.125rem;
@@ -184,11 +182,12 @@ const Row = styled.article`
   }
 
   .row-excerpt {
-    font-family: 'Lora', Georgia, serif;
+    font-family: 'Libre Baskerville', Georgia, serif;
     color: #000;
     margin: 0;
     line-height: 1.65;
     font-size: 1rem;
+    max-width: 60ch;
   }
 
   .row-cta {
