@@ -18,6 +18,7 @@ const GlobalStyles = createGlobalStyle`
         --text-h1: clamp(1.75rem, 1.34rem + 1.77vw, 2.75rem);  /* page titles */
         --text-h2: clamp(1.5rem, 1.29rem + 0.88vw, 2rem);      /* section / row titles, body h2 */
         --text-h3: clamp(1.125rem, 0.97rem + 0.66vw, 1.25rem);  /* subheadings, card names */
+        --text-h4: clamp(1rem, 0.95rem + 0.22vw, 1.125rem); /* body copy, small headings */
         --text-eyebrow: clamp(1rem, 0.9rem + 0.44vw, 1rem); /* small labels, eyebrows */
         --text-fine: clamp(0.75rem, 0.7rem + 0.22vw, 0.875rem); /* fine print, captions */
         --text-micro: clamp(0.625rem, 0.57rem + 0.22vw, 0.75rem); /* micro labels, smallest */
@@ -52,7 +53,6 @@ const GlobalStyles = createGlobalStyle`
 
     html {
         scroll-padding-top: var(--header-height);
-        scroll-snap-type: y mandatory;
     }
 
     * {
@@ -81,7 +81,6 @@ const GlobalStyles = createGlobalStyle`
         align-items: center;
         justify-content: flex-start;
         padding: 2vw;
-        scroll-snap-align: start;
         width: 100vw;
 
         @media only screen and ( max-width: 800px) {
@@ -106,12 +105,6 @@ const GlobalStyles = createGlobalStyle`
 
     }
 
-
-    main {
-        > * {
-            scroll-snap-align: start;
-        }
-    }
     a {
         color: var(--blue);
     }

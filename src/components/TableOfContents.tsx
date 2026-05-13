@@ -32,7 +32,11 @@ const Heading = styled.h2`
   margin: 0 0 2rem;
   text-wrap: balance;
   max-width: 1100px;
-  font-size: var(--text-display);
+  font-size: var(--text-h1);
+
+  @media (min-width: 1440px) {
+    font-size: var(--text-display);
+  }
 `;
 
 const Divider = styled.hr`
@@ -140,7 +144,12 @@ const Body = styled.div`
   font-family: 'Inter', Helvetica, Arial, sans-serif;
   color: var(--color-blue);
   line-height: 1.6;
-  font-size: 1.125rem;
+  font-size: var(--text-h4);
+  text-wrap: pretty;
+
+  @media (min-width: 1440px) {
+    font-size: var(--text-h3);
+  }
 
   p {
     margin: 0 0 1rem;
