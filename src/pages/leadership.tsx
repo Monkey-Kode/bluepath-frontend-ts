@@ -31,7 +31,7 @@ const StyledLeadership = styled.main`
   position: relative;
 
   .leadership-wrap {
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
     min-height: 100vh;
   }
@@ -43,7 +43,7 @@ const StyledLeadership = styled.main`
     letter-spacing: 0.02em;
     font-size: var(--text-h2);
     line-height: 1.1;
-    margin: 0 2.5rem 2.5rem;
+    margin: 2rem 0 2.5rem;
   }
 `;
 
@@ -150,7 +150,7 @@ const CarouselTrack = styled.div`
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 225px;
-  gap: 3rem;
+  gap: 3.5rem;
   overflow-x: auto;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
