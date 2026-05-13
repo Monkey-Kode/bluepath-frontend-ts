@@ -6,7 +6,7 @@ const GlobalStyles = createGlobalStyle`
         --blue: #004181;
         --blue2: rgba(0, 65, 129, .8);
         --blueRGB: rgba(0, 65, 129, .85);
-        --orange: #F5AC3F;
+        --accent: #168FCB;
         --gray: #6e7c85;
         --gray2: #616567;
         --gray-light: #595959;
@@ -28,9 +28,9 @@ const GlobalStyles = createGlobalStyle`
         --phone: 375;
         --desktop: 1025;
         --laptop: 1920px;
-        --border-left: 4px solid var(--orange);
-        --border-right: 2px solid var(--orange);
-        --border-bottom: 2px solid var(--orange);
+        --border-left: 4px solid var(--accent);
+        --border-right: 2px solid var(--accent);
+        --border-bottom: 2px solid var(--accent);
         --small-content-width: 40vw;
         --mobile-header-height: 153px;
         --header-height: 100px;
@@ -179,7 +179,7 @@ const GlobalStyles = createGlobalStyle`
         }
     }
     input[type="submit"], button{
-        background-color: var(--orange);
+        background-color: var(--accent);
         appearance: none;
         border: none;
         padding: .5rem 1.3rem;

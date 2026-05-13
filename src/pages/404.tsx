@@ -35,7 +35,7 @@ const StyledNotFound = styled.main`
   .divider {
     width: 4rem;
     height: 1px;
-    background: var(--orange);
+    background: var(--accent);
     margin: 1rem auto 1.5rem;
     border: 0;
   }
@@ -73,7 +73,7 @@ const StyledNotFound = styled.main`
     transition: background-color 0.2s ease;
 
     &:hover {
-      background: var(--orange);
+      background: var(--accent);
       color: #fff;
     }
   }

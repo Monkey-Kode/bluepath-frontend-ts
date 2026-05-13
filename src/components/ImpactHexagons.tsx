@@ -231,7 +231,7 @@ const StyledTabs = styled.ul`
       }
       &.active {
         background: rgba(0, 65, 129, 1);
-        border: 1px solid var(--orange);
+        border: 1px solid var(--accent);
       }
     }
   }

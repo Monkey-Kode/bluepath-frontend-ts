@@ -34,7 +34,7 @@ const FooterStyles = styled.footer`
     margin: 0 auto;
   }
   .address {
-    border-left: 4px solid var(--orange);
+    border-left: 4px solid var(--accent);
     padding-left: 10px;
   }
 

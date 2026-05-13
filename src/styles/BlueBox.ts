@@ -11,7 +11,7 @@ const BlueBox = styled.button`
   opacity: 0.5;
   .btn-active & {
     opacity: 1;
-    border-color: var(--orange);
+    border-color: var(--accent);
     transition: opacity 0.4s ease-out;
   }
   .btn-inactive & {

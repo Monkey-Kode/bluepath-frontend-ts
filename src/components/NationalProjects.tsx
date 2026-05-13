@@ -5,8 +5,7 @@ import { Link } from "gatsby";
 import { getImageComponent } from "../utils/ImageSelector";
 import { extractState } from "../utils/extractState";
 const StyledNationalProjects = styled.div`
-  --color-orange: hsla(34, 85%, 53%, 1);
-  --border: 1px solid var(--color-orange);
+  --border: 1px solid var(--accent);
   --bottom-margin: 1rem;
   background-color: white;
   display: flex;

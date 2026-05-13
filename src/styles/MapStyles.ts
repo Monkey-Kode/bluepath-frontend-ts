@@ -46,7 +46,7 @@ const MapStyles = createGlobalStyle`
                     display: flex;
                     justify-content: center;
                     align-items:center;
-                    border-bottom: 1px solid var(--orange);
+                    border-bottom: 1px solid var(--accent);
                     flex-flow:column wrap;
                     padding: 8%;
                     svg, img {

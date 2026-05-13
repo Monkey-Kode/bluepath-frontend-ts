@@ -43,7 +43,7 @@ const Divider = styled.hr`
   width: 100%;
   max-width: 750px;
   border: 0;
-  border-top: 1px solid var(--orange);
+  border-top: 1px solid var(--accent);
   margin: 0;
 `;
 
@@ -170,7 +170,7 @@ const TriangleWrap = styled.div`
     width: 23px;
     height: 27px;
     fill: #fff;
-    stroke: var(--orange);
+    stroke: var(--accent);
     stroke-width: 1;
     vector-effect: non-scaling-stroke;
     transform: rotate(90deg);

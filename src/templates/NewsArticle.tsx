@@ -6,7 +6,6 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import SEO from '../components/SEO';
 import NewsBody from '../components/NewsBody';
-import BluePathLogo from '../images/dark-logo336.svg';
 import { headerOffset } from '../styles/mixins';
 
 type NewsArticleData = {
@@ -40,20 +39,10 @@ const StyledArticle = styled.main`
     margin: 0 auto;
   }
 
-  .brand-mark {
-    margin: 0 0 2rem;
-    svg,
-    img {
-      display: block;
-      max-width: 168px;
-      height: auto;
-    }
-  }
-
   h1 {
     font-family: 'Inter', Helvetica, Arial, sans-serif;
     font-weight: 700;
-    color: #000;
+    color: var(--blue);
     font-size: var(--text-h1);
     line-height: 1.2;
     margin: 0 0 1.5rem;
@@ -102,9 +91,6 @@ function NewsArticle({
       <Header location={location} />
       <StyledArticle>
         <article className="article-wrap">
-          <div className="brand-mark" aria-label="BluePath Finance">
-            <BluePathLogo />
-          </div>
           {article?.title && <h1>{article.title}</h1>}
           {hero && (
             <figure className="hero">

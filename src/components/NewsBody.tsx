@@ -23,7 +23,7 @@ const StyledArticleBody = styled.div`
     display: inline;
     padding: 0;
     &:hover {
-      color: var(--orange);
+      color: var(--accent);
     }
   }
 
@@ -57,7 +57,7 @@ const StyledArticleBody = styled.div`
   blockquote {
     margin: 1.5rem 0;
     padding: 0 0 0 1.25rem;
-    border-left: 3px solid var(--orange);
+    border-left: 3px solid var(--accent);
     font-style: italic;
     color: #000;
   }
@@ -75,7 +75,7 @@ const StyledArticleBody = styled.div`
 const PullQuote = styled.figure`
   margin: 2rem 0;
   padding: 1.5rem 1.5rem 1.5rem 2rem;
-  border-left: 4px solid var(--orange);
+  border-left: 4px solid var(--accent);
   font-family: 'Libre Baskerville', Georgia, serif;
   font-size: 1.5rem;
   line-height: 1.4;

@@ -111,7 +111,7 @@ const StyledMain = styled.main`
     }
 
     blockquote {
-      border-left: 3px solid var(--orange);
+      border-left: 3px solid var(--accent);
       padding-left: 1.25rem;
       margin: 1.5rem 0;
       font-style: italic;
@@ -164,7 +164,7 @@ const StyledMain = styled.main`
       width: 23px;
       height: 27px;
       fill: #fff;
-      stroke: var(--orange);
+      stroke: var(--accent);
       stroke-width: 1;
       vector-effect: non-scaling-stroke;
       display: block;
@@ -176,7 +176,7 @@ const StyledMain = styled.main`
 
     .submit-row:hover .submit-triangle,
     .submit-row:focus-within .submit-triangle {
-      fill: var(--orange);
+      fill: var(--accent);
       transform: translateX(4px) scale(1.12);
     }
 
@@ -197,9 +197,9 @@ const StyledMain = styled.main`
         border-color 0.2s ease;
 
       &:hover {
-        background: var(--orange);
+        background: var(--accent);
         color: #fff;
-        border-color: var(--orange);
+        border-color: var(--accent);
       }
     }
   }

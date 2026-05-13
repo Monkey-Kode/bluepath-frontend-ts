@@ -41,7 +41,7 @@ const StyledLeadership = styled.main`
     font-weight: 700;
     color: var(--blue);
     letter-spacing: 0.02em;
-    font-size: var(--text-h1);
+    font-size: var(--text-h2);
     line-height: 1.1;
     margin: 0 2.5rem 2.5rem;
   }
@@ -136,7 +136,7 @@ const BioCard = styled.article`
     cursor: pointer;
     padding: 0.5rem 0 0;
     &:hover {
-      color: var(--orange);
+      color: var(--accent);
     }
   }
 `;
@@ -156,20 +156,12 @@ const CarouselTrack = styled.div`
   scroll-snap-type: x mandatory;
   padding-block-end: 0.75rem;
 
-  /* Custom orange scrollbar */
+  /* Hide scrollbar across browsers — arrows handle navigation */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / legacy Edge */
   &::-webkit-scrollbar {
-    height: 8px;
+    display: none; /* Chrome / Safari / new Edge */
   }
-  &::-webkit-scrollbar-track {
-    background: rgba(0, 65, 129, 0.06);
-    border-radius: 4px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: var(--orange);
-    border-radius: 4px;
-  }
-  scrollbar-color: var(--orange) rgba(0, 65, 129, 0.06);
-  scrollbar-width: thin;
 
   > * {
     scroll-snap-align: start;
@@ -217,9 +209,9 @@ const Card = styled.button<{ $expanded: boolean }>`
   .divider {
     display: block;
     height: 1px;
-    background: var(--orange);
+    background: var(--accent);
     width: 100%;
-    margin: 0.5rem 0;
+    margin: 0.5rem 0 1rem;
   }
 
   .role {
@@ -258,7 +250,7 @@ const ArrowButton = styled.button<{ $direction: 'left' | 'right' }>`
     width: 23px;
     height: 27px;
     fill: #fff;
-    stroke: var(--orange);
+    stroke: var(--accent);
     stroke-width: 1;
     vector-effect: non-scaling-stroke;
     transition:
@@ -267,7 +259,7 @@ const ArrowButton = styled.button<{ $direction: 'left' | 'right' }>`
   }
 
   &:hover svg {
-    fill: var(--orange);
+    fill: var(--accent);
     transform: scale(1.12);
   }
 `;

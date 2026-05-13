@@ -70,6 +70,7 @@ const StyledPage = styled.main`
     font-family: 'Inter', Helvetica, Arial, sans-serif;
     font-weight: 700;
     color: var(--blue);
+    letter-spacing: 0.02em;
     font-size: var(--text-h2);
     line-height: 1.1;
     margin: 2rem 0 2.5rem;
@@ -115,7 +116,7 @@ const Row = styled.article`
   }
 
   &.news .row-image {
-    border-color: var(--orange);
+    border-color: var(--accent);
   }
 
   .row-content {
@@ -165,7 +166,7 @@ const Row = styled.article`
       display: inline;
       transition: color 0.3s ease;
       &:hover {
-        color: var(--orange);
+        color: var(--accent);
       }
     }
   }
@@ -206,7 +207,7 @@ const Row = styled.article`
       border-radius: 6px;
       transition: background-color 0.2s ease;
       &:hover {
-        background: var(--orange);
+        background: var(--accent);
         color: #fff;
       }
     }
@@ -232,7 +233,7 @@ const LoadMoreWrap = styled.div`
     transition: background-color 0.2s ease;
 
     &:hover {
-      background: var(--orange);
+      background: var(--accent);
       color: #fff;
     }
   }
