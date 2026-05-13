@@ -1,7 +1,6 @@
 import React from "react";
 import { ArrElement } from "../types";
 import styled, { keyframes } from "styled-components";
-import NationalProjects, { CaseStudy } from "./NationalProjects";
 import { hardcodedSections } from "../data";
 import { InViewHookResponse } from "react-intersection-observer";
 
@@ -75,6 +74,14 @@ const Tile = styled.li`
   &:hover figure {
     animation: ${panAnimation} 5s linear infinite;
   }
+
+  &:hover figure::after {
+    background-color: rgba(0, 0, 0, 0.15);
+  }
+
+  &:hover span {
+    opacity: 1;
+  }
 `;
 
 const TileFigure = styled.figure<{ imageUrl: string }>`
@@ -92,7 +99,8 @@ const TileFigure = styled.figure<{ imageUrl: string }>`
     content: '';
     position: absolute;
     inset: 0;
-    background-color: rgba(0, 0, 0, 0.35);
+    background-color: rgba(0, 0, 0, 0.25);
+    transition: background-color 0.3s ease;
   }
 
   @media (max-width: 800px) {
@@ -121,6 +129,8 @@ const TileLabel = styled.span`
   line-height: 1.1;
   font-size: clamp(0.75rem, 0.6rem + 0.6vw, 0.85rem);
   padding-inline: 0.25rem;
+  opacity: 1;
+  transition: opacity 0.3s ease;
 `;
 
 const Body = styled.div`
@@ -158,18 +168,11 @@ const TriangleWrap = styled.div`
   }
 `;
 
-const NationalProjectsWrap = styled.div`
-  width: 100%;
-  max-width: 1400px;
-`;
-
 export default function TableOfContents({
   content,
-  caseStudies,
   tableOfContentsRef,
 }: {
   content: ArrElement<Queries.HomeMainQuery["allSanityHomesections"]["nodes"]>;
-  caseStudies: CaseStudy[];
   tableOfContentsRef: InViewHookResponse;
 }) {
   const { anchorId, sectionContent, sectionHeading } = content;
@@ -229,10 +232,6 @@ export default function TableOfContents({
             <polygon points="2,2 18,12 2,22" />
           </svg>
         </TriangleWrap>
-
-        <NationalProjectsWrap>
-          <NationalProjects caseStudies={caseStudies} />
-        </NationalProjectsWrap>
       </StyledRoot>
     </div>
   );

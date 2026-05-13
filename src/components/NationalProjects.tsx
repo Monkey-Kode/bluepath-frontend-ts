@@ -148,6 +148,7 @@ const ProjectDetails = styled.p`
   }
 `;
 const ProjectTitle = styled.h3`
+  font-family: 'Inter', Helvetica, Arial, sans-serif;
   font-size: var(--font-size);
   font-weight: 400;
   color: var(--color-blue);
