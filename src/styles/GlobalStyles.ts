@@ -50,6 +50,7 @@ const GlobalStyles = createGlobalStyle`
 
     html {
         scroll-padding-top: var(--header-height);
+        scroll-snap-type: y proximity;
     }
 
     * {
@@ -104,10 +105,7 @@ const GlobalStyles = createGlobalStyle`
     }
 
 
-    main{
-        scroll-snap-type: mandatory;
-        scroll-snap-points-y: repeat(100vh);
-        scroll-snap-type: y mandatory;
+    main {
         > * {
             scroll-snap-align: start;
         }

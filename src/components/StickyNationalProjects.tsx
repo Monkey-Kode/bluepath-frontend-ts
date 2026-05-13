@@ -6,6 +6,8 @@ import { InViewHookResponse } from "react-intersection-observer";
 
 const StickWrapper = styled(motion.div)`
   display: none;
+  scroll-snap-align: none;
+
   @media (min-width: 1025px) {
     display: block;
     position: fixed;
@@ -30,33 +32,29 @@ export default function StickyNationalProjects({
 }: StickyNationalProjectsProps) {
   const controls = useAnimation();
   const [shouldStickyBeVisible, setShouldStickyBeVisible] = useState(false);
+  const isStickyActive = tableOfContentsRef.inView && !footerRef.inView;
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    let isMounted = true;
 
-    const apply = () => {
-      const sectionStartY =
-        tableOfContentsRef.entry?.boundingClientRect.top ?? 0;
-      const currentScrollY = window.scrollY;
+    if (isStickyActive) {
+      setShouldStickyBeVisible(true);
+      controls.start({ opacity: 1, y: 0 });
+      return () => {
+        isMounted = false;
+      };
+    }
 
-      if (footerRef.inView) {
-        controls.start({ opacity: 0, y: "100%" });
-        setShouldStickyBeVisible(false);
-      } else if (currentScrollY >= sectionStartY) {
-        controls.start({ opacity: 1, y: 0 });
-        setShouldStickyBeVisible(true);
-      } else {
-        controls.start({ opacity: 0, y: "100%" });
+    controls.start({ opacity: 0, y: "100%" }).then(() => {
+      if (isMounted) {
         setShouldStickyBeVisible(false);
       }
-    };
+    });
 
-    apply();
-    window.addEventListener("scroll", apply, { passive: true });
     return () => {
-      window.removeEventListener("scroll", apply);
+      isMounted = false;
     };
-  }, [footerRef.inView, tableOfContentsRef.entry, controls]);
+  }, [controls, isStickyActive]);
 
   return (
     <StickWrapper

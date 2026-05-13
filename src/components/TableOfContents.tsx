@@ -6,19 +6,19 @@ import { InViewHookResponse } from "react-intersection-observer";
 
 const StyledRoot = styled.div`
   --color-blue: #1d4483;
-  scroll-margin-top: var(--header-height);
+  min-height: calc(100vh - 110px);
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   width: 100%;
   max-width: 100%;
-  padding-block-start: 2rem;
-  padding-block-end: 0;
+  padding-block: 2rem;
   padding-inline: 1.5rem;
   overflow-x: hidden;
 
   @media (min-width: 1280px) {
-    padding-block-start: 5rem;
+    min-height: calc(100vh - var(--header-height));
     padding-inline: 4rem;
   }
 `;

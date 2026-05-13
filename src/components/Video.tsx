@@ -8,14 +8,23 @@ import scrollTo from "gatsby-plugin-smoothscroll";
 import { GatsbyImage } from "gatsby-plugin-image";
 import { ArrElement } from "../types";
 const StyledVideo = styled.video`
+  display: block;
+  width: 100%;
   max-width: 100vw;
-  margin-bottom: -4px;
+  margin-bottom: 0;
   position: relative;
   z-index: 1;
-  height: 100vh;
+  height: 100%;
   background-color: black;
   object-fit: cover;
   object-position: center center;
+`;
+
+const VideoSection = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
 `;
 
 const StyledButtonsWrapper = styled.div`
@@ -161,7 +170,7 @@ function Video({
     const mimeType = video?.video?.asset?.mimeType;
     const mobileMimeType = video?.mobileVideo?.asset?.mimeType;
     return (
-      <>
+      <VideoSection>
         <StyledButtonsWrapper className="sound-button">
           <StyledSoundButton data-state="mute" onClick={setSound}>
             <Sound />
@@ -211,7 +220,7 @@ function Video({
           )}
         </StyledVideo>
         <div id="bottom-video"></div>
-      </>
+      </VideoSection>
     );
   } else if (video.youtubeLink) {
     const videos = nodes.flatMap((video) => ({

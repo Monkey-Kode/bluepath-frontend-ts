@@ -33,6 +33,7 @@ const StyledLeadership = styled.main`
   .leadership-wrap {
     max-width: 1400px;
     margin: 0 auto;
+    min-height: 100vh;
   }
 
   h1 {
@@ -101,7 +102,7 @@ const BioCard = styled.article`
     color: var(--blue);
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    font-size: 1.5rem;
+    font-size: var(--text-h2);
     font-weight: 400;
     margin: 0;
   }
