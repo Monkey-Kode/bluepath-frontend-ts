@@ -13,6 +13,7 @@ type TeamNode = {
   id: string;
   name?: string | null;
   role?: string | null;
+  roleSubtitle?: string | null;
   bio?: string | null;
   order?: number | null;
   image?: {
@@ -98,7 +99,8 @@ const BioCard = styled.article`
     margin: 0;
   }
 
-  .bio-role {
+  .bio-role,
+  .bio-role-subtitle {
     font-family: 'Inter', Helvetica, Arial, sans-serif;
     color: var(--blue);
     text-transform: uppercase;
@@ -179,6 +181,21 @@ const Card = styled.button<{ $expanded: boolean }>`
   width: 225px;
   font: inherit;
   color: inherit;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+  }
+
+  &:hover .name {
+    color: var(--accent);
+  }
+
+  &:hover .photo img {
+    transform: scale(1.04);
+  }
 
   .photo {
     display: block;
@@ -193,6 +210,7 @@ const Card = styled.button<{ $expanded: boolean }>`
     }
     img {
       object-fit: cover;
+      transition: transform 0.4s ease;
     }
   }
 
@@ -204,6 +222,7 @@ const Card = styled.button<{ $expanded: boolean }>`
     font-size: var(--text-h3);
     margin: 0 0 0.4rem;
     line-height: 1.2;
+    transition: color 0.3s ease;
   }
 
   .divider {
@@ -214,7 +233,8 @@ const Card = styled.button<{ $expanded: boolean }>`
     margin: 0.5rem 0 1rem;
   }
 
-  .role {
+  .role,
+  .role-subtitle {
     display: block;
     font-family: 'Inter', Helvetica, Arial, sans-serif;
     color: #000;
@@ -369,6 +389,11 @@ const LeadershipPage = ({
                         {expanded.role && (
                           <p className="bio-role">{expanded.role}</p>
                         )}
+                        {expanded.roleSubtitle && (
+                          <p className="bio-role-subtitle">
+                            {expanded.roleSubtitle}
+                          </p>
+                        )}
                       </header>
                       <div className="bio-content">
                         {paragraphs(expanded.bio).map((p, i) => (
@@ -436,6 +461,9 @@ const LeadershipPage = ({
                     <span className="name">{member.name}</span>
                     <span className="divider" aria-hidden="true" />
                     {member.role && <span className="role">{member.role}</span>}
+                    {member.roleSubtitle && (
+                      <span className="role-subtitle">{member.roleSubtitle}</span>
+                    )}
                   </Card>
                 );
               })}
@@ -463,6 +491,7 @@ export const query = graphql`
         id
         name
         role
+        roleSubtitle
         bio
         order
         image {
