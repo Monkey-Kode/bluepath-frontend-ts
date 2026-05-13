@@ -142,7 +142,7 @@ const Body = styled.div`
   text-align: center;
   padding: 2rem 0;
   font-family: 'Inter', Helvetica, Arial, sans-serif;
-  color: var(--color-blue);
+  color: #000;
   line-height: 1.6;
   font-size: var(--text-h4);
   text-wrap: pretty;
@@ -153,7 +153,7 @@ const Body = styled.div`
 
   p {
     margin: 0 0 1rem;
-    color: var(--color-blue);
+    color: #000;
 
     &:last-child {
       margin-bottom: 0;
