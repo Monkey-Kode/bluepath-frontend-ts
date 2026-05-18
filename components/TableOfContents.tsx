@@ -89,12 +89,12 @@ const Tile = styled.li`
   }
 `;
 
-const TileFigure = styled.figure<{ imageUrl: string }>`
+const TileFigure = styled.figure<{ $imageUrl: string }>`
   position: relative;
   width: 140px;
   height: 140px;
   margin: 0;
-  background-image: url(${(p) => p.imageUrl});
+  background-image: url(${(p) => p.$imageUrl});
   background-size: cover;
   background-position: left center;
   background-repeat: no-repeat;
@@ -213,7 +213,7 @@ export default function TableOfContents({
           {hardcodedSections.map((section) => (
             <Tile key={section.anchorId}>
               <TileFigure
-                imageUrl={section.image.imageUrl}
+                $imageUrl={section.image.imageUrl}
                 aria-label={section.image.alt}
                 role="img"
               />
