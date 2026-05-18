@@ -21,6 +21,15 @@ const Root = styled.div`
   background-size: cover;
   display: flex;
   align-items: center;
+
+  /* The bg <Layer> is absolutely positioned, so it would paint above
+     static-flow siblings. Lift the real content children (everything
+     except the aria-hidden image layer) above it, without adding a
+     wrapper element that would break the global section > div cascade. */
+  & > *:not([aria-hidden='true']) {
+    position: relative;
+    z-index: 1;
+  }
 `;
 
 const Layer = styled.div<{ $visible: boolean }>`
