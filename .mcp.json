@@ -8,8 +8,9 @@
       "command": "npx",
       "args": ["next-devtools-mcp@latest"]
     },
-    "sanity": {
+    "Sanity": {
       "url": "https://mcp.sanity.io",
+      "type": "http",
       "headers": {
         "Authorization": "Bearer ${SANITY_MCP_TOKEN}"
       }

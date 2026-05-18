@@ -33,3 +33,4 @@ src/gatsby-types.d.ts
 .DS_Store
 # next-agents-md
 .next-docs/
+.playwright-mcp/

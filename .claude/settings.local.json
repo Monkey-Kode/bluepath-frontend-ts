@@ -94,13 +94,27 @@
       "Bash(git -C /Users/jullweber/Sites/bluepath/bluepath-sanity status)",
       "Bash(git -C /Users/jullweber/Sites/bluepath/bluepath-sanity add schemas/team.ts)",
       "Bash(git -C /Users/jullweber/Sites/bluepath/bluepath-sanity commit -m ' *)",
-      "Bash(git -C /Users/jullweber/Sites/bluepath/bluepath-sanity push)"
+      "Bash(git -C /Users/jullweber/Sites/bluepath/bluepath-sanity push)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(agent-browser --session ref open https://deploy-preview-45--bluepath-gatsby.netlify.app/)",
+      "Bash(agent-browser --session ref wait --load networkidle)",
+      "Bash(agent-browser --session ref screenshot dp-home.png)",
+      "Bash(agent-browser --session ref open https://deploy-preview-45--bluepath-gatsby.netlify.app/leadership/)",
+      "Bash(agent-browser --session ref screenshot dp-leadership.png)",
+      "Bash(python3 -m json.tool)",
+      "Bash(git rm *)",
+      "mcp__next-devtools__init",
+      "mcp__next-devtools__nextjs_index",
+      "mcp__next-devtools__browser_eval",
+      "mcp__next-devtools__nextjs_call"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "context7",
     "Sanity",
-    "netlify"
+    "netlify",
+    "next-devtools"
   ],
   "skillOverrides": {
     "find-skills": "off",
