@@ -2,10 +2,9 @@ import type { MetadataRoute } from 'next';
 
 import { sanityFetch } from '@/sanity/lib/live';
 import { sitemapQuery } from '@/sanity/lib/queries';
+import { getSiteUrl } from '@/lib/siteUrl';
 
-const BASE = (
-  process.env.NEXT_PUBLIC_SITE_URL || 'https://bluepathfinance.com'
-).replace(/\/$/, '');
+const BASE = getSiteUrl();
 
 // Slugs owned by hand-built static routes (mirrors gatsby-node STATIC_PAGE_SLUGS).
 const STATIC_PAGE_SLUGS = new Set(['leadership', 'news-and-events']);

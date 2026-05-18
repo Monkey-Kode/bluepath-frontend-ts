@@ -14,6 +14,7 @@ import {
 } from '@/components/GoogleTagManager';
 import GtmRouteTracker from '@/components/GtmRouteTracker';
 import StyledComponentsRegistry from '@/lib/registry';
+import { getSiteUrl } from '@/lib/siteUrl';
 import { SanityLive } from '@/sanity/lib/live';
 import Providers from '@/styles/Providers';
 
@@ -33,9 +34,7 @@ const baskerville = Libre_Baskerville({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://bluepathfinance.com',
-  ),
+  metadataBase: new URL(getSiteUrl()),
   title: {
     default: 'FUNDING THE DISTRIBUTED ENERGY TRANSITION',
     template: '%s',
