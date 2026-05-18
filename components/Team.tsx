@@ -254,7 +254,7 @@ function Team({
   };
   return (
     <StyledTeamSection
-      as="section"
+      forwardedAs="section"
       id={name ?? undefined}
       image={sectionBg ?? null}
       style={{ backgroundColor: bgColor ?? undefined }}

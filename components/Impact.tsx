@@ -170,59 +170,59 @@ function Impact({
           />
         )}
         {sectionBg ? (
-            <StyledImpactBackground
-              as="section"
-              id={id ?? undefined}
-              image={sectionBg}
-              className="impact"
-              style={{ backgroundColor: bgColor }}
+          <StyledImpactBackground
+            forwardedAs="section"
+            id={id ?? undefined}
+            image={sectionBg}
+            className="impact"
+            style={{ backgroundColor: bgColor }}
+          >
+            <StyledCarbonSection className="impact">
+              <StyledCarbonContent>
+                <StyledHeading>Carbon Offset Equivalencies</StyledHeading>
+                <ImpactHexagons carbonoffsets={carbonoffsets} />
+              </StyledCarbonContent>
+            </StyledCarbonSection>
+            <div
+              style={{
+                flexDirection: "column",
+                justifyContent: "center !important",
+                marginTop: "10vh",
+              }}
             >
-              <StyledCarbonSection className="impact">
-                <StyledCarbonContent>
-                  <StyledHeading>Carbon Offset Equivalencies</StyledHeading>
-                  <ImpactHexagons carbonoffsets={carbonoffsets} />
-                </StyledCarbonContent>
-              </StyledCarbonSection>
-              <div
-                style={{
-                  flexDirection: "column",
-                  justifyContent: "center !important",
-                  marginTop: "10vh",
-                }}
-              >
-                <StyledHeading>{Heading}</StyledHeading>
-                <StyledContent>
-                  <StyledBoxes>
-                    {thumbs.map((thumb) => {
-                      index += 1;
-                      return (
-                        <ImpactThumb
-                          className={classNames({
-                            "btn-active": currentThumb === thumb.id,
-                          })}
-                          setActiveBtn={setActiveBtn}
-                          id={`${index}_impact_thumb`}
-                          key={thumb.id}
-                          content={thumb}
-                          setCurrentThumb={setCurrentThumb}
-                          currentThumb={currentThumb}
-                          setFirstClick={setFirstClick}
-                        />
-                      );
-                    })}
-                  </StyledBoxes>
-                  <StyledInfos>
-                    {thumbs.map((thumb) => {
-                      if (thumb.id === currentThumb) {
-                        return <ImpactContent key={thumb.id} content={thumb} />;
-                      } else {
-                        return null;
-                      }
-                    })}
-                  </StyledInfos>
-                </StyledContent>
-              </div>
-            </StyledImpactBackground>
+              <StyledHeading>{Heading}</StyledHeading>
+              <StyledContent>
+                <StyledBoxes>
+                  {thumbs.map((thumb) => {
+                    index += 1;
+                    return (
+                      <ImpactThumb
+                        className={classNames({
+                          "btn-active": currentThumb === thumb.id,
+                        })}
+                        setActiveBtn={setActiveBtn}
+                        id={`${index}_impact_thumb`}
+                        key={thumb.id}
+                        content={thumb}
+                        setCurrentThumb={setCurrentThumb}
+                        currentThumb={currentThumb}
+                        setFirstClick={setFirstClick}
+                      />
+                    );
+                  })}
+                </StyledBoxes>
+                <StyledInfos>
+                  {thumbs.map((thumb) => {
+                    if (thumb.id === currentThumb) {
+                      return <ImpactContent key={thumb.id} content={thumb} />;
+                    } else {
+                      return null;
+                    }
+                  })}
+                </StyledInfos>
+              </StyledContent>
+            </div>
+          </StyledImpactBackground>
         ) : (
           <section id={id ?? undefined}></section>
         )}
