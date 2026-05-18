@@ -3,6 +3,11 @@ import 'normalize.css';
 import type { Metadata } from 'next';
 import { Inter, Libre_Baskerville } from 'next/font/google';
 
+import {
+  GoogleTagManagerNoscript,
+  GoogleTagManagerScript,
+} from '@/components/GoogleTagManager';
+import GtmRouteTracker from '@/components/GtmRouteTracker';
 import StyledComponentsRegistry from '@/lib/registry';
 import Providers from '@/styles/Providers';
 
@@ -31,6 +36,15 @@ export const metadata: Metadata = {
   },
   description:
     'We finance sustainable infrastructure, including energy retrofit and new building projects. Technologies increasingly reduce, store, and generate energy where it is used. New and remodeled buildings need to satisfy tightening carbon emission standards. Financing structures must be nimble enough to capitalize on the cost and environmental savings generated.',
+  openGraph: {
+    type: 'website',
+    siteName: 'FUNDING THE DISTRIBUTED ENERGY TRANSITION',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@BluePathFinance',
+    creator: '@BluePathFinance',
+  },
 };
 
 export default function RootLayout({
@@ -44,9 +58,12 @@ export default function RootLayout({
       className={`${inter.variable} ${baskerville.variable}`}
     >
       <body>
+        <GoogleTagManagerNoscript />
         <StyledComponentsRegistry>
           <Providers>{children}</Providers>
         </StyledComponentsRegistry>
+        <GtmRouteTracker />
+        <GoogleTagManagerScript />
       </body>
     </html>
   );

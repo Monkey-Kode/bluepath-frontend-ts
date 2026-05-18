@@ -55,6 +55,14 @@ export const addressesQuery = defineQuery(`
   }
 `);
 
+export const sitemapQuery = defineQuery(`
+  *[_type in ["page", "event", "news"] && defined(slug.current)]{
+    _type,
+    "slug": slug.current,
+    _updatedAt
+  }
+`);
+
 export const homeQuery = defineQuery(`
   *[_type == "home"][0]{
     _id,
