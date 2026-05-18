@@ -39,12 +39,9 @@ const Content = styled.div`
   width: 100%;
 `;
 
-type Props = {
+type Props = Omit<React.ComponentPropsWithoutRef<'div'>, 'children'> & {
   image: ProjectedImage;
-  /** Forwarded so the component is `styled()`-extendable. */
-  className?: string;
   children?: React.ReactNode;
-  style?: React.CSSProperties;
   /** Background render width requested from the Sanity CDN. */
   width?: number;
 };
@@ -60,6 +57,7 @@ export default function SanityBackgroundImage({
   children,
   style,
   width = 2000,
+  ...rest
 }: Props) {
   const lqip = image?.asset?.metadata?.lqip ?? undefined;
   const fullUrl = image
@@ -86,6 +84,7 @@ export default function SanityBackgroundImage({
 
   return (
     <Root
+      {...rest}
       className={className}
       style={{
         ...style,

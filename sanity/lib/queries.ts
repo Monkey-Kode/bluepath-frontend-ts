@@ -88,18 +88,81 @@ export const pageBySlugQuery = defineQuery(`
     Heading,
     sectionHeadingPosition,
     boxLocation,
+    "id": _id,
     content,
     richcontent,
     sectionContentCTAtext,
     sectionContentCTAjumpId,
     sectionContentCTAurl,
     "sectionContentCTApageLink": sectionContentCTApageLink->{ "slug": slug.current },
-    backgroundColor,
+    backgroundColor{ hex },
     background{ ${imageFields} },
     mobilebackground{ ${imageFields} },
-    contentType->{ _id, _type },
+    contentType->{ _id, name },
     seotitle,
     description
+  }
+`);
+
+/* ---------- page content clusters (contentType dispatch) ---------- */
+
+export const impactItemsQuery = defineQuery(`
+  *[_type == "impact"] | order(order asc){
+    _id,
+    "id": _id,
+    name,
+    order,
+    content1, content2, content3, content4,
+    contentheading1, contentheading2, contentheading3, contentheading4,
+    image{ ${imageFields} }
+  }
+`);
+
+export const carbonoffsetsQuery = defineQuery(`
+  *[_type == "carbonoffsets"] | order(order asc){
+    _id,
+    "id": _id,
+    name,
+    order,
+    hexagons[]{
+      _key,
+      heading,
+      order,
+      name,
+      content,
+      backgroundColor{ hex },
+      icon{ ${imageFields} }
+    }
+  }
+`);
+
+export const teamQuery = defineQuery(`
+  *[_type == "team"] | order(order asc){
+    _id,
+    "id": _id,
+    name,
+    role,
+    roleSubtitle,
+    bio,
+    order,
+    image{ ${imageFields} }
+  }
+`);
+
+export const casestudiesQuery = defineQuery(`
+  *[_type == "casestudies"]{
+    _id,
+    "id": _id,
+    title,
+    entity,
+    financing,
+    size,
+    technologies,
+    content,
+    address,
+    state,
+    location,
+    image{ ${imageFields} }
   }
 `);
 
