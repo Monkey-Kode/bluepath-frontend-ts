@@ -170,8 +170,9 @@ function Impact({
           />
         )}
         {sectionBg ? (
-          <section id={id ?? undefined}>
             <StyledImpactBackground
+              as="section"
+              id={id ?? undefined}
               image={sectionBg}
               className="impact"
               style={{ backgroundColor: bgColor }}
@@ -222,7 +223,6 @@ function Impact({
                 </StyledContent>
               </div>
             </StyledImpactBackground>
-          </section>
         ) : (
           <section id={id ?? undefined}></section>
         )}

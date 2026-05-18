@@ -27,7 +27,10 @@ const nextConfig: NextConfig = {
     styledComponents: true,
   },
   images: {
-    remotePatterns: [new URL('https://cdn.sanity.io/**')],
+    remotePatterns: [
+      new URL('https://cdn.sanity.io/**'),
+      new URL('https://office.monkeykode.com/**'),
+    ],
   },
   turbopack: {
     rules: {

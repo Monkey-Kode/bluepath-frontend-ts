@@ -67,23 +67,24 @@ const IndividualPageContent = ({ page }: { page: Page }) => {
             width={2000}
           />
         )}
-        <section
+        <SanityBackgroundImage
+          as="section"
           id={id ?? undefined}
           className="individual-page"
+          image={sectionBg}
           style={{ backgroundColor: bgColor }}
+          width={2000}
         >
-          <SanityBackgroundImage image={sectionBg} width={2000}>
-            <ContentBox
-              hidetitle={hidetitle}
-              sectionContent={content}
-              sectionHeading={Heading}
-              sectionContentCTAjumpId={sectionContentCTAjumpId}
-              sectionContentCTApageLink={sectionContentCTApageLink}
-              sectionHeadingPosition={sectionHeadingPosition}
-              sectionContentCTAtext={sectionContentCTAtext}
-            />
-          </SanityBackgroundImage>
-        </section>
+          <ContentBox
+            hidetitle={hidetitle}
+            sectionContent={content}
+            sectionHeading={Heading}
+            sectionContentCTAjumpId={sectionContentCTAjumpId}
+            sectionContentCTApageLink={sectionContentCTApageLink}
+            sectionHeadingPosition={sectionHeadingPosition}
+            sectionContentCTAtext={sectionContentCTAtext}
+          />
+        </SanityBackgroundImage>
       </StyledContent>
     );
   }

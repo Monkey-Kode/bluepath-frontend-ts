@@ -254,13 +254,14 @@ function Team({
   };
   return (
     <StyledTeamSection
+      as="section"
+      id={name ?? undefined}
       image={sectionBg ?? null}
       style={{ backgroundColor: bgColor ?? undefined }}
       onClick={(e: SyntheticEvent) => {
         setcurrentSlide("");
       }}
     >
-      <div id={name ?? undefined}>
         <div id="teamWrapper" className="team-wrapper">
           <h2>{name}</h2>
           <StyledInfos>
@@ -313,7 +314,6 @@ function Team({
             </StyledThumbs>
           </ThumbsContainer>
         </div>
-      </div>
     </StyledTeamSection>
   );
 }

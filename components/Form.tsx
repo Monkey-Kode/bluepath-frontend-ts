@@ -205,13 +205,17 @@ const Form = ({ page }: { page: Page }) => {
     <>
       {background ? (
         <div className={boxAlign}>
-          <section id={id ?? undefined} style={{ backgroundColor: bgColor }}>
-            <SanityBackgroundImage image={background} width={2000}>
-              <div>
-                <FormBody name={name} sectionHeading={Heading} />
-              </div>
-            </SanityBackgroundImage>
-          </section>
+          <SanityBackgroundImage
+            as="section"
+            id={id ?? undefined}
+            image={background}
+            style={{ backgroundColor: bgColor }}
+            width={2000}
+          >
+            <div>
+              <FormBody name={name} sectionHeading={Heading} />
+            </div>
+          </SanityBackgroundImage>
         </div>
       ) : (
         <div className={boxAlign}>

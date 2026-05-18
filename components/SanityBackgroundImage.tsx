@@ -34,11 +34,6 @@ const Layer = styled.div<{ $visible: boolean }>`
   pointer-events: none;
 `;
 
-const Content = styled.div`
-  position: relative;
-  width: 100%;
-`;
-
 type Props = Omit<React.ComponentPropsWithoutRef<'div'>, 'children'> & {
   image: ProjectedImage;
   children?: React.ReactNode;
@@ -100,7 +95,7 @@ export default function SanityBackgroundImage({
           style={{ backgroundImage: `url(${fullUrl})` }}
         />
       )}
-      <Content>{children}</Content>
+      {children}
     </Root>
   );
 }

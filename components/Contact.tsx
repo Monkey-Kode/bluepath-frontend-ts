@@ -54,17 +54,21 @@ function Contact({
           />
         )}
         {sectionBg ? (
-          <section id={id ?? undefined} style={{ backgroundColor: bgColor }}>
-            <SanityBackgroundImage image={sectionBg} width={2000}>
-              <ContactBody
-                id={id}
-                Heading={Heading}
-                name={name}
-                richcontent={richcontent}
-                addresses={addresses}
-              />
-            </SanityBackgroundImage>
-          </section>
+          <SanityBackgroundImage
+            as="section"
+            id={id ?? undefined}
+            image={sectionBg}
+            style={{ backgroundColor: bgColor }}
+            width={2000}
+          >
+            <ContactBody
+              id={id}
+              Heading={Heading}
+              name={name}
+              richcontent={richcontent}
+              addresses={addresses}
+            />
+          </SanityBackgroundImage>
         ) : (
           <section id={id ?? undefined} style={{ backgroundColor: bgColor }}>
             <ContactBody
