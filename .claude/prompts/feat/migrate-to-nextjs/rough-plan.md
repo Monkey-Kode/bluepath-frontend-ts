@@ -93,10 +93,10 @@ Scope explicitly excluded from Phase 1:
 
 Following the Sanity reference template's pattern — use the `sanity-image` package wrapped in a tiny `SanityImage` component:
 
-- [ ] Build `components/SanityImage.tsx` as a thin wrapper over `sanity-image`'s `<SanityImage>`, supplying `baseUrl={`https://cdn.sanity.io/images/${projectId}/${dataset}/`}`. ~10 lines of code (see template's `frontend/app/components/SanityImage.tsx`).
-- [ ] Build `components/SanityBackgroundImage.tsx` — div with CSS `background-image` from `@sanity/image-url`'s `urlFor()`, plus a blur layer rendering the LQIP base64 string for the gatsby-background-image-style fade-in
-- [ ] Adjust GROQ projections to fetch `asset->{url, metadata{dimensions, lqip}}`, hotspot, crop, alt — replacing `gatsbyImageData`
-- [ ] Add `cdn.sanity.io` to `images.remotePatterns` in `next.config.ts` (the template does this — `sanity-image` renders standard `<img>` tags loading from the CDN; remotePatterns is needed only if any code falls back to `next/image` against Sanity URLs, which is harmless to allow either way)
+- [x] Build `components/SanityImage.tsx` as a thin wrapper over `sanity-image`'s `<SanityImage>`, supplying `baseUrl={`https://cdn.sanity.io/images/${projectId}/${dataset}/`}`. ~10 lines of code (see template's `frontend/app/components/SanityImage.tsx`).
+- [x] Build `components/SanityBackgroundImage.tsx` — div with CSS `background-image` from `@sanity/image-url`'s `urlFor()`, plus a blur layer rendering the LQIP base64 string for the gatsby-background-image-style fade-in
+- [x] Adjust GROQ projections to fetch `asset->{url, metadata{dimensions, lqip}}`, hotspot, crop, alt — replacing `gatsbyImageData`
+- [x] Add `cdn.sanity.io` to `images.remotePatterns` in `next.config.ts` (the template does this — `sanity-image` renders standard `<img>` tags loading from the CDN; remotePatterns is needed only if any code falls back to `next/image` against Sanity URLs, which is harmless to allow either way)
 
 ## 1.4 Global layout, theme, fonts
 
