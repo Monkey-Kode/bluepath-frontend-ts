@@ -77,17 +77,17 @@ Scope explicitly excluded from Phase 1:
 
 ## 1.2 Sanity client + types
 
-- [ ] Install runtime (latest, caret ranges): `pnpm add next-sanity @sanity/client @sanity/image-url @portabletext/react groq sanity-image`
-- [ ] Install dev (for typegen CLI): `pnpm add -D sanity` (the Studio package — its CLI runs `sanity typegen generate`)
-- [ ] Add scripts mirroring the Sanity template (using pnpm):
+- [x] Install runtime (latest, caret ranges): `pnpm add next-sanity @sanity/client @sanity/image-url @portabletext/react groq sanity-image`
+- [x] Install dev (for typegen CLI): `pnpm add -D sanity` (the Studio package — its CLI runs `sanity typegen generate`)
+- [x] Add scripts mirroring the Sanity template (using pnpm):
   - `"predev": "pnpm run sanity:typegen"` — typegen runs before `next dev`
   - `"prebuild": "sanity typegen generate"` — typegen runs before `next build`
   - `"sanity:typegen": "pnpm --dir ../bluepath-sanity exec sanity schema extract --enforce-required-fields --path ../bluepath-gatsby-ts/sanity.schema.json && sanity typegen generate"` — extracts schema from Studio repo (sibling), writes `sanity.schema.json` into this repo's root, then generates types here. The Next migration is in-place on a branch of `bluepath-gatsby-ts`, so the frontend path is the existing repo.
-- [ ] Create `lib/sanity/client.ts` with `createClient` configured for the project/dataset
-- [ ] Create `lib/sanity/live.ts` exporting `sanityFetch` and `SanityLive` from `defineLive`
-- [ ] Create `lib/sanity/queries.ts` — port every page/template query from Gatsby's GraphQL to GROQ (use `defineQuery` so typegen picks them up). Every query must have a unique name; inline queries are skipped by typegen.
-- [ ] In the Next project, create `sanity.cli.ts` configuring `typegen.schema: './sanity.schema.json'`, `typegen.path: './sanity/**/*.{ts,tsx,js,jsx}'`, `typegen.generates: './sanity.types.ts'`, `overloadClientMethods: true`. With overload on, `client.fetch()` returns typed results when queries use `defineQuery`. The schema is produced by the explicit `pnpm run sanity:typegen` script (see 1.1) — do not rely on `schemaExtraction.enabled: true`.
-- [ ] Replace every `Queries.PageQuery`, `Queries.SanityPage`, `Queries.SanityEvent`, `Queries.SanityNews` import with the typegen equivalents from `sanity.types.ts`
+- [x] Create `lib/sanity/client.ts` with `createClient` configured for the project/dataset _(used template's `sanity/lib/` path convention)_
+- [x] Create `lib/sanity/live.ts` exporting `sanityFetch` and `SanityLive` from `defineLive`
+- [x] Create `lib/sanity/queries.ts` — port every page/template query from Gatsby's GraphQL to GROQ (use `defineQuery` so typegen picks them up). Every query must have a unique name; inline queries are skipped by typegen. _(Seeded 11 named queries; projections expanded per-route in §1.5–§1.7.)_
+- [x] In the Next project, create `sanity.cli.ts` configuring `typegen.schema: './sanity.schema.json'`, `typegen.path: './sanity/**/*.{ts,tsx,js,jsx}'`, `typegen.generates: './sanity.types.ts'`, `overloadClientMethods: true`. With overload on, `client.fetch()` returns typed results when queries use `defineQuery`. The schema is produced by the explicit `pnpm run sanity:typegen` script (see 1.1) — do not rely on `schemaExtraction.enabled: true`.
+- [~] Replace every `Queries.PageQuery`, `Queries.SanityPage`, `Queries.SanityEvent`, `Queries.SanityNews` import with the typegen equivalents from `sanity.types.ts` _(executed incrementally during the §1.5–§1.7 page/component ports — the old `Queries.*` types only exist in not-yet-ported files)_
 
 ## 1.3 Image strategy
 

@@ -1,10 +1,34 @@
 node_modules/
 .cache/
-public
-src/gatsby-types.d.ts
+
+# next.js
+.next/
+out/
+
+# generated sanity types/schema
+sanity.schema.json
+sanity.types.ts
 
 # Local Netlify folder
 .netlify
 .yarn/**/*
+
+# env
 .env
 .env.*
+!.env.example
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# sitemap (generated)
+public/sitemap*.xml
+public/robots.txt
+
+# generated Gatsby types (dead, retained until §1.13 cleanup)
+src/gatsby-types.d.ts
+
+.DS_Store
+# next-agents-md
+.next-docs/
