@@ -195,11 +195,11 @@ Mechanical work, mostly find-and-replace patterns:
 
 Mirror the Sanity reference template (`sanity-template-nextjs-clean/frontend`) — it's a known-good Next 16 + next-sanity 12 pattern.
 
-- [ ] Configure the client with stega: `createClient({ ..., stega: { studioUrl } })` where `studioUrl` comes from `NEXT_PUBLIC_SANITY_STUDIO_URL`. Stega encodes invisible Source Map metadata into string responses so the overlay can locate document/field origins.
+- [x] Configure the client with stega: `createClient({ ..., stega: { studioUrl } })` where `studioUrl` comes from `NEXT_PUBLIC_SANITY_STUDIO_URL`. Stega encodes invisible Source Map metadata into string responses so the overlay can locate document/field origins.
 - [ ] Build `sanity/lib/live.ts` exporting `sanityFetch` and `SanityLive` from `defineLive({ client, serverToken: token, browserToken: token })`. The `browserToken` is required for stand-alone live previews; next-sanity only ships it to the browser inside a valid Draft Mode session.
 - [ ] Create `app/api/draft-mode/enable/route.ts` using `defineEnableDraftMode({ client: client.withConfig({ token }) })` from `next-sanity/draft-mode`
-- [ ] Create a Server Action `app/actions.ts` exposing `disableDraftMode()` that calls `(await draftMode()).disable()` (used by a draft-mode toast component)
-- [ ] **Root `app/layout.tsx`** — render `<SanityLive />` for ALL visitors; gate only `<VisualEditing />` to draft mode:
+- [x] Create a Server Action `app/actions.ts` exposing `disableDraftMode()` that calls `(await draftMode()).disable()` (used by a draft-mode toast component)
+- [x] **Root `app/layout.tsx`** — render `<SanityLive />` for ALL visitors; gate only `<VisualEditing />` to draft mode:
   ```tsx
   const { isEnabled: isDraftMode } = await draftMode();
   return (
@@ -213,18 +213,18 @@ Mirror the Sanity reference template (`sanity-template-nextjs-clean/frontend`) �
   );
   ```
   `<SanityLive />` is the documented pattern in next-sanity 12 — always rendered, drives live revalidation across all `sanityFetch` calls. Only the click-to-edit overlay is gated to authenticated draft-mode sessions. (This corrects the earlier draft of this plan, which over-applied the now-resolved Next 16 + next-sanity 11 mitigations.)
-- [ ] Pass `{ stega: false }` to `sanityFetch` calls inside `generateMetadata` and `generateStaticParams` — stega-encoded strings would corrupt OpenGraph tags and break slug-based path generation
-- [ ] In the Sanity Studio (`bluepath-sanity`), configure the Presentation Tool plugin in `sanity.config.ts`:
+- [x] Pass `{ stega: false }` to `sanityFetch` calls inside `generateMetadata` and `generateStaticParams` — stega-encoded strings would corrupt OpenGraph tags and break slug-based path generation
+- [x] In the Sanity Studio (`bluepath-sanity`), configure the Presentation Tool plugin in `sanity.config.ts`: _(already configured w/ full resolve.ts; fixed previewMode.enable → /api/draft-mode/enable, committed+pushed in bluepath-sanity df6c754)_
   - `previewUrl`: `{ origin: process.env.SANITY_STUDIO_PREVIEW_URL, previewMode: { enable: '/api/draft-mode/enable' } }` — note the key is `previewMode`, not `draftMode` (verified against the official template's `studio/sanity.config.ts`)
   - Document location resolvers mapping every routable type (`page`, `event`, `news`) to its frontend path
-- [ ] Sanity → Manage → API → CORS Origins: add the frontend origins with credentials enabled — `http://localhost:3000`, the Netlify deploy preview URL pattern, and the production URL. Do not add `cdn.sanity.io` (image host, not an origin).
-- [ ] Token security: store `SANITY_API_READ_TOKEN` in a `sanity/lib/token.ts` module with `import 'server-only'` at the top — prevents accidental client-bundle inclusion (matches the template's pattern).
+- [~] Sanity → Manage → API → CORS Origins: add the frontend origins with credentials enabled — `http://localhost:3000`, the Netlify deploy preview URL pattern, and the production URL. _(EXTERNAL — Sanity Manage UI)_ Do not add `cdn.sanity.io` (image host, not an origin).
+- [x] Token security: store `SANITY_API_READ_TOKEN` in a `sanity/lib/token.ts` module with `import 'server-only'` at the top — prevents accidental client-bundle inclusion (matches the template's pattern).
 - [ ] Verify end-to-end: open Presentation Tool → click an overlay → edit a field → confirm the iframe content updates seamlessly via `<SanityLive />` (no full page reload) and the click-to-edit overlay re-anchors
 
 ## 1.11 Hosting + deploy
 
 - [ ] Existing Netlify site = the `bluepath-gatsby` project (site id `f840a3fc-5d36-411c-8bea-fe943fd54195`, primary URL `https://bluepathfinance.com`, Forms enabled — verified via Netlify MCP). Migration branch deploys as a branch preview at `<branch>--bluepath-gatsby.netlify.app`. No new site. Forms inbox, env vars, analytics IDs inherited by construction.
-- [ ] **Rewrite `netlify.toml`** — the existing file forces Gatsby-shaped build settings that will break a Next deploy. Adapter detection (OpenNext) is automatic from `next` in `package.json` + `next.config.ts` and runs independent of the toml, but `netlify.toml` build settings take precedence over UI and auto-detection. Target file:
+- [x] **Rewrite `netlify.toml`** — the existing file forces Gatsby-shaped build settings that will break a Next deploy. Adapter detection (OpenNext) is automatic from `next` in `package.json` + `next.config.ts` and runs independent of the toml, but `netlify.toml` build settings take precedence over UI and auto-detection. Target file:
   ```toml
   [build]
   command = "pnpm run build"
