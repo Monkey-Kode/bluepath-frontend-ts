@@ -118,7 +118,7 @@ For each, create the matching App Router page, fetch via `sanityFetch`, render w
 
 - [ ] `app/page.tsx` ← `src/pages/index.tsx`
 - [ ] `app/leadership/page.tsx` ← `src/pages/leadership.tsx`
-- [ ] `app/news-and-events/page.tsx` ← `src/pages/news-and-events.tsx`
+- [x] `app/news-and-events/page.tsx` ← `src/pages/news-and-events.tsx` _(client archive + load-more; GatsbyImage→SanityImage)_
 - [x] `app/thankyou/page.tsx` ← `src/pages/thankyou.tsx`
 - [x] `app/not-found.tsx` ← `src/pages/404.tsx`
 
@@ -126,9 +126,9 @@ For each, create the matching App Router page, fetch via `sanityFetch`, render w
 
 - [ ] `app/[slug]/page.tsx` ← `src/templates/Page.tsx` — `generateStaticParams` from `allSanityPage` minus the static slugs (`leadership`, `news-and-events`, `thankyou`, `404`)
 - [ ] `app/events/[slug]/page.tsx` ← `src/templates/Event.tsx` — `generateStaticParams` from `allSanityEvent`
-- [ ] `app/news/[slug]/page.tsx` ← `src/templates/NewsArticle.tsx` — `generateStaticParams` from `allSanityNews`
+- [x] `app/news/[slug]/page.tsx` ← `src/templates/NewsArticle.tsx` — `generateStaticParams` from `allSanityNews` _(SSG verified; generateMetadata stega:false)_
 - [ ] Port custom `PortableTextComponents` from `NewsBody.tsx` and `Event.tsx`
-- [ ] **Next 16 async-API contract** — `params`, `searchParams`, `draftMode()`, `cookies()`, `headers()` are all ASYNC in Next 15+/16. An agent with Next 14-era training will write stale sync patterns (`params.slug` directly, `draftMode().isEnabled` non-awaited). They MUST be awaited: `const { slug } = await params;`, `const { isEnabled } = await draftMode();`. This is exactly why the bundled-docs step in 1.1 is FIRST priority — the agent must consult `node_modules/next/dist/docs/` for the current signatures, not memory. If any sync patterns slip in, run `npx @next/codemod@latest next-async-request-api` to auto-fix.
+- [x] **Next 16 async-API contract** — `params`, `searchParams`, `draftMode()`, `cookies()`, `headers()` are all ASYNC _(dynamic routes await params; verified against bundled docs)_ in Next 15+/16. An agent with Next 14-era training will write stale sync patterns (`params.slug` directly, `draftMode().isEnabled` non-awaited). They MUST be awaited: `const { slug } = await params;`, `const { isEnabled } = await draftMode();`. This is exactly why the bundled-docs step in 1.1 is FIRST priority — the agent must consult `node_modules/next/dist/docs/` for the current signatures, not memory. If any sync patterns slip in, run `npx @next/codemod@latest next-async-request-api` to auto-fix.
 
 ## 1.7 Components port (~39 files)
 

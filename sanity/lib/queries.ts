@@ -159,7 +159,20 @@ export const newsBySlugQuery = defineQuery(`
     excerpt,
     heroImage{ ${imageFields} },
     featuredImage{ ${imageFields} },
-    body,
+    body[]{
+      ...,
+      _type == "imageWithCaption" => {
+        ...,
+        image{ ..., asset->{ url, altText } }
+      },
+      markDefs[]{
+        ...,
+        _type == "internalLink" => {
+          ...,
+          reference->{ _type, slug }
+        }
+      }
+    },
     seoDescription
   }
 `);
