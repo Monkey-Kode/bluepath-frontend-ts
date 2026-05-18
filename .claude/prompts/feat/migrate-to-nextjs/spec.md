@@ -35,7 +35,7 @@ Migration is therefore not a discretionary "would be nice" — it is the lowest-
   - `/assessment-request` → `/connect` (from `netlify.toml`, 301)
   - `/assessment-request/*` → `/connect` (from `netlify.toml`, 301)
   Plus any others discovered during port. Verify each on the branch deploy preview.
-- **FR-003**: The `events` form (RSVP form in `Event.tsx` via `FormBasic`) MUST submit successfully through Netlify Forms and land in the existing inbox. The `Case Study Request` form (sanityPage slug `case-study-request`, referenced from a `navigation` document) MUST also work. The `Project Submission` form (sanityPage slug `assessment-request`) is **already redirected away** in `netlify.toml` and SHOULD NOT be wired in `__forms.html` — preserve the redirect (see FR-002) instead of resurrecting the form. Branch deploys on the same Netlify site mean the Forms inbox is inherited by construction; no new site or team migration required.
+- **FR-003**: The `events` form (RSVP form in `Event.tsx` via `FormBasic`) MUST submit successfully through Netlify Forms and land in the existing inbox, **with every populated field captured in the submission** (not just the subset wired to React state today). The `Case Study Request` form (sanityPage slug `case-study-request`, referenced from a `navigation` document) MUST also work, with the same all-fields requirement. Note: this implies fixing two pre-existing handler bugs (missing `preventDefault` in `FormBasic`; partial-`state` field drop in `Form.tsx`) by serializing via `new FormData(form)` — an intentional correctness deviation from strict bug-for-bug parity, flagged for stakeholder awareness. The `Project Submission` form (sanityPage slug `assessment-request`) is **already redirected away** in `netlify.toml` and SHOULD NOT be wired in `__forms.html` — preserve the redirect (see FR-002) instead of resurrecting the form. Branch deploys on the same Netlify site mean the Forms inbox is inherited by construction; no new site or team migration required.
 - **FR-004**: Authenticated content editors MUST be able to open Sanity's Presentation Tool, see the live frontend in the iframe, click any overlay marker, edit the underlying field, and observe the iframe update without a full page reload.
 - **FR-005**: Anonymous visitors MUST see the published (non-draft) content. Draft content MUST NOT leak to anonymous visitors.
 - **FR-006**: Google Tag Manager (`GTM-5BVGJ4Q`) MUST fire pageview events on initial load and on every client-side App Router route change. Container ID and event payloads must match current Gatsby behavior.
@@ -77,7 +77,7 @@ The rough-plan document captures the operational checklist (~13 sub-sections, ~8
 
 - [ ] Given I visit any production URL after cutover, when the page loads, then I see the same content and layout as the pre-cutover Gatsby site at desktop/tablet/mobile breakpoints.
 - [ ] Given I submit any form on the new site, when I press submit, then I am redirected to `/thankyou/` and a Netlify Forms entry is recorded in the existing inbox.
-- [ ] Given I follow an old `/event/:slug` URL from an external link, when I land, then I am redirected (HTTP 308) to `/events/:slug`.
+- [ ] Given I follow an old `/event/:slug` URL from an external link, when I land, then I am redirected (HTTP 301, matching current production) to `/events/:slug`.
 
 ### Story 2: Editor uses live preview
 
@@ -113,6 +113,8 @@ The rough-plan document captures the operational checklist (~13 sub-sections, ~8
 - **Node version**: 22 LTS (or 24 LTS if Netlify supports it at migration time), Volta-pinned in `package.json`.
 - **Styling**: styled-components retained. Every consumer must be a Client Component (`'use client'`) — its runtime requires hooks. SSR is preserved via `StyledComponentsRegistry` and `useServerInsertedHTML`.
 - **Type generation**: explicit two-step extract+generate per the Sanity reference template (Studio runs `sanity schema extract`; frontend runs `sanity typegen generate`). Wired as `predev`/`prebuild` scripts.
+- **Build tooling**: Turbopack (Next 16 default). No custom webpack config — SVG-as-component handled Turbopack-natively (SVGR via `turbopack.rules`, or hand-written `.tsx` components). The build MUST pass without `--webpack`.
+- **Agent docs**: `AGENTS.md` + `CLAUDE.md` wired to Next's version-matched bundled docs (`node_modules/next/dist/docs/`) so the implementing agent uses Next 16 APIs, not stale training data. Next 16 request APIs (`params`, `searchParams`, `draftMode()`, `cookies()`, `headers()`) are async and must be awaited.
 
 ## Scope Boundaries
 
@@ -192,7 +194,7 @@ Merging the migration branch to `main` is gated on all of the following being tr
 
 - [ ] Every public URL in the Gatsby production sitemap resolves on the branch deploy at the same path with the same trailing-slash behavior.
 - [ ] Every redirect in `gatsby-node.ts` AND `netlify.toml` is ported to `next.config.ts` `redirects()` and verified (correct status code, correct destination) — including `/assessment-request` and `/assessment-request/*` → `/connect`.
-- [ ] Every confirmed-active form (per audit) submits successfully from the branch deploy preview and lands in the existing Netlify Forms inbox.
+- [ ] Every confirmed-active form (per audit) submits successfully from the branch deploy preview and lands in the existing Netlify Forms inbox, with every populated field present in the inbox entry (explicitly verify `company` on the `Case Study Request` form — it is dropped today).
 - [ ] Side-by-side visual review at desktop / tablet / mobile breakpoints across all 5 static pages and a representative sampling of dynamic routes (≥3 events, ≥3 news articles, all `page` slugs) shows no unintended visual differences.
 - [ ] Google Maps component renders with all current features (markers, info windows, custom styling).
 - [ ] All Framer Motion animations on the Gatsby site fire on the Next.js site.

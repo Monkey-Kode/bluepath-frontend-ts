@@ -85,7 +85,16 @@
       "WebFetch(domain:www.netlify.com)",
       "Bash(grep -rn \"graphql\\\\`\\\\|useStaticQuery\" src/ --include=\"*.tsx\" --include=\"*.ts\" -l)",
       "Bash(gh repo *)",
-      "Bash(gh api *)"
+      "Bash(gh api *)",
+      "Bash(grep *)",
+      "Bash(pkill -f \"gatsby develop\")",
+      "Bash(pkill -f \"node.*gatsby\")",
+      "Bash(lsof -ti:8000 -ti:8888)",
+      "Bash(lsof -ti:8000)",
+      "Bash(git -C /Users/jullweber/Sites/bluepath/bluepath-sanity status)",
+      "Bash(git -C /Users/jullweber/Sites/bluepath/bluepath-sanity add schemas/team.ts)",
+      "Bash(git -C /Users/jullweber/Sites/bluepath/bluepath-sanity commit -m ' *)",
+      "Bash(git -C /Users/jullweber/Sites/bluepath/bluepath-sanity push)"
     ]
   },
   "enabledMcpjsonServers": [
