@@ -1,24 +1,11 @@
-# example netlify.toml
 [build]
 command = "pnpm run build"
-functions = "functions"
-publish = "/public"
+publish = ".next"
+# `.next` is Netlify's documented publish dir for Next.js SSR/hybrid.
+# Set explicitly (not omitted): this is an existing Gatsby site, so a stale
+# UI/Gatsby publish setting could otherwise win. Do NOT set `functions` —
+# the OpenNext adapter (auto-installed on Next detection) owns serverless
+# /edge function output. Redirects are ported to next.config.ts redirects().
 
-[[redirects]]
-from = "/assessment-request"
-to = "/connect"
-status = 301
-force = true
-
-[[redirects]]
-from = "/assessment-request/*"
-to = "/connect"
-status = 301
-force = true
-## (optional) Settings for Netlify Dev
-## https://github.com/netlify/cli/blob/master/docs/netlify-dev.md#project-detection
 [dev]
-command = "pnpm run start" # Command to start your dev server
-# port = 8000 # Port that the dev server will be listening on
-publish = "/public" # Folder with the static content for _redirect file
-# more info on configuring this file: https://www.netlify.com/docs/netlify-toml-reference/
+command = "pnpm run dev"

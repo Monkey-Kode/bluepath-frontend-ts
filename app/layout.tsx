@@ -2,13 +2,19 @@ import 'normalize.css';
 
 import type { Metadata } from 'next';
 import { Inter, Libre_Baskerville } from 'next/font/google';
+import { draftMode } from 'next/headers';
+import { VisualEditing } from 'next-sanity/visual-editing';
+import { Toaster } from 'sonner';
 
+import { handleError } from '@/app/client-utils';
+import DraftModeToast from '@/components/DraftModeToast';
 import {
   GoogleTagManagerNoscript,
   GoogleTagManagerScript,
 } from '@/components/GoogleTagManager';
 import GtmRouteTracker from '@/components/GtmRouteTracker';
 import StyledComponentsRegistry from '@/lib/registry';
+import { SanityLive } from '@/sanity/lib/live';
 import Providers from '@/styles/Providers';
 
 const inter = Inter({
@@ -47,21 +53,29 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { isEnabled: isDraftMode } = await draftMode();
+
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${baskerville.variable}`}
-    >
+    <html lang="en" className={`${inter.variable} ${baskerville.variable}`}>
       <body>
         <GoogleTagManagerNoscript />
         <StyledComponentsRegistry>
           <Providers>{children}</Providers>
         </StyledComponentsRegistry>
+        <Toaster />
+        {isDraftMode && (
+          <>
+            <DraftModeToast />
+            <VisualEditing />
+          </>
+        )}
+        {/* SanityLive drives live revalidation for every sanityFetch — always rendered. */}
+        <SanityLive onError={handleError} />
         <GtmRouteTracker />
         <GoogleTagManagerScript />
       </body>
