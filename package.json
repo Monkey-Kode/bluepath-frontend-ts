@@ -17,6 +17,8 @@
     "@portabletext/react": "^6.2.0",
     "@sanity/client": "^7.22.0",
     "@sanity/image-url": "^2.1.1",
+    "classnames": "^2.5.1",
+    "framer-motion": "^12.38.0",
     "groq": "^5.25.1",
     "next": "^16.2.6",
     "next-sanity": "^12.4.5",
@@ -40,6 +42,7 @@
     "node": "24.15.0"
   },
   "devDependencies": {
+    "@svgr/webpack": "^8.1.0",
     "@types/node": "^25.8.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

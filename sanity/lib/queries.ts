@@ -44,6 +44,17 @@ export const navigationQuery = defineQuery(`
   }
 `);
 
+export const addressesQuery = defineQuery(`
+  *[_type == "address"] | order(order asc){
+    _id,
+    name,
+    address,
+    details,
+    order,
+    location
+  }
+`);
+
 export const homeQuery = defineQuery(`
   *[_type == "home"][0]{
     _id,

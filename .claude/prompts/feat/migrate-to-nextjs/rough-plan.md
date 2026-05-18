@@ -110,7 +110,7 @@ Following the Sanity reference template's pattern — use the `sanity-image` pac
   ```
   Apply both variables to `<html className={`${inter.variable} ${baskerville.variable}`}>` in `app/layout.tsx`. Update the `font-family` strings in `Theme.tsx`, `src/utils/typography.ts`, and the 14 styled-components usages to reference `var(--font-baskerville)` / `var(--font-inter)` with the original fallback stack preserved (`Georgia, serif` / system fallback). `next/font` self-hosts the files at build time — no Google Fonts runtime request, no preconnect needed, no FOIT.
 - [x] Mirror Gatsby's `Layout` wrapper (used by both `gatsby-browser.tsx` and `gatsby-ssr.tsx`) as `app/layout.tsx`
-- [~] Port `Header`, `Footer`, `Nav` components — keep as Server Components where they don't need interactivity; mark client where needed _(deferred to §1.7: transitive deps on SVG-as-component (§1.9), framer-motion, Menu/BurgerMenu, allSanityAddress query — ported with the component graph)_
+- [x] Port `Header`, `Footer`, `Nav` components — keep as Server Components where they don't need interactivity; mark client where needed _(SiteHeader/SiteFooter server wrappers sanityFetch settings/nav/addresses; Header/Footer/Nav/Menu/BurgerMenu/Logo are 'use client'; build-verified)_
 
 ## 1.5 Static pages port (5 routes)
 
@@ -119,8 +119,8 @@ For each, create the matching App Router page, fetch via `sanityFetch`, render w
 - [ ] `app/page.tsx` ← `src/pages/index.tsx`
 - [ ] `app/leadership/page.tsx` ← `src/pages/leadership.tsx`
 - [ ] `app/news-and-events/page.tsx` ← `src/pages/news-and-events.tsx`
-- [ ] `app/thankyou/page.tsx` ← `src/pages/thankyou.tsx`
-- [ ] `app/not-found.tsx` ← `src/pages/404.tsx`
+- [x] `app/thankyou/page.tsx` ← `src/pages/thankyou.tsx`
+- [x] `app/not-found.tsx` ← `src/pages/404.tsx`
 
 ## 1.6 Dynamic template ports (3 templates)
 
@@ -140,7 +140,7 @@ Mechanical work, mostly find-and-replace patterns:
 - [ ] `import { Link } from 'gatsby'` → `import Link from 'next/link'` (drop `to=` for `href=`)
 - [ ] `import { navigate } from 'gatsby'` → `useRouter().push()` from `next/navigation`
 - [ ] Mark every component that uses styled-components as `'use client'`. In App Router, the styled-components runtime only operates in Client Components (it relies on hooks). Note: Client Components still server-render to HTML on initial load — they're not "client-only" — so first paint and SEO are unaffected. What changes is where the data-fetching boundary lives: page-level Server Components call `sanityFetch`, and pass plain JSON props down to the styled Client children.
-- [ ] Set up `StyledComponentsRegistry` in `app/layout.tsx` using `useServerInsertedHTML` so the styled-components runtime collects styles during SSR and inserts them into the streamed HTML head (Next's documented pattern for CSS-in-JS).
+- [x] Set up `StyledComponentsRegistry` in `app/layout.tsx` using `useServerInsertedHTML` so the styled-components runtime collects styles during SSR and inserts them into the streamed HTML head (Next's documented pattern for CSS-in-JS).
 - [ ] Maps: port the active direct-API implementation. `Projects.tsx` and `ContactBody.tsx` already use `@googlemaps/js-api-loader` directly — these port as-is (just need `'use client'` and any needed `useEffect` cleanup). Delete the dead `react-google-maps` chain: `MapContainer.tsx`, `Map.tsx`, and `ProjectsMap.tsx` (verified — `ProjectsMap` is only imported by itself; nothing else consumes it). Remove `react-google-maps` from `package.json`.
 - [ ] Remove `gbimage-bridge` and `convertToBgImage` (no longer needed)
 
@@ -186,7 +186,7 @@ Mechanical work, mostly find-and-replace patterns:
 - [ ] Port sitemap: replace `gatsby-plugin-sitemap` with `next-sitemap` configured to read from Sanity
 - [ ] Port metadata: convert any `<Helmet>` / `<Head>` usage to App Router `metadata` exports / `generateMetadata`
 - [ ] **Port GTM** (correction — analytics IS wired). `gatsby-config.ts:57` includes `gatsby-plugin-google-tagmanager` with container `GTM-5BVGJ4Q`. Replace with `next/script` in `app/layout.tsx` using `strategy="afterInteractive"`, plus the noscript iframe fallback in `<body>`. Verify pageview events fire on App Router route changes (Next does not emit them by default — wire up via `usePathname` + `useSearchParams` in a Client Component that calls `dataLayer.push`).
-- [ ] Port SVG-as-component (replaces `gatsby-plugin-react-svg`) — **Turbopack-compatible, do not add a custom webpack config**. Two acceptable approaches, in order of preference:
+- [x] Port SVG-as-component (replaces `gatsby-plugin-react-svg`) — **Turbopack-compatible, do not add a custom webpack config**. _(SVGR via `turbopack.rules` per Next 16 docs; 11 component SVGs copied to `assets/`; `types/svg.d.ts`; build-verified)_ Two acceptable approaches, in order of preference:
   1. **SVGR via Turbopack rules** (keeps the import-as-component ergonomics the current code relies on for fill/props): add `@svgr/webpack` as a dev dep and wire it through `turbopack.rules` in `next.config.ts`, e.g. `turbopack: { rules: { '*.svg': { loaders: ['@svgr/webpack'], as: '*.js' } } }`. `@svgr/webpack` is just a loader; Turbopack runs loaders via `rules` without opting out of Turbopack. **Verify exact `turbopack.rules` syntax against `node_modules/next/dist/docs/` for the installed Next 16 version — the config shape has changed across releases.**
   2. **Hardcode as `.tsx` components**: convert each SVG used as a component into a hand-written React component (`export const Logo = (props) => <svg {...props}>…</svg>`). Zero config, fully Turbopack-native, no loader. More tedious but bulletproof. Use this as the fallback if approach 1 hits friction, or for the small number of SVGs that need dynamic props.
   - Audit which SVGs are imported as components vs. referenced as `src` — only the component-imported ones need this treatment; plain `<img src>`/static SVGs just go in `public/`.
