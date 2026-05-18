@@ -1,11 +1,17 @@
 [build]
 command = "pnpm run build"
 publish = ".next"
-# `.next` is Netlify's documented publish dir for Next.js SSR/hybrid.
-# Set explicitly (not omitted): this is an existing Gatsby site, so a stale
-# UI/Gatsby publish setting could otherwise win. Do NOT set `functions` —
-# the OpenNext adapter (auto-installed on Next detection) owns serverless
-# /edge function output. Redirects are ported to next.config.ts redirects().
+# `.next` is the publish dir for the Netlify Next.js Runtime. This is an
+# existing Gatsby site, so Netlify's framework auto-detection does NOT kick
+# in and the runtime is NOT auto-installed — it must be declared explicitly
+# below, or .next ships as dead static files (blank site, no SSR/routing).
+# Do NOT set `functions`; the runtime owns serverless/edge output.
+# Redirects are ported to next.config.ts redirects().
+
+# Netlify Next.js Runtime — REQUIRED for App Router SSR/RSC/middleware.
+# Without this the deploy is "ready" but serves nothing.
+[[plugins]]
+package = "@netlify/plugin-nextjs"
 
 [dev]
 command = "pnpm run dev"
