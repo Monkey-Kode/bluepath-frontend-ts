@@ -137,7 +137,7 @@ const ProjectImage = styled.figure`
     }
   }
 `;
-const ProjectDetails = styled.p`
+const ProjectDetails = styled.div`
   font-size: var(--font-size);
   font-weight: 400;
   color: var(--color-blue);

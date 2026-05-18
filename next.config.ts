@@ -3,6 +3,9 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   // Gatsby used `trailingSlash: 'always'` — preserve every existing URL.
   trailingSlash: true,
+  // Allow the proxied remote host (office.monkeykode.com → localhost:3000)
+  // to reach dev-only assets/HMR (Next 16 blocks cross-origin dev by default).
+  allowedDevOrigins: ['office.monkeykode.com'],
   async redirects() {
     // Ported from gatsby-node.ts (createRedirect, isPermanent → Netlify 301)
     // and netlify.toml ([[redirects]] status=301). Use statusCode:301 NOT
