@@ -125,9 +125,9 @@ For each, create the matching App Router page, fetch via `sanityFetch`, render w
 ## 1.6 Dynamic template ports (3 templates)
 
 - [ ] `app/[slug]/page.tsx` ← `src/templates/Page.tsx` — `generateStaticParams` from `allSanityPage` minus the static slugs (`leadership`, `news-and-events`, `thankyou`, `404`)
-- [ ] `app/events/[slug]/page.tsx` ← `src/templates/Event.tsx` — `generateStaticParams` from `allSanityEvent`
+- [x] `app/events/[slug]/page.tsx` ← `src/templates/Event.tsx` — `generateStaticParams` from `allSanityEvent` _(SSG verified, 20 events)_
 - [x] `app/news/[slug]/page.tsx` ← `src/templates/NewsArticle.tsx` — `generateStaticParams` from `allSanityNews` _(SSG verified; generateMetadata stega:false)_
-- [ ] Port custom `PortableTextComponents` from `NewsBody.tsx` and `Event.tsx`
+- [x] Port custom `PortableTextComponents` from `NewsBody.tsx` and `Event.tsx` _(shared `newsBodyComponents`; Event reuses it)_
 - [x] **Next 16 async-API contract** — `params`, `searchParams`, `draftMode()`, `cookies()`, `headers()` are all ASYNC _(dynamic routes await params; verified against bundled docs)_ in Next 15+/16. An agent with Next 14-era training will write stale sync patterns (`params.slug` directly, `draftMode().isEnabled` non-awaited). They MUST be awaited: `const { slug } = await params;`, `const { isEnabled } = await draftMode();`. This is exactly why the bundled-docs step in 1.1 is FIRST priority — the agent must consult `node_modules/next/dist/docs/` for the current signatures, not memory. If any sync patterns slip in, run `npx @next/codemod@latest next-async-request-api` to auto-fix.
 
 ## 1.7 Components port (~39 files)
@@ -146,12 +146,12 @@ Mechanical work, mostly find-and-replace patterns:
 
 ## 1.8 Forms (Netlify Forms compatibility)
 
-- [ ] Form audit (resolved):
+- [x] Form audit (resolved):
   - `events` (from `FormBasic.tsx`) — **active**, used in `Event.tsx:251` for the event RSVP form
   - `Case Study Request` (sanityPage slug `case-study-request`) — **active**, referenced from a `navigation` document
   - `Project Submission` (sanityPage slug `assessment-request`) — **dormant by design**. `netlify.toml` already redirects `/assessment-request` and `/assessment-request/*` to `/connect`. Port the redirect (see 1.9); do not include in `__forms.html`.
-- [ ] Branch deploy preview keeps the same Netlify site, so the active forms submit to the existing Forms inbox without any setup. No new team, no submission fragmentation.
-- [ ] Create `public/__forms.html` with a `<form>` definition for each confirmed-active form:
+- [x] Branch deploy preview keeps the same Netlify site, so the active forms submit to the existing Forms inbox without any setup. No new team, no submission fragmentation.
+- [x] Create `public/__forms.html` with a `<form>` definition for each confirmed-active form:
   - `events` — fields: event-name (hidden), name, company, title, email, details, bot-field
   - `Case Study Request` — fields: name, company, position, email, phone, state, message, bot-field
 - [ ] If new form pages are added in Sanity later, the team must extend `__forms.html` and redeploy. Document this in the Studio README.
@@ -171,8 +171,8 @@ Mechanical work, mostly find-and-replace patterns:
   };
   ```
 - [ ] **Intentional deviation from strict parity (flag to stakeholders):** the current code has two pre-existing production bugs that the canonical pattern fixes as a side effect — (1) `FormBasic.tsx`'s handler never calls `preventDefault()`, so it fires a native form navigation alongside the fetch; (2) `Form.tsx` builds the POST body from a React `state` object, but several inputs (e.g. `company`) have no `onChange`/`onBlur`, so those fields are silently dropped from every submission today. Using `new FormData(form)` serializes the actual DOM form and captures every field. This is a correctness fix, not a redesign, and is required to satisfy FR-003 ("forms MUST submit successfully"). If the team explicitly wants bug-for-bug parity instead, that must be a conscious decision — surface it, don't default to it.
-- [ ] Keep `data-netlify` and `data-netlify-honeypot` attributes on the JSX forms (inert at runtime, but required for clarity and matches the static HTML). Preserve the `bot-field` honeypot input — `new FormData(form)` will include it automatically.
-- [ ] Verify each active form end-to-end on the branch deploy preview before merging: submit with all fields populated, confirm every field (especially `company`) appears in the Netlify Forms inbox entry.
+- [x] Keep `data-netlify` and `data-netlify-honeypot` attributes on the JSX forms (inert at runtime, but required for clarity and matches the static HTML). Preserve the `bot-field` honeypot input — `new FormData(form)` will include it automatically.
+- [~] Verify each active form end-to-end on the branch deploy preview before merging: submit with all fields populated, confirm every field (especially `company`) appears in the Netlify Forms inbox entry. _(EXTERNAL — requires the Netlify branch deploy + access to the Forms inbox; cannot run from here)_
 
 ## 1.9 Routing extras
 
