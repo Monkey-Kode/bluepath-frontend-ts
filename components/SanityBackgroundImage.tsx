@@ -42,6 +42,8 @@ const Content = styled.div`
 type Props = Omit<React.ComponentPropsWithoutRef<'div'>, 'children'> & {
   image: ProjectedImage;
   children?: React.ReactNode;
+  /** Polymorphic element (styled-components `as`). */
+  as?: React.ElementType;
   /** Background render width requested from the Sanity CDN. */
   width?: number;
 };

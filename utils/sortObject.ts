@@ -1,5 +1,7 @@
-export default <T extends { order?: number | null }>(object: readonly T[]) => {
+export default function sortObject<T>(object: readonly T[]): T[] {
   return [...object].sort(
-    (a, b) => (a.order ?? 0) - (b.order ?? 0),
+    (a, b) =>
+      ((a as { order?: number | null }).order ?? 0) -
+      ((b as { order?: number | null }).order ?? 0),
   );
-};
+}

@@ -63,6 +63,57 @@ export const sitemapQuery = defineQuery(`
   }
 `);
 
+/* ---------- homepage ---------- */
+
+export const homesectionsQuery = defineQuery(`
+  *[_type == "homesections"] | order(order asc){
+    _id,
+    "id": _id,
+    name,
+    anchorId,
+    order,
+    sectionContent,
+    sectionContentCTAjumpId,
+    sectionContentCTAtext,
+    sectionContentCTAurl,
+    "sectionContentCTApageLink": sectionContentCTApageLink->{ "slug": slug.current },
+    hidetitle,
+    sectionHeading,
+    sectionHeadingPosition,
+    boxLocation,
+    backgroundColor{ hex },
+    background{ ${imageFields} },
+    contentType->{ _id, name }
+  }
+`);
+
+export const carouselQuery = defineQuery(`
+  *[_type == "carousel"] | order(order asc){
+    _id,
+    "id": _id,
+    _key,
+    heading,
+    content,
+    firstLink, firstLinkId, firstLinkURL,
+    secondLink, secondLinkId, secondLinkURL,
+    boxLocation,
+    order,
+    image{ ${imageFields} }
+  }
+`);
+
+export const homevideoQuery = defineQuery(`
+  *[_type == "homevideo"]{
+    _id,
+    "id": _id,
+    name,
+    youtubeLink,
+    video{ asset->{ url, originalFilename, mimeType } },
+    mobileVideo{ asset->{ url, originalFilename, mimeType } },
+    videoPoster{ ${imageFields} }
+  }
+`);
+
 export const homeQuery = defineQuery(`
   *[_type == "home"][0]{
     _id,
