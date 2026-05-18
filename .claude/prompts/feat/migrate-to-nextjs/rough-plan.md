@@ -100,17 +100,17 @@ Following the Sanity reference template's pattern — use the `sanity-image` pac
 
 ## 1.4 Global layout, theme, fonts
 
-- [ ] Port `Theme.tsx` (custom `mq` media-query helper, breakpoints) verbatim
-- [ ] Port `createGlobalStyle` to `app/layout.tsx` via `StyledComponentsRegistry`
-- [ ] Port web fonts to `next/font/google` (do NOT recreate the `<link>` tag from `gatsby-ssr.tsx`). Gatsby currently loads Inter (300–700) and Libre Baskerville (0,400 / 0,700 / 1,400 italic) via a Google Fonts stylesheet. Replace with:
+- [x] Port `Theme.tsx` (custom `mq` media-query helper, breakpoints) verbatim _(→ `styles/Theme.ts`, fontStack → `var(--font-inter)`)_
+- [x] Port `createGlobalStyle` to `app/layout.tsx` via `StyledComponentsRegistry`
+- [x] Port web fonts to `next/font/google` (do NOT recreate the `<link>` tag from `gatsby-ssr.tsx`). _(Theme + typography.ts updated; the ~14 per-component styled font-family refs are updated during §1.7.)_ Gatsby currently loads Inter (300–700) and Libre Baskerville (0,400 / 0,700 / 1,400 italic) via a Google Fonts stylesheet. Replace with:
   ```ts
   import { Inter, Libre_Baskerville } from 'next/font/google';
   const inter = Inter({ weight: ['300','400','500','600','700'], subsets: ['latin'], variable: '--font-inter', display: 'swap' });
   const baskerville = Libre_Baskerville({ weight: ['400','700'], style: ['normal','italic'], subsets: ['latin'], variable: '--font-baskerville', display: 'swap' });
   ```
   Apply both variables to `<html className={`${inter.variable} ${baskerville.variable}`}>` in `app/layout.tsx`. Update the `font-family` strings in `Theme.tsx`, `src/utils/typography.ts`, and the 14 styled-components usages to reference `var(--font-baskerville)` / `var(--font-inter)` with the original fallback stack preserved (`Georgia, serif` / system fallback). `next/font` self-hosts the files at build time — no Google Fonts runtime request, no preconnect needed, no FOIT.
-- [ ] Mirror Gatsby's `Layout` wrapper (used by both `gatsby-browser.tsx` and `gatsby-ssr.tsx`) as `app/layout.tsx`
-- [ ] Port `Header`, `Footer`, `Nav` components — keep as Server Components where they don't need interactivity; mark client where needed
+- [x] Mirror Gatsby's `Layout` wrapper (used by both `gatsby-browser.tsx` and `gatsby-ssr.tsx`) as `app/layout.tsx`
+- [~] Port `Header`, `Footer`, `Nav` components — keep as Server Components where they don't need interactivity; mark client where needed _(deferred to §1.7: transitive deps on SVG-as-component (§1.9), framer-motion, Menu/BurgerMenu, allSanityAddress query — ported with the component graph)_
 
 ## 1.5 Static pages port (5 routes)
 
