@@ -35,13 +35,7 @@
     "styled-components": "^6.4.1",
     "typography": "^0.16.24"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@parcel/watcher",
-      "esbuild",
-      "sharp"
-    ]
-  },
+  "packageManager": "pnpm@11.1.2",
   "volta": {
     "node": "24.15.0"
   },
