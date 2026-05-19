@@ -45,14 +45,5 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules",
-    ".cache",
-    ".next",
-    "src",
-    "gatsby-node.ts",
-    "gatsby-config.ts",
-    "gatsby-browser.tsx",
-    "gatsby-ssr.tsx"
-  ]
+  "exclude": ["node_modules", ".next"]
 }

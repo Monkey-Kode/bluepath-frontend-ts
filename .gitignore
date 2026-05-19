@@ -26,10 +26,6 @@ next-env.d.ts
 # sitemap (generated)
 public/sitemap*.xml
 public/robots.txt
-
-# generated Gatsby types (dead, retained until §1.13 cleanup)
-src/gatsby-types.d.ts
-
 .DS_Store
 # next-agents-md
 .next-docs/
