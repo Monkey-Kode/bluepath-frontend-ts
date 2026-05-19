@@ -192,8 +192,30 @@ export const teamQuery = defineQuery(`
     _id,
     "id": _id,
     name,
+    "slug": slug.current,
     role,
     roleSubtitle,
+    excerpt,
+    bio,
+    order,
+    image{ ${imageFields} }
+  }
+`);
+
+export const teamSlugsQuery = defineQuery(`
+  *[_type == "team" && defined(slug.current)]{ "slug": slug.current }
+`);
+
+export const teamMemberBySlugQuery = defineQuery(`
+  *[_type == "team" && slug.current == $slug][0]{
+    _id,
+    _type,
+    "id": _id,
+    name,
+    "slug": slug.current,
+    role,
+    roleSubtitle,
+    excerpt,
     bio,
     order,
     image{ ${imageFields} }

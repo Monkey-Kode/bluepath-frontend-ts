@@ -304,6 +304,29 @@ const BaseGlobalStyles = createGlobalStyle`
     .hidden {
         display: none;
     }
+
+    /* Team grid card ⇄ bio hero shared-element morph (share="morph"). */
+    ::view-transition-group(.morph) {
+        animation-duration: 380ms;
+        animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    ::view-transition-image-pair(.morph) {
+        animation-name: vt-morph-blur;
+    }
+    @keyframes vt-morph-blur {
+        30% {
+            filter: blur(3px);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        ::view-transition-old(*),
+        ::view-transition-new(*),
+        ::view-transition-group(*) {
+            animation-duration: 0s !important;
+            animation-delay: 0s !important;
+        }
+    }
 `;
 
 const TypographyStyles = createGlobalStyle`

@@ -2820,7 +2820,15 @@
         "value": {
           "type": "string"
         },
-        "optional": true
+        "optional": false
+      },
+      "slug": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "inline",
+          "name": "slug"
+        },
+        "optional": false
       },
       "role": {
         "type": "objectAttribute",
@@ -2830,6 +2838,13 @@
         "optional": true
       },
       "roleSubtitle": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      "excerpt": {
         "type": "objectAttribute",
         "value": {
           "type": "string"

@@ -21,11 +21,7 @@ import {
 } from '@/sanity/lib/queries';
 
 // Slugs owned by hand-built static routes (mirrors gatsby-node STATIC_PAGE_SLUGS).
-const STATIC_PAGE_SLUGS = new Set([
-  'leadership',
-  'news-and-events',
-  'thankyou',
-]);
+const STATIC_PAGE_SLUGS = new Set(['team', 'news-and-events', 'thankyou']);
 
 export async function generateStaticParams() {
   const { data } = await sanityFetch({

@@ -3,6 +3,11 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   // Gatsby used `trailingSlash: 'always'` — preserve every existing URL.
   trailingSlash: true,
+  // Enables React's <ViewTransition> integration so route navigations
+  // (e.g. /team → /team/[slug]) wrap in the browser View Transitions API.
+  experimental: {
+    viewTransition: true,
+  },
   // Allow the proxied remote host (office.monkeykode.com → localhost:3000)
   // to reach dev-only assets/HMR (Next 16 blocks cross-origin dev by default).
   allowedDevOrigins: ['office.monkeykode.com'],
@@ -11,6 +16,7 @@ const nextConfig: NextConfig = {
     // and netlify.toml ([[redirects]] status=301). Use statusCode:301 NOT
     // permanent:true (which would emit 308 — a gratuitous behavior change).
     return [
+      { source: '/leadership', destination: '/team', statusCode: 301 },
       { source: '/events', destination: '/news-and-events', statusCode: 301 },
       { source: '/event/:slug', destination: '/events/:slug', statusCode: 301 },
       { source: '/assessment-request', destination: '/connect', statusCode: 301 },
