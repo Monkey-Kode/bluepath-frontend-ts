@@ -1,9 +1,13 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-/* Default prose body to black (overrides typography plugin's slate-700). */
+/* Override the prose-slate color theme. The plugin's `.prose-slate` modifier
+ * sets bullets to slate-300 (reads as bluish-gray); !important is needed to
+ * beat the modifier's specificity tier. */
 .prose {
-    --tw-prose-body: #000;
+  --tw-prose-body: #000 !important;
+  --tw-prose-bullets: #000 !important;
+  --tw-prose-counters: #000 !important;
 }
 
 /* ─── Design tokens ─────────────────────────────────────────────────────
