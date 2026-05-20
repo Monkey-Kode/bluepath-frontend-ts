@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* Default prose body to black (overrides typography plugin's slate-700). */
+.prose {
+    --tw-prose-body: #000;
+}
+
 /* ─── Design tokens ─────────────────────────────────────────────────────
  *
  * Type & space scales are fluid (Utopia.fyi method): clamp() between a
@@ -26,6 +31,7 @@
     --color-gray-2: #616567;
     --color-gray-3: #595959;
     --color-surface: #f6f7f9;
+    --color-black: #000;
 
     /* Utopia fluid type scale (overrides Tailwind text-* defaults) */
     --text-xs: clamp(0.6944rem, 0.6852rem + 0.0455vw, 0.72rem);
@@ -446,6 +452,25 @@ section:not([aria-label])
     h5,
     h6 {
         font-family: var(--font-serif);
+        font-weight: 700;
+    }
+    h1 {
+        font-size: var(--text-h1);
+    }
+    h2 {
+        font-size: var(--text-h2);
+    }
+    h3 {
+        font-size: var(--text-h3);
+    }
+    h4 {
+        font-size: var(--text-h4);
+    }
+    h5 {
+        font-size: var(--text-base);
+    }
+    h6 {
+        font-size: var(--text-sm);
     }
 
     img {

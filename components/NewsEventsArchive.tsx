@@ -43,7 +43,7 @@ const eventDateToISO = (eventAt: string | null | undefined) =>
   eventAt ? `${eventAt}T00:00:00` : null;
 
 const CTA_CLASS =
-  'inline-block bg-blue text-white font-sans uppercase tracking-[0.12em] text-[0.8125rem] font-normal no-underline px-3 py-2 rounded-md transition-colors duration-200 hover:bg-accent hover:text-white';
+  'inline-block bg-blue text-white  uppercase tracking-[0.12em] text-[0.8125rem] font-normal no-underline px-3 py-2 rounded-md transition-colors duration-200 hover:bg-accent hover:text-white';
 
 export default function NewsEventsArchive({
   news,
@@ -109,8 +109,6 @@ export default function NewsEventsArchive({
               : `/events/${item.slug}`;
           const ctaLabel =
             item.kind === 'news' ? 'CONTINUE READING' : 'VIEW EVENT DETAILS';
-          const imageBorder =
-            item.kind === 'news' ? 'border-accent' : 'border-blue';
 
           return (
             <article
@@ -120,7 +118,7 @@ export default function NewsEventsArchive({
               <Link
                 href={href}
                 aria-label={item.title}
-                className={`block w-full max-w-[273px] p-0 border leading-none ${imageBorder} [&_img]:w-full [&_img]:h-auto [&_img]:!object-contain`}
+                className={`block w-full max-w-[273px] p-0 [&_img]:w-full [&_img]:h-auto [&_img]:!object-contain`}
               >
                 {item.image?.asset?._id ? (
                   <SanityImage
@@ -136,19 +134,19 @@ export default function NewsEventsArchive({
                 )}
               </Link>
               <div className="flex flex-col gap-3">
-                <div className="flex flex-col gap-1 font-sans text-[0.8125rem] uppercase tracking-[0.1em]">
+                <div className="flex flex-col gap-1  text-[0.8125rem] uppercase tracking-[0.1em]">
                   {item.date && (
-                    <span className="text-blue font-light italic">
+                    <span className="font-light text-black">
                       {item.date}
                     </span>
                   )}
                   {item.label && (
-                    <span className="text-blue font-semibold italic text-[1.25rem] pb-3">
+                    <span className="text-black font-semibold text-h3 pb-3">
                       {item.label}
                     </span>
                   )}
                 </div>
-                <h2 className="font-serif font-bold text-blue text-h2 leading-[1.2] m-0 text-balance">
+                <h2 className="font-sans font-bold text-blue text-h2 leading-[1.2] m-0 text-balance">
                   <Link
                     href={href}
                     className="text-blue no-underline font-inherit p-0 inline transition-colors duration-300 ease-in-out hover:text-accent"
@@ -157,12 +155,12 @@ export default function NewsEventsArchive({
                   </Link>
                 </h2>
                 {item.subhead && (
-                  <p className="font-serif italic font-normal text-[1.125rem] leading-[1.4] text-blue m-0 text-balance">
+                  <p className="italic font-normal text-[1.125rem] leading-[1.4] text-blue m-0 text-balance">
                     {item.subhead}
                   </p>
                 )}
                 {item.excerpt && (
-                  <p className="font-serif text-black m-0 leading-[1.65] text-base max-w-[60ch]">
+                  <p className="text-black m-0 leading-[1.65] text-base max-w-[60ch]">
                     {item.excerpt}
                   </p>
                 )}
@@ -180,7 +178,7 @@ export default function NewsEventsArchive({
             <button
               type="button"
               onClick={() => setVisible((v) => v + PAGE_SIZE)}
-              className="bg-blue border-0 rounded-md text-white px-3 py-2 font-sans uppercase tracking-[0.12em] text-[0.8125rem] font-normal cursor-pointer transition-colors duration-200 hover:bg-accent"
+              className="bg-blue border-0 rounded-md text-white px-3 py-2  uppercase tracking-[0.12em] text-[0.8125rem] font-normal cursor-pointer transition-colors duration-200 hover:bg-accent"
             >
               LOAD MORE
             </button>

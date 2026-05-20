@@ -59,15 +59,10 @@ export const ContactBody = ({
         )}
 
         <button
+          className='cursor-pointer p-0 bg-none -translate-x-3'
           onClick={(e) => {
             e.preventDefault();
             window.open('mailto:info@bluepathfinance.com');
-          }}
-          style={{
-            transform: 'translate(-13px, -30px)',
-            cursor: 'pointer',
-            padding: '0',
-            background: 'none',
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
