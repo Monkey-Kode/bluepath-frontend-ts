@@ -1,140 +1,7 @@
 'use client';
 
 import { PortableText, type PortableTextComponents } from '@portabletext/react';
-import styled from 'styled-components';
 import getYouTubeId from 'get-youtube-id';
-
-const StyledArticleBody = styled.div`
-  font-family: 'Inter', Helvetica, Arial, sans-serif;
-  color: #000;
-  line-height: 1;
-  font-size: 1rem;
-
-  p {
-    color: #000;
-    margin: 0 0 1rem;
-    line-height: 1.5;
-  }
-
-  a {
-    color: #000;
-    text-decoration: underline;
-    text-transform: none;
-    font-weight: 500;
-    display: inline;
-    padding: 0;
-    &:hover {
-      color: var(--accent);
-    }
-  }
-
-  h2,
-  h3 {
-    font-family: 'Inter', Helvetica, Arial, sans-serif;
-    color: #000;
-    margin: 1.75rem 0 0.5rem;
-    line-height: 1.5;
-    font-weight: 600;
-  }
-  h2 {
-    font-size: var(--text-h2);
-  }
-  h3 {
-    font-size: var(--text-h3);
-  }
-
-  ul,
-  ol {
-    margin: 0 0 1rem 1.25rem;
-    padding: 0;
-    line-height: 1.5;
-  }
-  li {
-    margin-bottom: 0.4rem;
-    color: #000;
-    line-height: 1.5;
-  }
-
-  blockquote {
-    margin: 1.5rem 0;
-    padding: 0 0 0 1.25rem;
-    border-left: 3px solid var(--accent);
-    font-style: italic;
-    color: #000;
-  }
-
-  strong {
-    font-weight: 600;
-  }
-
-  .callout {
-    color: #000;
-    font-weight: 700;
-  }
-`;
-
-const PullQuote = styled.figure`
-  margin: 2rem 0;
-  padding: 1.5rem 1.5rem 1.5rem 2rem;
-  border-left: 4px solid var(--accent);
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 1.5rem;
-  line-height: 1.4;
-  color: var(--blue);
-  font-style: italic;
-  blockquote {
-    margin: 0;
-    padding: 0;
-    border: none;
-    color: inherit;
-    font-style: inherit;
-  }
-  figcaption {
-    margin-top: 0.75rem;
-    font-family: 'Inter', Helvetica, Arial, sans-serif;
-    font-size: 0.875rem;
-    font-style: normal;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--gray2);
-  }
-`;
-
-const InlineFigure = styled.figure`
-  margin: 2rem 0;
-  img {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
-  figcaption {
-    margin-top: 0.5rem;
-    font-family: 'Inter', Helvetica, Arial, sans-serif;
-    font-size: 0.875rem;
-    color: var(--gray2);
-    text-align: center;
-  }
-`;
-
-const VideoEmbed = styled.div`
-  position: relative;
-  padding-bottom: 56.25%;
-  height: 0;
-  margin: 2rem 0;
-  iframe {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: 0;
-  }
-`;
-
-const Divider = styled.hr`
-  border: 0;
-  border-top: 1px solid var(--gray3, #d0d0d0);
-  margin: 2.5rem 0;
-`;
 
 type SanityImageAsset =
   | {
@@ -172,7 +39,6 @@ export const newsBodyComponents: PortableTextComponents = {
   marks: {
     strong: ({ children }) => <strong>{children}</strong>,
     em: ({ children }) => <em>{children}</em>,
-    callout: ({ children }) => <span className="callout">{children}</span>,
     link: ({ value, children }) => {
       const href = value?.href ?? '#';
       const target = value?.blank ? '_blank' : undefined;
@@ -193,44 +59,44 @@ export const newsBodyComponents: PortableTextComponents = {
   },
   types: {
     pullQuote: ({ value }) => (
-      <PullQuote>
+      <figure className="not-prose my-8 border-l-4 border-accent py-6 pl-8 pr-6 font-serif text-2xl italic leading-[1.4] text-blue [&_blockquote]:m-0 [&_blockquote]:border-0 [&_blockquote]:p-0 [&_blockquote]:text-inherit [&_blockquote]:italic [&_figcaption]:mt-3 [&_figcaption]:font-sans [&_figcaption]:text-sm [&_figcaption]:not-italic [&_figcaption]:uppercase [&_figcaption]:tracking-[0.08em] [&_figcaption]:text-[var(--color-gray-2)]">
         <blockquote>{value?.quote}</blockquote>
         {value?.attribution && <figcaption>— {value.attribution}</figcaption>}
-      </PullQuote>
+      </figure>
     ),
     imageWithCaption: ({ value }) => {
       const url = imageUrlFor(value?.image);
       if (!url) return null;
       return (
-        <InlineFigure>
+        <figure className="not-prose my-8 [&_img]:block [&_img]:h-auto [&_img]:w-full [&_figcaption]:mt-2 [&_figcaption]:text-center [&_figcaption]:font-sans [&_figcaption]:text-sm [&_figcaption]:text-[var(--color-gray-2)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={url} alt={value?.alt ?? ''} />
           {value?.caption && <figcaption>{value.caption}</figcaption>}
-        </InlineFigure>
+        </figure>
       );
     },
     youtube: ({ value }) => {
       const id = value?.url ? getYouTubeId(value.url) : null;
       if (!id) return null;
       return (
-        <VideoEmbed>
+        <div className="not-prose relative my-8 h-0 pb-[56.25%] [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full [&_iframe]:border-0">
           <iframe
             src={`https://www.youtube.com/embed/${id}`}
             title="YouTube video"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
           />
-        </VideoEmbed>
+        </div>
       );
     },
-    divider: () => <Divider />,
+    divider: () => (
+      <hr className="not-prose my-10 border-0 border-t border-[var(--color-gray-3,#d0d0d0)]" />
+    ),
   },
 };
 
 const NewsBody = ({ value }: { value: unknown }) => (
-  <StyledArticleBody>
-    <PortableText value={value as never} components={newsBodyComponents} />
-  </StyledArticleBody>
+  <PortableText value={value as never} components={newsBodyComponents} />
 );
 
 export default NewsBody;

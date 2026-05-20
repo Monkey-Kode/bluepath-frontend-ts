@@ -1,85 +1,17 @@
 'use client';
 
-import { motion } from "framer-motion";
-import React from "react";
-import styled from "styled-components";
-import type { ImpactItemsQueryResult } from "@/sanity.types";
-import formatNumber from "@/utils/formatNumber";
-const StyledContentBoxes = styled.div`
-  background: var(--blue);
-  padding: 1rem;
-  transition: opacity 0.4s ease-out;
-  margin: 3rem auto;
-  @media only screen and (max-width: 800px) {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    justify-content: space-around;
-    align-items: center;
-    margin: 0 auto;
-    max-width: 80vw;
+import { motion } from 'framer-motion';
 
-    button {
-      flex: 1 50%;
-      max-width: calc(50% - 0.5em);
-      margin-bottom: 1em;
-      p {
-        font-size: 3.5vw;
-      }
-    }
-
-    div:first-child {
-      p {
-        text-align: center;
-      }
-    }
-  }
-  @media only screen and (min-width: 801px) {
-    display: grid;
-    grid-auto-flow: column;
-    max-width: 800px;
-    grid-gap: 10px;
-  }
-
-  div {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-  }
-
-  h3 {
-    margin: 0;
-    font-weight: 100;
-  }
-  p {
-    margin: 0;
-    line-height: 1.3;
-    font-weight: 100;
-  }
-  @media only screen and (max-width: 800px) {
-    > div {
-      padding: 1rem;
-    }
-  }
-`;
-
-const RightAlignedText = styled.p`
-  font-weight: 800 !important;
-  font-size: 0.75rem;
-  text-align: left; // Default alignment
-
-  @media (min-width: 1280px) {
-    text-align: right;
-  }
-`;
+import formatNumber from '@/utils/formatNumber';
+import type { ImpactItemsQueryResult } from '@/sanity.types';
 
 function boxHeading(heading: string | number | null | undefined) {
-  if (!heading || heading === "null") return "";
+  if (!heading || heading === 'null') return '';
   return (
     <h3>{isNaN(Number(heading)) ? heading : formatNumber(Number(heading))}</h3>
   );
 }
+
 function ImpactContent({
   content,
 }: {
@@ -95,27 +27,23 @@ function ImpactContent({
     content4,
     contentheading4,
   } = content;
+
   return (
     <motion.div
-      initial={{
-        opacity: 0,
-        y: "110%",
-      }}
-      animate={{
-        opacity: 1,
-        y: "0%",
-      }}
-      exit={{
-        opacity: 0,
-      }}
+      initial={{ opacity: 0, y: '110%' }}
+      animate={{ opacity: 1, y: '0%' }}
+      exit={{ opacity: 0 }}
     >
-      <StyledContentBoxes id="impact-boxes">
-        <div style={{ textTransform: "capitalize" }}>
+      <div
+        id="impact-boxes"
+        className="bg-blue p-4 transition-opacity duration-[400ms] my-12 mx-auto [&_h3]:m-0 [&_h3]:font-thin [&_p]:m-0 [&_p]:leading-[1.3] [&_p]:font-thin [&_>div]:flex [&_>div]:flex-col [&_>div]:justify-start [&_>div]:items-center max-tablet:flex max-tablet:flex-col max-tablet:flex-nowrap max-tablet:justify-around max-tablet:items-center max-tablet:m-0 max-tablet:mx-auto max-tablet:max-w-[80vw] max-tablet:[&_>div]:p-4 max-tablet:[&_button]:flex-[1_50%] max-tablet:[&_button]:max-w-[calc(50%-0.5em)] max-tablet:[&_button]:mb-[1em] max-tablet:[&_button_p]:text-[3.5vw] max-tablet:[&_>div:first-child_p]:text-center min-tablet:grid min-tablet:grid-flow-col min-tablet:max-w-[800px] min-tablet:gap-2.5"
+      >
+        <div style={{ textTransform: 'capitalize' }}>
           {boxHeading(String(contentheading1))}
           {content1 && (
-            <>
-              <RightAlignedText>{content1}</RightAlignedText>
-            </>
+            <p className="!font-extrabold text-xs text-left min-[1280px]:text-right">
+              {content1}
+            </p>
           )}
         </div>
         <div>
@@ -130,7 +58,7 @@ function ImpactContent({
           {boxHeading(String(contentheading4))}
           {content4 && <p>{content4}</p>}
         </div>
-      </StyledContentBoxes>
+      </div>
     </motion.div>
   );
 }

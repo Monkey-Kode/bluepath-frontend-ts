@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import styled from 'styled-components';
 
 import { urlForImage } from '@/sanity/lib/utils';
 
@@ -13,49 +12,20 @@ type ProjectedImage = {
   } | null;
 } | null;
 
-const Root = styled.div`
-  position: relative;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  background-size: cover;
-  display: flex;
-  align-items: center;
-
-  /* The bg <Layer> is absolutely positioned, so it would paint above
-     static-flow siblings. Lift the real content children (everything
-     except the aria-hidden image layer) above it, without adding a
-     wrapper element that would break the global section > div cascade. */
-  & > *:not([aria-hidden='true']) {
-    position: relative;
-    z-index: 1;
-  }
-`;
-
-const Layer = styled.div<{ $visible: boolean }>`
-  position: absolute;
-  inset: 0;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  opacity: ${({ $visible }) => ($visible ? 1 : 0)};
-  transition: opacity 0.5s ease;
-  pointer-events: none;
-`;
-
 type Props = Omit<React.ComponentPropsWithoutRef<'div'>, 'children'> & {
   image: ProjectedImage;
   children?: React.ReactNode;
-  /** Polymorphic element (styled-components `as`). */
+  /** Polymorphic element (mirrors styled-components `as`). */
   as?: React.ElementType;
   /** Background render width requested from the Sanity CDN. */
   width?: number;
 };
 
 /**
- * Replaces Gatsby's `gatsby-background-image` (`StyleBackgroundImage`).
- * Renders an LQIP blur layer that cross-fades to the full CDN image on load.
- * Keeps the original fixed-attachment / cover behavior.
+ * LQIP blur cross-fade replacement for `gatsby-background-image`.
+ * Renders the low-quality placeholder as the base `background-image`, then
+ * paints the full CDN-resolution asset in an absolutely positioned <span>
+ * that fades in once the browser has decoded the full image.
  */
 export default function SanityBackgroundImage({
   image,
@@ -63,6 +33,7 @@ export default function SanityBackgroundImage({
   children,
   style,
   width = 2000,
+  as: Tag = 'div',
   ...rest
 }: Props) {
   const lqip = image?.asset?.metadata?.lqip ?? undefined;
@@ -89,22 +60,26 @@ export default function SanityBackgroundImage({
   }, [fullUrl]);
 
   return (
-    <Root
+    <Tag
       {...rest}
-      className={className}
+      className={
+        'relative flex items-center bg-cover bg-fixed bg-center bg-no-repeat [&>*:not([aria-hidden=true])]:relative [&>*:not([aria-hidden=true])]:z-[1]' +
+        (className ? ` ${className}` : '')
+      }
       style={{
         ...style,
         ...(lqip ? { backgroundImage: `url(${lqip})` } : {}),
       }}
     >
       {fullUrl && (
-        <Layer
-          aria-hidden
-          $visible={loaded}
+        <span
+          aria-hidden="true"
+          data-visible={loaded}
           style={{ backgroundImage: `url(${fullUrl})` }}
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-0 pointer-events-none transition-opacity duration-500 ease-in-out data-[visible=true]:opacity-100"
         />
       )}
       {children}
-    </Root>
+    </Tag>
   );
 }

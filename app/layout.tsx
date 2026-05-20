@@ -1,4 +1,4 @@
-import 'normalize.css';
+import './globals.css';
 
 import type { Metadata } from 'next';
 import { Inter, Libre_Baskerville } from 'next/font/google';
@@ -13,10 +13,8 @@ import {
   GoogleTagManagerScript,
 } from '@/components/GoogleTagManager';
 import GtmRouteTracker from '@/components/GtmRouteTracker';
-import StyledComponentsRegistry from '@/lib/registry';
 import { getSiteUrl } from '@/lib/siteUrl';
 import { SanityLive } from '@/sanity/lib/live';
-import Providers from '@/styles/Providers';
 
 const inter = Inter({
   weight: ['300', '400', '500', '600', '700'],
@@ -63,9 +61,7 @@ export default async function RootLayout({
     <html lang="en" className={`${inter.variable} ${baskerville.variable}`}>
       <body>
         <GoogleTagManagerNoscript />
-        <StyledComponentsRegistry>
-          <Providers>{children}</Providers>
-        </StyledComponentsRegistry>
+        {children}
         <Toaster />
         {isDraftMode && (
           <>

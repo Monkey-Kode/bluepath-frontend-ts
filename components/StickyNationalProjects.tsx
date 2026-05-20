@@ -1,25 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from "react";
-import { motion, useAnimation } from "framer-motion";
-import NationalProjects, { CaseStudy } from "./NationalProjects";
-import styled from "styled-components";
-import { InViewHookResponse } from "react-intersection-observer";
+import { useEffect, useState } from 'react';
+import { motion, useAnimation } from 'framer-motion';
+import { InViewHookResponse } from 'react-intersection-observer';
 
-const StickWrapper = styled(motion.div)`
-  display: none;
-  scroll-snap-align: none;
-
-  @media (min-width: 1025px) {
-    display: block;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 10;
-    background: white;
-  }
-`;
+import NationalProjects, { CaseStudy } from './NationalProjects';
 
 interface StickyNationalProjectsProps {
   caseStudies: CaseStudy[];
@@ -37,7 +22,7 @@ export default function StickyNationalProjects({
   const [isPastTableOfContents, setIsPastTableOfContents] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === 'undefined') return;
 
     const update = () => {
       const target = tableOfContentsRef.entry?.target as HTMLElement | undefined;
@@ -49,7 +34,7 @@ export default function StickyNationalProjects({
       const headerHeight =
         parseFloat(
           getComputedStyle(document.documentElement).getPropertyValue(
-            "--header-height",
+            '--header-height',
           ),
         ) || 0;
       setIsPastTableOfContents(
@@ -58,12 +43,12 @@ export default function StickyNationalProjects({
     };
 
     update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
 
     return () => {
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
     };
   }, [tableOfContentsRef.entry]);
 
@@ -79,10 +64,8 @@ export default function StickyNationalProjects({
       };
     }
 
-    controls.start({ opacity: 0, y: "100%" }).then(() => {
-      if (isMounted) {
-        setShouldStickyBeVisible(false);
-      }
+    controls.start({ opacity: 0, y: '100%' }).then(() => {
+      if (isMounted) setShouldStickyBeVisible(false);
     });
 
     return () => {
@@ -91,12 +74,13 @@ export default function StickyNationalProjects({
   }, [controls, footerRef.inView, isPastTableOfContents]);
 
   return (
-    <StickWrapper
-      initial={{ opacity: 0, y: "100%" }}
+    <motion.div
+      initial={{ opacity: 0, y: '100%' }}
       animate={controls}
       transition={{ duration: 0.5 }}
+      className="hidden snap-align-none min-[1025px]:block min-[1025px]:fixed min-[1025px]:bottom-0 min-[1025px]:left-0 min-[1025px]:right-0 min-[1025px]:z-10 min-[1025px]:bg-white"
     >
       {shouldStickyBeVisible && <NationalProjects caseStudies={caseStudies} />}
-    </StickWrapper>
+    </motion.div>
   );
 }

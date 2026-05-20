@@ -1,32 +1,11 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import styled from 'styled-components';
 
 import SanityBackgroundImage from '@/components/SanityBackgroundImage';
 import type { PageBySlugQueryResult } from '@/sanity.types';
 
 type Page = NonNullable<PageBySlugQueryResult>;
-
-const StyledForm = styled.div`
-  background-color: var(--blue);
-  border-left: var(--border-left);
-  padding: 1rem;
-  h2 {
-    font-size: 2.35rem;
-    padding: 0 2rem;
-    @media only screen and (max-width: 800px) {
-      padding: 0.375rem;
-    }
-  }
-  label {
-    display: none;
-  }
-  div {
-    padding: 0.25rem 0rem;
-  }
-`;
 
 function FormBody({
   name,
@@ -61,9 +40,10 @@ function FormBody({
   }
   const boxAlign = boxLocation || 'left';
   const formName = name ?? 'generic';
+
   return (
     <div className={boxAlign}>
-      <StyledForm>
+      <div className="bg-blue border-l-[var(--border-left)] p-4 [&_h2]:text-[2.35rem] [&_h2]:px-8 max-tablet:[&_h2]:p-[0.375rem] [&_label]:hidden [&_>form>div]:px-0 [&_>form>div]:py-1">
         <h2>{name || sectionHeading}</h2>
         <form
           name={formName}
@@ -186,13 +166,13 @@ function FormBody({
               placeholder={message}
               rows={5}
               cols={33}
-            ></textarea>
+            />
           </div>
           <div>
             <button type="submit">Send</button>
           </div>
         </form>
-      </StyledForm>
+      </div>
     </div>
   );
 }
@@ -201,32 +181,29 @@ const Form = ({ page }: { page: Page }) => {
   const { id, name, background, backgroundColor, Heading, boxLocation } = page;
   const bgColor = backgroundColor?.hex ?? '#fff';
   const boxAlign = boxLocation || 'left';
-  return (
-    <>
-      {background ? (
-        <div className={boxAlign}>
-          <SanityBackgroundImage
-            as="section"
-            id={id ?? undefined}
-            image={background}
-            style={{ backgroundColor: bgColor }}
-            width={2000}
-          >
-            <div>
-              <FormBody name={name} sectionHeading={Heading} />
-            </div>
-          </SanityBackgroundImage>
+
+  return background ? (
+    <div className={boxAlign}>
+      <SanityBackgroundImage
+        as="section"
+        id={id ?? undefined}
+        image={background}
+        style={{ backgroundColor: bgColor }}
+        width={2000}
+      >
+        <div>
+          <FormBody name={name} sectionHeading={Heading} />
         </div>
-      ) : (
-        <div className={boxAlign}>
-          <section id={id ?? undefined}>
-            <div>
-              <FormBody name={name} sectionHeading={Heading} />
-            </div>
-          </section>
+      </SanityBackgroundImage>
+    </div>
+  ) : (
+    <div className={boxAlign}>
+      <section id={id ?? undefined}>
+        <div>
+          <FormBody name={name} sectionHeading={Heading} />
         </div>
-      )}
-    </>
+      </section>
+    </div>
   );
 };
 

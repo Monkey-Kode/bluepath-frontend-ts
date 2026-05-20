@@ -2,138 +2,27 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import styled from 'styled-components';
 
 import SanityImage from '@/components/SanityImage';
 import ViewTransition from '@/components/ViewTransition';
 import { photoTransitionName, teamBlurb } from '@/lib/team';
-import { headerOffset } from '@/styles/mixins';
 import sortObject from '@/utils/sortObject';
 import type { TeamQueryResult } from '@/sanity.types';
 
 type Member = TeamQueryResult[number];
 
-const Wrap = styled.main`
-  background: #fff;
-  color: var(--blue);
-  ${headerOffset}
-  padding-bottom: 6rem;
-  padding-inline: 1.25rem;
+const CARD_CHROME =
+  'block no-underline text-inherit ' +
+  '[&_.photo]:block [&_.photo]:w-full [&_.photo]:aspect-[4/5] [&_.photo]:overflow-hidden [&_.photo]:bg-surface ' +
+  '[&_.photo_img]:w-full [&_.photo_img]:h-full [&_.photo_img]:object-cover [&_.photo_img]:transition-transform [&_.photo_img]:duration-500 [&_.photo_img]:ease-in-out ' +
+  '[&_.name]:font-sans [&_.name]:font-bold [&_.name]:text-blue [&_.name]:text-[var(--text-h3)] [&_.name]:leading-[1.2] [&_.name]:mt-[1.35rem] [&_.name]:mb-0 [&_.name]:transition-colors [&_.name]:duration-[250ms] ' +
+  '[&_.role]:font-sans [&_.role]:text-[#1a1a1a] [&_.role]:text-base [&_.role]:leading-[1.4] [&_.role]:mt-[0.3rem] [&_.role]:mb-0 ' +
+  '[&_.role-subtitle]:font-sans [&_.role-subtitle]:text-[#1a1a1a] [&_.role-subtitle]:text-base [&_.role-subtitle]:leading-[1.4] [&_.role-subtitle]:mt-[0.3rem] [&_.role-subtitle]:mb-0 ' +
+  '[&_.blurb]:font-sans [&_.blurb]:text-[#2b2b2b] [&_.blurb]:text-base [&_.blurb]:leading-[1.6] [&_.blurb]:mt-[1.1rem] [&_.blurb]:mb-0 ' +
+  '[&_.read-more]:inline-block [&_.read-more]:font-sans [&_.read-more]:font-bold [&_.read-more]:text-[#111] [&_.read-more]:text-base [&_.read-more]:mt-[0.9rem] [&_.read-more]:transition-colors [&_.read-more]:duration-[250ms]';
 
-  .team-inner {
-    max-width: 1180px;
-    margin: 0 auto;
-    min-height: 70vh;
-  }
-
-  h1 {
-    font-family: var(--font-inter), 'Inter', Helvetica, Arial, sans-serif;
-    font-weight: 700;
-    color: var(--blue);
-    font-size: var(--text-h1);
-    line-height: 1.05;
-    letter-spacing: -0.01em;
-    margin: 0 0 3rem;
-  }
-`;
-
-const Grid = styled.ul`
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  column-gap: 3rem;
-  row-gap: 4rem;
-  align-items: start;
-
-  @media (max-width: 900px) {
-    grid-template-columns: repeat(2, 1fr);
-    column-gap: 2rem;
-    row-gap: 3rem;
-  }
-
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
-    row-gap: 3rem;
-  }
-`;
-
-const cardChrome = `
-  display: block;
-  text-decoration: none;
-  color: inherit;
-
-  .photo {
-    display: block;
-    width: 100%;
-    aspect-ratio: 4 / 5;
-    overflow: hidden;
-    background: var(--surface-muted, #f6f7f9);
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.5s ease;
-    }
-  }
-
-  .name {
-    font-family: var(--font-inter), 'Inter', Helvetica, Arial, sans-serif;
-    font-weight: 700;
-    color: var(--blue);
-    font-size: var(--text-h3);
-    line-height: 1.2;
-    margin: 1.35rem 0 0;
-    transition: color 0.25s ease;
-  }
-
-  .role,
-  .role-subtitle {
-    font-family: var(--font-inter), 'Inter', Helvetica, Arial, sans-serif;
-    color: #1a1a1a;
-    font-size: 1rem;
-    line-height: 1.4;
-    margin: 0.3rem 0 0;
-  }
-
-  .blurb {
-    font-family: var(--font-inter), 'Inter', Helvetica, Arial, sans-serif;
-    color: #2b2b2b;
-    font-size: 1rem;
-    line-height: 1.6;
-    margin: 1.1rem 0 0;
-  }
-
-  .read-more {
-    display: inline-block;
-    font-family: var(--font-inter), 'Inter', Helvetica, Arial, sans-serif;
-    font-weight: 700;
-    color: #111;
-    font-size: 1rem;
-    margin: 0.9rem 0 0;
-    transition: color 0.25s ease;
-  }
-`;
-
-const CardLink = styled(Link)`
-  ${cardChrome}
-
-  &:hover .name {
-    color: var(--accent);
-  }
-  &:hover .read-more {
-    color: var(--accent);
-  }
-  &:hover .photo img {
-    transform: scale(1.04);
-  }
-`;
-
-const CardStatic = styled.div`
-  ${cardChrome}
-`;
+const CARD_HOVER =
+  'hover:[&_.name]:text-accent hover:[&_.read-more]:text-accent hover:[&_.photo_img]:scale-[1.04]';
 
 const REVEAL = {
   initial: { opacity: 0, y: 28 },
@@ -177,11 +66,13 @@ export default function TeamView({ team }: { team: TeamQueryResult }) {
   const members = sortObject(team) as Member[];
 
   return (
-    <Wrap>
-      <div className="team-inner">
-        <h1>Team</h1>
+    <main className="header-offset bg-white text-blue pb-24 px-5">
+      <div className="team-inner max-w-[1180px] mx-auto min-h-[70vh]">
+        <h1 className="font-sans font-bold text-blue text-[var(--text-h1)] leading-[1.05] tracking-[-0.01em] m-0 mb-12">
+          Team
+        </h1>
 
-        <Grid>
+        <ul className="list-none m-0 p-0 grid grid-cols-3 gap-x-12 gap-y-16 items-start max-[900px]:grid-cols-2 max-[900px]:gap-x-8 max-[900px]:gap-y-12 max-[600px]:grid-cols-1 max-[600px]:gap-y-12">
           {members.map((member, i) => (
             <motion.li
               key={member.id}
@@ -195,18 +86,21 @@ export default function TeamView({ team }: { team: TeamQueryResult }) {
               }}
             >
               {member.slug ? (
-                <CardLink href={`/team/${member.slug}/`}>
+                <Link
+                  href={`/team/${member.slug}/`}
+                  className={`${CARD_CHROME} ${CARD_HOVER}`}
+                >
                   <CardBody member={member} />
-                </CardLink>
+                </Link>
               ) : (
-                <CardStatic>
+                <div className={CARD_CHROME}>
                   <CardBody member={member} />
-                </CardStatic>
+                </div>
               )}
             </motion.li>
           ))}
-        </Grid>
+        </ul>
       </div>
-    </Wrap>
+    </main>
   );
 }

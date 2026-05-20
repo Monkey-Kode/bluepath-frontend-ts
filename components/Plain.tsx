@@ -1,7 +1,6 @@
 'use client';
 
 import { useInView } from 'react-intersection-observer';
-import styled from 'styled-components';
 
 import ContentBox from '@/components/ContentBox';
 import SanityBackgroundImage from '@/components/SanityBackgroundImage';
@@ -10,21 +9,6 @@ import intersectionObserverOptions from '@/utils/intersectionObserverOptions';
 import type { HomesectionsQueryResult } from '@/sanity.types';
 
 type Section = HomesectionsQueryResult[number];
-
-const StyledContent = styled.div`
-  @media only screen and (max-width: 800px) {
-    display: block;
-
-    section {
-      background-color: var(--blue);
-      padding: 0;
-      &::after,
-      &::before {
-        background: none !important;
-      }
-    }
-  }
-`;
 
 function Plain({ content }: { content: Section }) {
   const {
@@ -48,7 +32,9 @@ function Plain({ content }: { content: Section }) {
   const boxAlign = boxLocation || 'left';
 
   return background ? (
-    <StyledContent className={boxAlign}>
+    <div
+      className={`${boxAlign} max-tablet:block max-tablet:[&_section]:bg-blue max-tablet:[&_section]:p-0 max-tablet:[&_section]:before:!bg-none max-tablet:[&_section]:after:!bg-none`}
+    >
       {background?.asset?._id && (
         <SanityImage
           alt="Background scenery"
@@ -78,7 +64,7 @@ function Plain({ content }: { content: Section }) {
           />
         </div>
       </SanityBackgroundImage>
-    </StyledContent>
+    </div>
   ) : (
     <section
       className={name ?? 'section'}

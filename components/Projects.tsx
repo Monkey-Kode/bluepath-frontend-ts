@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { renderToString } from 'react-dom/server';
-import styled from 'styled-components';
 
 import InfoWindow from './InfoWindow';
 import { loader } from '@/lib/mapsLoader';
@@ -13,18 +12,6 @@ import type {
 } from '@/sanity.types';
 
 const mapMarker = '/marker.png';
-
-const MapSection = styled.section`
-  width: 100%;
-  height: 100vh;
-
-  @media only screen and (max-width: 800px) {
-    --mobile-header-height: 0px;
-    height: calc(100vh - var(--mobile-header-height));
-    min-height: 400px; // Ensure minimum height on mobile
-    margin-top: var(--mobile-header-height); // Add margin to account for header
-  }
-`;
 
 function Projects({
   page,
@@ -40,17 +27,12 @@ function Projects({
   useEffect(() => {
     const mql = window.matchMedia('(max-width: 600px)');
     const mapOptions = {
-      center: {
-        lat: 39.8283,
-        lng: -98.5795,
-      },
+      center: { lat: 39.8283, lng: -98.5795 },
       zoom: 5,
       mapId: 'f909f5ad32968c2a',
     };
 
-    if (mql.matches) {
-      mapOptions.zoom = 3.5;
-    }
+    if (mql.matches) mapOptions.zoom = 3.5;
 
     loader
       .load()
@@ -93,9 +75,7 @@ function Projects({
           const myoverlay = new window.google.maps.OverlayView();
           myoverlay.draw = function (this: google.maps.OverlayView) {
             const panes = this.getPanes();
-            if (panes) {
-              panes.markerLayer.id = 'markerLayer';
-            }
+            if (panes) panes.markerLayer.id = 'markerLayer';
           };
           myoverlay.setMap(map);
 
@@ -111,9 +91,7 @@ function Projects({
                   img.classList.remove('shrink');
                 });
 
-              if (activeInfoWindow) {
-                activeInfoWindow.close();
-              }
+              if (activeInfoWindow) activeInfoWindow.close();
               infowindow.open(map, marker);
               activeInfoWindow = infowindow;
 
@@ -133,7 +111,6 @@ function Projects({
                 const image = document.querySelector(
                   `#markerLayer div:nth-child(${index}) img`,
                 );
-
                 image?.classList.remove('shrink');
                 image?.classList.add('grow');
               }
@@ -172,7 +149,13 @@ function Projects({
       });
   }, [projects]);
 
-  return <MapSection id={id ?? undefined} ref={ref}></MapSection>;
+  return (
+    <section
+      id={id ?? undefined}
+      ref={ref}
+      className="w-full h-screen max-tablet:[--mobile-header-height:0px] max-tablet:h-[calc(100vh-var(--mobile-header-height))] max-tablet:min-h-[400px] max-tablet:mt-[var(--mobile-header-height)]"
+    />
+  );
 }
 
 export default Projects;

@@ -1,245 +1,17 @@
 'use client';
 
-import React, { useState } from "react";
-import styled from "styled-components";
-import { hexagonGridItem } from "@/styles/mixins";
-import SanityImage from "@/components/SanityImage";
-import type { CarbonoffsetsQueryResult } from "@/sanity.types";
-import formatNumber from "@/utils/formatNumber";
-import isNumeric from "@/utils/isNumber";
-import sortObject from "@/utils/sortObject";
+import { useMemo, useState } from 'react';
+import classNames from 'classnames';
 
-const StyledHexagonsGrid = styled.div`
-  display: flex;
-  justify-content: center;
-`;
-const StyledHexWrapper = styled.ul`
-  --amount: 6;
-  --counter: 1;
-  position: relative;
-  padding: 2rem 4rem;
-  width: 85vw;
-  margin: 0 calc(-50vw + 50%);
-  list-style-type: none;
-  display: grid;
-  grid-template-columns: repeat(var(--amount), 1fr 2fr) 1fr;
-  grid-gap: 1rem 2rem;
-  /* @media screen and (min-width: 1440px) {
-    --amount: 6;
-    --counter: 1;
-  }
-  @media screen and (min-width: 1120px) and (max-width: 1439px) {
-    --amount: 4;
-    --counter: 1;
-  }
-  @media screen and (min-width: 840px) and (max-width: 1119px) {
-    --amount: 3;
-    --counter: 1;
-    grid-gap: 1.5rem 3rem;
-  }
-  @media screen and (min-width: 480px) and (max-width: 839px) {
-    --amount: 2;
-    --counter: 1;
-    grid-gap: 1.5rem 3rem;
-  } */
-  @media screen and (max-width: 800px) {
-    --amount: 1;
-    grid-gap: 1.5rem 3rem;
-  }
-`;
+import SanityImage from '@/components/SanityImage';
+import formatNumber from '@/utils/formatNumber';
+import { hexagonGridItem } from '@/utils/hexagonGridItem';
+import isNumeric from '@/utils/isNumber';
+import sortObject from '@/utils/sortObject';
+import type { CarbonoffsetsQueryResult } from '@/sanity.types';
 
-const StyledHexItem = styled.li`
-  position: relative;
-  grid-column: 1 / span 3;
-  grid-row: calc(var(--counter) + var(--counter)) / span 2;
-  height: 0;
-  padding-bottom: 90%;
-  ${hexagonGridItem(20, 6)}
-  /* @media screen and (min-width: 1440px) {
-    ${hexagonGridItem(20, 6)}
-  }
-  @media screen and (min-width: 1120px) and (max-width: 1439px) {
-    ${hexagonGridItem(20, 4)}
-  }
-  @media screen and (min-width: 840px) and (max-width: 1119px) {
-    ${hexagonGridItem(20, 3)}
-  }
-  @media screen and (min-width: 480px) and (max-width: 839px) {
-    ${hexagonGridItem(20, 2)}
-  } */
-  @media screen and (max-width: 800px) {
-    ${hexagonGridItem(20, 1)}
-    grid-row: auto !important;
-
-    &:nth-child(1) {
-      order: 2;
-    }
-    &:nth-child(2) {
-      order: 3;
-    }
-    &:nth-child(3) {
-      order: 6;
-    }
-    &:nth-child(4) {
-      order: 7;
-    }
-    &:nth-child(5) {
-      order: 9;
-    }
-    &:nth-child(6) {
-      order: 10;
-    }
-    &:nth-child(7) {
-      order: 1;
-    }
-    &:nth-child(8) {
-      order: 4;
-    }
-    &:nth-child(9) {
-      order: 5;
-    }
-    &:nth-child(10) {
-      order: 8;
-    }
-  }
-`;
-
-const StyledHexContent = styled.div`
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 100%;
-  padding: 2rem 25%;
-  clip-path: polygon(75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%, 25% 0);
-  text-align: center;
-  transform: scale(1.075);
-  @media only screen and (min-width: 1600px) {
-    transform: scale(1.05);
-  }
-  @media only screen and (min-width: 1200px) and (max-width: 1600px) {
-    transform: scale(1.1);
-  }
-  @media only screen and (min-width: 800px) and (max-width: 1199px) {
-    transform: scale(1.12);
-  }
-  &[style*=" rgb(0, 65, 129)"] {
-    @media only screen and (max-width: 1600px) {
-      padding: 2rem 12%;
-    }
-    @media only screen and (max-width: 479px) {
-      padding: 2rem 20%;
-    }
-  }
-
-  > div {
-    height: 100%;
-  }
-  figure {
-    display: flex;
-    align-items: center;
-    height: 100%;
-  }
-  img {
-    height: auto;
-    width: 100%;
-  }
-  h3 {
-    margin-bottom: 0.3rem;
-    font-size: 1rem;
-    @media only screen and (min-width: 901px) and (max-width: 1600px) {
-      font-size: 1rem;
-    }
-    @media only screen and (min-width: 800px) and (max-width: 900px) {
-      font-size: 0.5rem;
-    }
-    @media only screen and (max-width: 799px) {
-      margin-bottom: 0.8rem;
-      font-size: 5vw;
-    }
-  }
-  p {
-    line-height: 1.4;
-    font-size: 0.85rem;
-    @media only screen and (min-width: 1404px) and (max-width: 1600px) {
-      font-size: 0.7rem;
-    }
-    @media only screen and (min-width: 1275px) and (max-width: 1403px) {
-      font-size: 0.6rem;
-    }
-    @media only screen and (min-width: 901px) and (max-width: 1274px) {
-      font-size: 0.5rem;
-    }
-    @media only screen and (min-width: 800px) and (max-width: 900px) {
-      font-size: 0.25rem;
-    }
-    @media only screen and (max-width: 799px) {
-      font-size: 1.4rem;
-    }
-    @media only screen and (max-width: 484px) {
-      font-size: 0.45rem;
-      line-height: 1.3;
-    }
-  }
-  h3,
-  p {
-    color: white;
-    font-weight: 100;
-  }
-  p {
-    @media only screen and (max-width: 799px) {
-      font-weight: 400;
-    }
-  }
-`;
-
-const StyledTabs = styled.ul`
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: center;
-  max-width: 100%;
-  width: auto;
-  margin-bottom: 0;
-  @media only screen and (max-width: 800px) {
-    margin: 0;
-  }
-  li {
-    list-style: none;
-    @media only screen and (max-width: 800px) {
-      margin: 0 auto;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    button {
-      appearance: none;
-      background: transparent;
-      color: white;
-      border: none;
-      font-size: 1rem;
-      padding: 1rem 2rem;
-      font-weight: 800;
-      background: rgba(0, 65, 129, 0.75);
-      @media only screen and (max-width: 800px) {
-        padding: 0.4rem;
-        font-size: 0.69rem;
-      }
-      &:active {
-        border: none;
-        outline: 0;
-      }
-      &.active {
-        background: rgba(0, 65, 129, 1);
-        border: 1px solid var(--accent);
-      }
-    }
-  }
-`;
 function getHexagonContent(
-  hexagon: NonNullable<
-    CarbonoffsetsQueryResult[number]["hexagons"]
-  >[number],
+  hexagon: NonNullable<CarbonoffsetsQueryResult[number]['hexagons']>[number],
 ) {
   if (hexagon?.icon) {
     return (
@@ -247,7 +19,7 @@ function getHexagonContent(
         <figure>
           <SanityImage
             image={hexagon.icon}
-            alt={hexagon.heading || "carbon offset"}
+            alt={hexagon.heading || 'carbon offset'}
             width={200}
           />
         </figure>
@@ -257,9 +29,9 @@ function getHexagonContent(
     return (
       <div
         style={{
-          display: "flex",
-          flexFlow: "column nowrap",
-          justifyContent: "center",
+          display: 'flex',
+          flexFlow: 'column nowrap',
+          justifyContent: 'center',
         }}
       >
         <h3>
@@ -272,67 +44,95 @@ function getHexagonContent(
     );
   }
 }
+
 function ImpactHexagons({
   carbonoffsets,
 }: {
   carbonoffsets: CarbonoffsetsQueryResult;
 }) {
-  const [currentTab, setcurrentTab] = useState(
-    carbonoffsets[0]?.id ?? "",
+  const [currentTab, setcurrentTab] = useState(carbonoffsets[0]?.id ?? '');
+  const tabs = sortObject(carbonoffsets) as CarbonoffsetsQueryResult;
+
+  // Inject the dynamically generated honeycomb grid CSS once.
+  // hexagonGridItem() emits SCSS-style rules using `&` as a placeholder; we
+  // expand `&` to the full selector and emit flat CSS (no nesting) so the
+  // browser parses each rule at the top level, not as a descendant selector.
+  const hexCss = useMemo(
+    () =>
+      `${hexagonGridItem(20, 6).replaceAll('&', '.impact-hex-list > li')}
+       @media screen and (max-width: 800px) {
+         .impact-hex-list > li { grid-row: auto !important; }
+         ${hexagonGridItem(20, 1).replaceAll('&', '.impact-hex-list > li')}
+         .impact-hex-list > li:nth-child(1) { order: 2; }
+         .impact-hex-list > li:nth-child(2) { order: 3; }
+         .impact-hex-list > li:nth-child(3) { order: 6; }
+         .impact-hex-list > li:nth-child(4) { order: 7; }
+         .impact-hex-list > li:nth-child(5) { order: 9; }
+         .impact-hex-list > li:nth-child(6) { order: 10; }
+         .impact-hex-list > li:nth-child(7) { order: 1; }
+         .impact-hex-list > li:nth-child(8) { order: 4; }
+         .impact-hex-list > li:nth-child(9) { order: 5; }
+         .impact-hex-list > li:nth-child(10) { order: 8; }
+       }`,
+    [],
   );
-  const tabs = sortObject(
-    carbonoffsets,
-  ) as CarbonoffsetsQueryResult;
 
   return (
     <div>
+      <style dangerouslySetInnerHTML={{ __html: hexCss }} />
       <nav>
-        <StyledTabs>
+        <ul className="flex flex-row flex-nowrap justify-center max-w-full w-auto mb-0 max-tablet:m-0 [&_li]:list-none max-tablet:[&_li]:mx-auto max-tablet:[&_li]:w-full max-tablet:[&_li]:flex max-tablet:[&_li]:justify-center max-tablet:[&_li]:items-center">
           {tabs.map((tab) => (
             <li key={tab.id}>
               <button
-                className={currentTab === tab.id ? "active" : ""}
+                type="button"
                 onClick={() => setcurrentTab(tab.id)}
+                className={classNames(
+                  'appearance-none border-none text-white text-base font-extrabold px-8 py-4 bg-[rgba(0,65,129,0.75)] active:border-none active:outline-0 max-tablet:p-[0.4rem] max-tablet:text-[0.69rem]',
+                  currentTab === tab.id &&
+                    'bg-[rgba(0,65,129,1)] border border-accent',
+                )}
               >
                 {tab.name}
               </button>
             </li>
           ))}
-        </StyledTabs>
+        </ul>
       </nav>
-      <StyledHexagonsGrid>
+      <div className="flex justify-center">
         {tabs
           .filter((t) => t.id === currentTab)
           .map((tab) => {
             const hexagons = sortObject(tab.hexagons ?? []) as NonNullable<
-              CarbonoffsetsQueryResult[number]["hexagons"]
+              CarbonoffsetsQueryResult[number]['hexagons']
             >;
             return (
-              <StyledHexWrapper key={tab.id}>
-                {hexagons?.map(
-                  (
-                    hexagon: NonNullable<
-                      CarbonoffsetsQueryResult[number]["hexagons"]
-                    >[number],
-                  ) => {
-                    const bgColor = hexagon?.backgroundColor
-                      ? hexagon?.backgroundColor.hex
-                      : "#ffffff";
-                    return (
-                      <StyledHexItem key={hexagon?._key ?? tab.id}>
-                        <StyledHexContent
-                          style={bgColor ? { background: bgColor } : {}}
-                        >
-                          {getHexagonContent(hexagon)}
-                        </StyledHexContent>
-                      </StyledHexItem>
-                    );
-                  },
-                )}
-              </StyledHexWrapper>
+              <ul
+                key={tab.id}
+                className="impact-hex-list relative py-8 px-16 w-[85vw] mx-[calc(-50vw+50%)] list-none grid grid-cols-[repeat(6,1fr_2fr)_1fr] gap-x-8 gap-y-4 [--amount:6] [--counter:1] max-tablet:[--amount:1] max-tablet:gap-x-12 max-tablet:gap-y-6"
+              >
+                {hexagons?.map((hexagon) => {
+                  const bgColor = hexagon?.backgroundColor
+                    ? hexagon?.backgroundColor.hex
+                    : '#ffffff';
+                  return (
+                    <li
+                      key={hexagon?._key ?? tab.id}
+                      className="relative col-[1/span_3] row-[calc(var(--counter)+var(--counter))/span_2] h-0 pb-[90%]"
+                    >
+                      <div
+                        style={bgColor ? { background: bgColor } : {}}
+                        className="absolute left-0 top-0 h-full w-full py-8 px-[25%] [clip-path:polygon(75%_0,100%_50%,75%_100%,25%_100%,0_50%,25%_0)] text-center scale-[1.075] min-[1600px]:scale-[1.05] min-[1200px]:max-[1600px]:scale-[1.1] min-[800px]:max-[1199px]:scale-[1.12] [&[style*='_rgb(0,_65,_129)']]:max-[1600px]:px-[12%] [&[style*='_rgb(0,_65,_129)']]:max-[479px]:px-[20%] [&_>div]:h-full [&_figure]:flex [&_figure]:items-center [&_figure]:h-full [&_img]:h-auto [&_img]:w-full [&_h3]:mb-1 [&_h3]:text-base min-[901px]:max-[1600px]:[&_h3]:text-base min-[800px]:max-[900px]:[&_h3]:text-[0.5rem] max-[799px]:[&_h3]:mb-3 max-[799px]:[&_h3]:text-[5vw] [&_p]:leading-[1.4] [&_p]:text-[0.85rem] min-[1404px]:max-[1600px]:[&_p]:text-[0.7rem] min-[1275px]:max-[1403px]:[&_p]:text-[0.6rem] min-[901px]:max-[1274px]:[&_p]:text-[0.5rem] min-[800px]:max-[900px]:[&_p]:text-[0.25rem] max-[799px]:[&_p]:text-[1.4rem] max-[484px]:[&_p]:text-[0.45rem] max-[484px]:[&_p]:leading-[1.3] [&_h3]:text-white [&_h3]:font-thin [&_p]:text-white [&_p]:font-thin max-[799px]:[&_p]:font-normal"
+                      >
+                        {getHexagonContent(hexagon)}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
             );
           })}
-      </StyledHexagonsGrid>
+      </div>
     </div>
   );
 }

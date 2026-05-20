@@ -1,80 +1,18 @@
 'use client';
 
-import React, { MouseEvent, useEffect, useRef } from "react";
-import getytid from "get-youtube-id";
-import styled from "styled-components";
-import TriangleOutline from "@/assets/triangle-outline.svg";
-import scrollTo from "@/lib/scrollTo";
-import SanityImage from "@/components/SanityImage";
+import { MouseEvent, useEffect, useRef } from 'react';
+import getytid from 'get-youtube-id';
+
+import TriangleOutline from '@/assets/triangle-outline.svg';
+import scrollTo from '@/lib/scrollTo';
+import SanityImage from '@/components/SanityImage';
 import type {
   HomesectionsQueryResult,
   HomevideoQueryResult,
-} from "@/sanity.types";
-const StyledVideo = styled.video`
-  display: block;
-  width: 100%;
-  max-width: 100vw;
-  margin-bottom: 0;
-  position: relative;
-  z-index: 1;
-  height: 100%;
-  background-color: black;
-  object-fit: cover;
-  object-position: center center;
-`;
+} from '@/sanity.types';
 
-const VideoSection = styled.div`
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
-`;
-
-const StyledButtonsWrapper = styled.div`
-  position: absolute;
-  z-index: 2;
-  cursor: pointer;
-  right: 2%;
-  bottom: 2%;
-  display: flex;
-  flex-flow: row nowrap;
-  align-items: center;
-`;
-
-const StyledSoundButton = styled.button`
-  background: none;
-  padding: 0.5rem;
-  display: flex;
-  flex-flow: row nowrap;
-  align-items: center;
-  svg {
-    pointer-events: none;
-    opacity: 0.8;
-    fill: white;
-    &.jump-down {
-      width: 35px;
-      height: auto;
-      transform: translateY(-2px);
-    }
-  }
-  #mute-icon,
-  #sound-icon {
-    color: white;
-    font-weight: 400;
-    font-size: 1rem;
-    pointer-events: none;
-  }
-  &[data-state="mute"] {
-    #mute-icon {
-      display: none;
-    }
-  }
-  &[data-state="unmute"] {
-    #sound-icon {
-      display: none;
-    }
-  }
-`;
+const SOUND_BUTTON_CLASS =
+  'bg-transparent p-2 flex flex-row flex-nowrap items-center [&_svg]:pointer-events-none [&_svg]:opacity-80 [&_svg]:fill-white [&_svg.jump-down]:w-[35px] [&_svg.jump-down]:h-auto [&_svg.jump-down]:-translate-y-0.5 [&_#mute-icon]:text-white [&_#mute-icon]:font-normal [&_#mute-icon]:text-base [&_#mute-icon]:pointer-events-none [&_#sound-icon]:text-white [&_#sound-icon]:font-normal [&_#sound-icon]:text-base [&_#sound-icon]:pointer-events-none data-[state=mute]:[&_#mute-icon]:hidden data-[state=unmute]:[&_#sound-icon]:hidden';
 
 function Sound() {
   return <span id="sound-icon">UNMUTE</span>;
@@ -98,14 +36,13 @@ function Video({
     const videoElement = videoRef.current;
     const videoSrcElement = videoSrcRef.current;
     if (videoSrcElement && videoElement) {
-      const desktopMq = window.matchMedia("(min-width: 800px)");
+      const desktopMq = window.matchMedia('(min-width: 800px)');
       if (desktopMq.matches) {
-        videoSrcElement.type = videoElement.dataset.type || "video/mp4";
-        videoSrcElement.src = videoElement.dataset.src || "";
-        // videoDesktopSource.play();
+        videoSrcElement.type = videoElement.dataset.type || 'video/mp4';
+        videoSrcElement.src = videoElement.dataset.src || '';
       } else {
-        videoSrcElement.type = videoElement.dataset.mobiletype || "video/mp4";
-        videoSrcElement.src = videoElement.dataset.mobilesrc || "";
+        videoSrcElement.type = videoElement.dataset.mobiletype || 'video/mp4';
+        videoSrcElement.src = videoElement.dataset.mobilesrc || '';
       }
       videoElement.play();
     }
@@ -115,10 +52,9 @@ function Video({
     const target = e.target as HTMLButtonElement;
     if (videoRef) {
       const video = videoRef.current;
-
       if (video) {
         video.muted = !video.muted;
-        target.setAttribute("data-state", video.muted ? "mute" : "unmute");
+        target.setAttribute('data-state', video.muted ? 'mute' : 'unmute');
       }
     }
   };
@@ -126,67 +62,67 @@ function Video({
   const video = nodes[0];
 
   if (video.video || video.mobileVideo) {
-    // const name = video.name;
     const url = video?.video?.asset?.url;
     const mobileUrl = video?.mobileVideo?.asset?.url;
     const mimeType = video?.video?.asset?.mimeType;
     const mobileMimeType = video?.mobileVideo?.asset?.mimeType;
     return (
-      <VideoSection>
-        <StyledButtonsWrapper className="sound-button">
-          <StyledSoundButton data-state="mute" onClick={setSound}>
+      <div className="relative w-full h-screen overflow-hidden">
+        <div className="sound-button absolute z-[2] cursor-pointer right-[2%] bottom-[2%] flex flex-row flex-nowrap items-center">
+          <button
+            type="button"
+            data-state="mute"
+            onClick={setSound}
+            className={SOUND_BUTTON_CLASS}
+          >
             <Sound />
             <Mute />
-          </StyledSoundButton>
-          <StyledSoundButton
-            className="jump-button"
+          </button>
+          <button
+            type="button"
+            className={`jump-button ${SOUND_BUTTON_CLASS}`}
             onClick={(e: MouseEvent) => {
               e.preventDefault();
-              // const video = videoRef.current;
-              // video.pause();
-              if (typeof window !== "undefined") {
-                const mql = window.matchMedia("(max-width: 800px)");
-                if (!mql.matches) {
-                  scrollTo("#carousel");
-                } else {
-                  scrollTo("#bottom-video");
-                }
+              if (typeof window !== 'undefined') {
+                const mql = window.matchMedia('(max-width: 800px)');
+                if (!mql.matches) scrollTo('#carousel');
+                else scrollTo('#bottom-video');
               }
             }}
           >
             <TriangleOutline className="jump-down" />
-            {/* <TriangleFull className="jump-down" /> */}
-          </StyledSoundButton>
-        </StyledButtonsWrapper>
-        <StyledVideo
+          </button>
+        </div>
+        <video
           id="home-video"
-          width="100%"
-          height="100%"
           ref={videoRef}
           muted
           autoPlay
+          playsInline
+          width="100%"
+          height="100%"
           data-src={url}
           data-mobilesrc={mobileUrl}
           data-type={mimeType}
           data-mobiletype={mobileMimeType}
-          playsInline
+          className="block w-full max-w-screen mb-0 relative z-[1] h-full bg-black object-cover object-center"
         >
-          <source ref={videoSrcRef}></source>
-          Sorry, your browser doesn't support embedded videos.
+          <source ref={videoSrcRef} />
+          Sorry, your browser doesn&apos;t support embedded videos.
           {video.videoPoster?.asset?._id && (
             <SanityImage
               alt="Windows of a building"
               image={video.videoPoster}
             />
           )}
-        </StyledVideo>
-        <div id="bottom-video"></div>
-      </VideoSection>
+        </video>
+        <div id="bottom-video" />
+      </div>
     );
   } else if (video.youtubeLink) {
-    const videos = nodes.flatMap((video) => ({
-      name: video.name,
-      url: video.youtubeLink?.[0]?.url,
+    const videos = nodes.flatMap((v) => ({
+      name: v.name,
+      url: v.youtubeLink?.[0]?.url,
     }));
     const { name, url } = videos?.[0];
     const id = url && getytid(url);
@@ -194,7 +130,7 @@ function Video({
       <section id={`#${content.anchorId}`}>
         <iframe
           src={`https://www.youtube.com/embed/${id}`}
-          title={name ?? "Main Video"}
+          title={name ?? 'Main Video'}
           width="100%"
           height="100%"
           allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"

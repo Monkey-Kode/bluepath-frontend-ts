@@ -2,104 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import classNames from 'classnames';
 import { Dispatch, SetStateAction } from 'react';
-import styled from 'styled-components';
 
 import scrollTo from '@/lib/scrollTo';
 import sortObject from '@/utils/sortObject';
 import type { NavigationQueryResult } from '@/sanity.types';
-
-const StyledMenu = styled.nav<{ $open: boolean }>`
-  margin: 1.75rem 0;
-  font-size: 1rem;
-  @media (max-width: 1080px) {
-    font-size: 0.7rem;
-  }
-  @media (max-width: 800px) {
-    &.header {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      background: var(--blue);
-      transform: ${({ $open }) =>
-        $open ? 'translateX(0)' : 'translateX(-100%)'};
-      height: 100vh;
-      text-align: left;
-      padding: 8%;
-      position: absolute;
-      top: 0;
-      left: 0;
-      transition: transform 0.3s ease-in-out;
-      z-index: 9;
-      margin: 0 !important;
-
-      @media (max-width: 576px) {
-        width: 100%;
-      }
-
-      a {
-        font-size: 2rem;
-        text-transform: uppercase;
-        padding: 1rem 0;
-        font-weight: bold;
-        letter-spacing: 0.5rem;
-        color: white;
-        text-decoration: none;
-        transition: color 0.3s linear;
-
-        @media (max-width: 576px) {
-          font-size: 1.5rem;
-          text-align: center;
-          padding: 0 !important;
-        }
-
-        &:hover {
-          color: #343078;
-        }
-      }
-    }
-    &.footer {
-      margin: 3rem 0 1rem;
-      ul {
-        padding-top: 1rem;
-        padding-left: 0.7rem;
-        align-items: flex-start;
-
-        li {
-          padding-left: 0;
-          border: none !important;
-        }
-      }
-    }
-  }
-`;
-
-const StyledMenuUl = styled.ul`
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  @media (min-width: 800px) {
-    justify-content: flex-end;
-  }
-  @media (max-width: 799px) {
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  li {
-    list-style: none;
-    @media (min-width: 800px) {
-      padding: 0 1rem 0;
-    }
-    a {
-      text-decoration: none;
-      text-transform: uppercase;
-      font-weight: 400;
-      cursor: pointer;
-    }
-  }
-`;
 
 function Menu({
   open,
@@ -108,35 +16,42 @@ function Menu({
   navigation,
 }: {
   open: boolean;
-  siteLocation: string;
+  siteLocation: 'header' | 'footer';
   setOpen?: Dispatch<SetStateAction<boolean>>;
   navigation: NavigationQueryResult;
 }) {
   const pathname = usePathname();
   const navItems = sortObject(navigation);
 
+  const isHeader = siteLocation === 'header';
+
   return (
-    <StyledMenu className={siteLocation} $open={open}>
-      <StyledMenuUl>
+    <nav
+      data-open={open}
+      className={classNames(
+        siteLocation,
+        'my-7 text-base max-[1080px]:text-[0.7rem]',
+        // Slide-out drawer on mobile when used in the header
+        isHeader &&
+          'max-tablet:absolute max-tablet:left-0 max-tablet:top-0 max-tablet:z-[9] max-tablet:flex max-tablet:!m-0 max-tablet:h-screen max-tablet:flex-col max-tablet:justify-center max-tablet:bg-blue max-tablet:p-[8%] max-tablet:text-left max-tablet:transition-transform max-tablet:duration-300 max-tablet:ease-in-out max-tablet:-translate-x-full max-tablet:data-[open=true]:translate-x-0 max-[576px]:w-full max-tablet:[&_a]:block max-tablet:[&_a]:py-4 max-tablet:[&_a]:text-[2rem] max-tablet:[&_a]:font-bold max-tablet:[&_a]:uppercase max-tablet:[&_a]:tracking-[0.5rem] max-tablet:[&_a]:text-white max-tablet:[&_a]:no-underline max-tablet:[&_a]:transition-colors max-tablet:[&_a]:duration-300 max-tablet:[&_a:hover]:text-[#343078] max-[576px]:[&_a]:!p-0 max-[576px]:[&_a]:text-center max-[576px]:[&_a]:text-[1.5rem]',
+        // Footer mobile spacing tweaks
+        !isHeader &&
+          'max-tablet:my-12 [&>ul]:pt-4 [&>ul]:pl-3 [&>ul]:items-start [&_li]:pl-0',
+      )}
+    >
+      <ul className="m-0 flex flex-wrap tablet:justify-end max-tablet:flex-col max-tablet:justify-center">
         {navItems.map(
           ({ name: title, page, jumpLinkId, linkType, _id, header, footer, url }) => {
-            if (!header && siteLocation === 'header') {
-              return null;
-            }
-            if (!footer && siteLocation === 'footer') {
-              return null;
-            }
+            if (!header && isHeader) return null;
+            if (!footer && !isHeader) return null;
 
             let pageLink = '';
-
             if (page !== null && linkType === false && !!page.slug) {
               pageLink = page.slug ?? '';
+            } else if (pathname !== '/') {
+              pageLink = `/${jumpLinkId}`;
             } else {
-              if (pathname !== '/') {
-                pageLink = `/${jumpLinkId}`;
-              } else {
-                pageLink = jumpLinkId ?? '';
-              }
+              pageLink = jumpLinkId ?? '';
             }
             if (url) {
               const link = new URL(url);
@@ -144,18 +59,25 @@ function Menu({
             }
 
             return (
-              <li key={_id}>
+              <li
+                key={_id}
+                className="list-none tablet:px-4"
+              >
                 {!jumpLinkId ? (
-                  <Link href={`/${pageLink}`}>{title}</Link>
+                  <Link
+                    href={`/${pageLink}`}
+                    className="cursor-pointer font-normal text-blue no-underline"
+                  >
+                    {title}
+                  </Link>
                 ) : (
                   <a
                     href={`${pageLink}`}
+                    className="cursor-pointer font-normal text-blue no-underline"
                     onClick={(e) => {
                       if (pathname === '/') {
                         e.preventDefault();
-                        if (setOpen) {
-                          setOpen(false);
-                        }
+                        if (setOpen) setOpen(false);
                         scrollTo(pageLink);
                       }
                     }}
@@ -167,8 +89,8 @@ function Menu({
             );
           },
         )}
-      </StyledMenuUl>
-    </StyledMenu>
+      </ul>
+    </nav>
   );
 }
 

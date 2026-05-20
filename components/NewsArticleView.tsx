@@ -1,54 +1,8 @@
 'use client';
 
-import styled from 'styled-components';
-
 import NewsBody from '@/components/NewsBody';
 import SanityImage from '@/components/SanityImage';
-import { headerOffset } from '@/styles/mixins';
 import type { NewsBySlugQueryResult } from '@/sanity.types';
-
-const StyledArticle = styled.main`
-  background: #fff;
-  color: #000;
-  ${headerOffset}
-  padding-bottom: 5rem;
-  padding-inline: 1.25rem;
-
-  .article-wrap {
-    max-width: 800px;
-    margin: 0 auto;
-  }
-
-  h1 {
-    font-family: 'Inter', Helvetica, Arial, sans-serif;
-    font-weight: 700;
-    color: var(--blue);
-    font-size: var(--text-h1);
-    line-height: 1.2;
-    margin: 0 0 1.5rem;
-    text-wrap: balance;
-  }
-
-  figure.hero {
-    margin: 0 0 1rem;
-    img {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-  }
-
-  .date-stamp {
-    font-family: 'Inter', Helvetica, Arial, sans-serif;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    color: #000;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin: 1.5rem 0 2rem;
-    display: block;
-  }
-`;
 
 export default function NewsArticleView({
   article,
@@ -64,11 +18,15 @@ export default function NewsArticleView({
     : null;
 
   return (
-    <StyledArticle>
-      <article className="article-wrap">
-        {article.title && <h1>{article.title}</h1>}
+    <main className="header-offset bg-white text-black px-5 pb-20">
+      <article className="mx-auto max-w-[760px]">
+        {article.title && (
+          <h1 className="font-sans font-bold text-blue text-[var(--text-h1)] leading-[1.2] m-0 mb-6 text-balance">
+            {article.title}
+          </h1>
+        )}
         {article.heroImage?.asset?._id && (
-          <figure className="hero">
+          <figure className="m-0 mb-4 [&_img]:block [&_img]:h-auto [&_img]:w-full">
             <SanityImage
               image={article.heroImage}
               alt={article.title ?? 'Article hero image'}
@@ -76,9 +34,17 @@ export default function NewsArticleView({
             />
           </figure>
         )}
-        {publishedAt && <time className="date-stamp">{publishedAt}</time>}
-        {article.body ? <NewsBody value={article.body} /> : null}
+        {publishedAt && (
+          <time className="block font-sans text-[0.8125rem] font-bold uppercase tracking-[0.1em] text-black mt-6 mb-8">
+            {publishedAt}
+          </time>
+        )}
+        {article.body ? (
+          <div className="prose prose-lg prose-slate max-w-none prose-headings:font-sans prose-headings:text-black prose-a:text-black prose-a:font-medium hover:prose-a:text-accent prose-blockquote:border-accent prose-blockquote:text-black prose-strong:font-semibold">
+            <NewsBody value={article.body} />
+          </div>
+        ) : null}
       </article>
-    </StyledArticle>
+    </main>
   );
 }

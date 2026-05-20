@@ -2,10 +2,8 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import styled from 'styled-components';
 
 import SanityImage from '@/components/SanityImage';
-import { headerOffset } from '@/styles/mixins';
 import type {
   AllEventsQueryResult,
   AllNewsQueryResult,
@@ -30,189 +28,6 @@ type ArchiveItem = {
   image: ArchiveImage | null;
 };
 
-const StyledPage = styled.main`
-  background: #fff;
-  color: var(--blue);
-  ${headerOffset}
-  padding-bottom: 5rem;
-  padding-inline: 1.25rem;
-
-  .archive-wrap {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  h1.archive-heading {
-    font-family: 'Inter', Helvetica, Arial, sans-serif;
-    font-weight: 700;
-    color: var(--blue);
-    letter-spacing: 0.02em;
-    font-size: var(--text-h2);
-    line-height: 1.1;
-    margin: 2rem 0 2.5rem;
-    text-wrap: balance;
-
-    @media (max-width: 800px) {
-      margin-bottom: 0;
-    }
-  }
-`;
-
-const Row = styled.article`
-  display: grid;
-  grid-template-columns: 273px 1fr;
-  gap: 2.5rem;
-  align-items: flex-start;
-  padding: 2.5rem 0;
-
-  @media (max-width: 800px) {
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
-  }
-
-  .row-image {
-    display: block;
-    width: 100%;
-    max-width: 273px;
-    padding: 0;
-    border: 1px solid var(--blue);
-    line-height: 0;
-    img {
-      width: 100%;
-      height: auto;
-      object-fit: contain !important;
-    }
-    .placeholder {
-      width: 100%;
-      aspect-ratio: 273 / 387;
-      background: rgba(0, 65, 129, 0.08);
-    }
-  }
-
-  &.news .row-image {
-    border-color: var(--accent);
-  }
-
-  .row-content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .row-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    font-family: 'Inter', Helvetica, Arial, sans-serif;
-    font-size: 0.8125rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-
-  .row-date {
-    color: var(--blue);
-    font-weight: 300;
-    font-style: italic;
-  }
-
-  .row-publication {
-    color: var(--blue);
-    font-weight: 600;
-    font-style: italic;
-    font-size: 1.25rem;
-    padding-block-end: 0.75rem;
-  }
-
-  h2 {
-    font-family: 'Libre Baskerville', Georgia, serif;
-    font-weight: 700;
-    color: var(--blue);
-    font-size: var(--text-h2);
-    line-height: 1.2;
-    margin: 0;
-    text-wrap: balance;
-    a {
-      color: var(--blue);
-      text-decoration: none;
-      text-transform: none;
-      font-weight: inherit;
-      padding: 0;
-      display: inline;
-      transition: color 0.3s ease;
-      &:hover {
-        color: var(--accent);
-      }
-    }
-  }
-
-  .row-subhead {
-    font-family: 'Libre Baskerville', Georgia, serif;
-    font-style: italic;
-    font-weight: 400;
-    font-size: 1.125rem;
-    line-height: 1.4;
-    color: var(--blue);
-    margin: 0;
-    text-wrap: balance;
-  }
-
-  .row-excerpt {
-    font-family: 'Libre Baskerville', Georgia, serif;
-    color: #000;
-    margin: 0;
-    line-height: 1.65;
-    font-size: 1rem;
-    max-width: 60ch;
-  }
-
-  .row-cta {
-    margin-top: 0.5rem;
-    a {
-      display: inline-block;
-      background: var(--blue);
-      color: #fff;
-      font-family: 'Inter', Helvetica, Arial, sans-serif;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      font-size: 0.8125rem;
-      font-weight: 400;
-      text-decoration: none;
-      padding: 0.5rem 0.75rem;
-      border-radius: 6px;
-      transition: background-color 0.2s ease;
-      &:hover {
-        background: var(--accent);
-        color: #fff;
-      }
-    }
-  }
-`;
-
-const LoadMoreWrap = styled.div`
-  text-align: center;
-  margin-top: 3rem;
-
-  button {
-    background: var(--blue);
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    padding: 0.5rem 0.75rem;
-    font-family: 'Inter', Helvetica, Arial, sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-size: 0.8125rem;
-    font-weight: 400;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-
-    &:hover {
-      background: var(--accent);
-      color: #fff;
-    }
-  }
-`;
-
 const formatDate = (iso: string | null | undefined) => {
   if (!iso) return '';
   const d = new Date(iso);
@@ -224,10 +39,11 @@ const formatDate = (iso: string | null | undefined) => {
   });
 };
 
-const eventDateToISO = (eventAt: string | null | undefined) => {
-  if (!eventAt) return null;
-  return `${eventAt}T00:00:00`;
-};
+const eventDateToISO = (eventAt: string | null | undefined) =>
+  eventAt ? `${eventAt}T00:00:00` : null;
+
+const CTA_CLASS =
+  'inline-block bg-blue text-white font-sans uppercase tracking-[0.12em] text-[0.8125rem] font-normal no-underline px-3 py-2 rounded-md transition-colors duration-200 hover:bg-accent hover:text-white';
 
 export default function NewsEventsArchive({
   news,
@@ -281,9 +97,11 @@ export default function NewsEventsArchive({
   }, []);
 
   return (
-    <StyledPage>
-      <div className="archive-wrap">
-        <h1 className="archive-heading">News &amp; Events</h1>
+    <main className="header-offset bg-white text-blue px-5 pb-20">
+      <div className="mx-auto max-w-[1200px]">
+        <h1 className="font-sans font-bold text-blue tracking-[0.02em] text-[var(--text-h2)] leading-[1.1] my-8 mb-10 text-balance max-tablet:mb-0">
+          News &amp; Events
+        </h1>
         {shown.map((item) => {
           const href =
             item.kind === 'news'
@@ -291,9 +109,19 @@ export default function NewsEventsArchive({
               : `/events/${item.slug}`;
           const ctaLabel =
             item.kind === 'news' ? 'CONTINUE READING' : 'VIEW EVENT DETAILS';
+          const imageBorder =
+            item.kind === 'news' ? 'border-accent' : 'border-blue';
+
           return (
-            <Row key={item.id} className={item.kind}>
-              <Link href={href} className="row-image" aria-label={item.title}>
+            <article
+              key={item.id}
+              className="grid grid-cols-[273px_1fr] items-start gap-10 py-10 max-tablet:grid-cols-1 max-tablet:gap-5"
+            >
+              <Link
+                href={href}
+                aria-label={item.title}
+                className={`block w-full max-w-[273px] p-0 border leading-none ${imageBorder} [&_img]:w-full [&_img]:h-auto [&_img]:!object-contain`}
+              >
                 {item.image?.asset?._id ? (
                   <SanityImage
                     image={item.image}
@@ -301,39 +129,64 @@ export default function NewsEventsArchive({
                     width={600}
                   />
                 ) : (
-                  <div className="placeholder" aria-hidden />
+                  <div
+                    aria-hidden
+                    className="w-full aspect-[273/387] bg-[rgba(0,65,129,0.08)]"
+                  />
                 )}
               </Link>
-              <div className="row-content">
-                <div className="row-meta">
-                  {item.date && <span className="row-date">{item.date}</span>}
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-1 font-sans text-[0.8125rem] uppercase tracking-[0.1em]">
+                  {item.date && (
+                    <span className="text-blue font-light italic">
+                      {item.date}
+                    </span>
+                  )}
                   {item.label && (
-                    <span className="row-publication">{item.label}</span>
+                    <span className="text-blue font-semibold italic text-[1.25rem] pb-3">
+                      {item.label}
+                    </span>
                   )}
                 </div>
-                <h2>
-                  <Link href={href}>{item.title}</Link>
+                <h2 className="font-serif font-bold text-blue text-[var(--text-h2)] leading-[1.2] m-0 text-balance">
+                  <Link
+                    href={href}
+                    className="text-blue no-underline font-inherit p-0 inline transition-colors duration-300 ease-in-out hover:text-accent"
+                  >
+                    {item.title}
+                  </Link>
                 </h2>
-                {item.subhead && <p className="row-subhead">{item.subhead}</p>}
-                {item.excerpt && <p className="row-excerpt">{item.excerpt}</p>}
-                <div className="row-cta">
-                  <Link href={href}>{ctaLabel}</Link>
+                {item.subhead && (
+                  <p className="font-serif italic font-normal text-[1.125rem] leading-[1.4] text-blue m-0 text-balance">
+                    {item.subhead}
+                  </p>
+                )}
+                {item.excerpt && (
+                  <p className="font-serif text-black m-0 leading-[1.65] text-base max-w-[60ch]">
+                    {item.excerpt}
+                  </p>
+                )}
+                <div className="mt-2">
+                  <Link href={href} className={CTA_CLASS}>
+                    {ctaLabel}
+                  </Link>
                 </div>
               </div>
-            </Row>
+            </article>
           );
         })}
         {hasMore && (
-          <LoadMoreWrap>
+          <div className="text-center mt-12">
             <button
               type="button"
               onClick={() => setVisible((v) => v + PAGE_SIZE)}
+              className="bg-blue border-0 rounded-md text-white px-3 py-2 font-sans uppercase tracking-[0.12em] text-[0.8125rem] font-normal cursor-pointer transition-colors duration-200 hover:bg-accent"
             >
               LOAD MORE
             </button>
-          </LoadMoreWrap>
+          </div>
         )}
       </div>
-    </StyledPage>
+    </main>
   );
 }

@@ -1,28 +1,11 @@
 'use client';
 
-import styled from 'styled-components';
-
 import ContentBox from '@/components/ContentBox';
 import SanityBackgroundImage from '@/components/SanityBackgroundImage';
 import SanityImage from '@/components/SanityImage';
 import type { PageBySlugQueryResult } from '@/sanity.types';
 
 type Page = NonNullable<PageBySlugQueryResult>;
-
-const StyledContent = styled.div`
-  @media only screen and (max-width: 800px) {
-    display: block;
-    margin-top: 119px;
-    section {
-      background-color: var(--blue);
-      padding: 0;
-      &::after,
-      &::before {
-        background: none !important;
-      }
-    }
-  }
-`;
 
 const IndividualPageContent = ({ page }: { page: Page }) => {
   const {
@@ -52,12 +35,14 @@ const IndividualPageContent = ({ page }: { page: Page }) => {
     }
   }
 
-  const bgColor = backgroundColor?.hex ?? 'var(--blue)';
+  const bgColor = backgroundColor?.hex ?? 'var(--color-blue)';
   const boxAlign = boxLocation || 'left';
 
   if (background) {
     return (
-      <StyledContent className={boxAlign}>
+      <div
+        className={`${boxAlign} max-tablet:mt-[119px] max-tablet:block max-tablet:[&_section]:bg-blue max-tablet:[&_section]:p-0 max-tablet:[&_section]:before:!bg-none max-tablet:[&_section]:after:!bg-none`}
+      >
         {background?.asset?._id && (
           <SanityImage
             alt="Background scenery"
@@ -85,7 +70,7 @@ const IndividualPageContent = ({ page }: { page: Page }) => {
             sectionContentCTAtext={sectionContentCTAtext}
           />
         </SanityBackgroundImage>
-      </StyledContent>
+      </div>
     );
   }
   return <section id={id ?? undefined} />;
