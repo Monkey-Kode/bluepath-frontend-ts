@@ -98,6 +98,7 @@
       "Bash(echo \"EXIT=$?\")",
       "Bash(agent-browser --session ref open https://deploy-preview-45--bluepath-gatsby.netlify.app/)",
       "Bash(agent-browser --session ref wait --load networkidle)",
+      "Bash(agent-browser *)",
       "Bash(agent-browser --session ref screenshot dp-home.png)",
       "Bash(agent-browser --session ref open https://deploy-preview-45--bluepath-gatsby.netlify.app/leadership/)",
       "Bash(agent-browser --session ref screenshot dp-leadership.png)",
@@ -120,16 +121,15 @@
       "Bash(git --no-pager diff HEAD --stat)",
       "Bash(git *)",
       "Bash(pkill -f \"next start\")",
-      "Bash(pkill -f \"next-server\")"
+      "Bash(pkill -f \"next-server\")",
+      "Bash(tee /tmp/bluepath-dev.log)",
+      "Bash(kill %1)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(tee /tmp/dev.log)"
     ]
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "context7",
-    "Sanity",
-    "netlify",
-    "next-devtools"
-  ],
+  "enabledMcpjsonServers": ["context7", "Sanity", "netlify", "next-devtools"],
   "skillOverrides": {
     "find-skills": "off",
     "mk:accessibility-compliance": "off",
