@@ -130,6 +130,12 @@ const VideoEmbed = styled.div`
   }
 `;
 
+const Divider = styled.hr`
+  border: 0;
+  border-top: 1px solid var(--gray3, #d0d0d0);
+  margin: 2.5rem 0;
+`;
+
 type SanityImageAsset =
   | {
       url?: string | null;
@@ -217,6 +223,7 @@ export const newsBodyComponents: PortableTextComponents = {
         </VideoEmbed>
       );
     },
+    divider: () => <Divider />,
   },
 };
 

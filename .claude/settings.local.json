@@ -111,7 +111,16 @@
       "Bash(npx -y netlify-cli@latest api listSiteDeploys --data '{\"site_id\":\"f840a3fc-5d36-411c-8bea-fe943fd54195\"}')",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(x.get\\('branch'\\),'|',x.get\\('context'\\),'|',x.get\\('state'\\),'|',x.get\\('id'\\),'|',x.get\\('deploy_ssl_url'\\),'|err:',\\(x.get\\('error_message'\\) or ''\\)[:60]\\) for x in d[:12]]\")",
       "Bash(npx -y netlify-cli@latest api getDeploy --data '{\"deploy_id\":\"6a0b98a45f9388000821f4ad\"}')",
-      "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);bs=d.get\\('build_settings',{}\\);print\\('framework:',bs.get\\('framework'\\)\\);print\\('cmd:',bs.get\\('cmd'\\)\\);print\\('dir\\(publish\\):',bs.get\\('dir'\\)\\);print\\('functions_dir:',bs.get\\('functions_dir'\\)\\);print\\('base:',bs.get\\('base_rel_dir'\\) or bs.get\\('base'\\)\\);print\\('plugins:',json.dumps\\(d.get\\('plugins'\\)\\)\\);print\\('build_image:',d.get\\('build_image'\\)\\)\")"
+      "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);bs=d.get\\('build_settings',{}\\);print\\('framework:',bs.get\\('framework'\\)\\);print\\('cmd:',bs.get\\('cmd'\\)\\);print\\('dir\\(publish\\):',bs.get\\('dir'\\)\\);print\\('functions_dir:',bs.get\\('functions_dir'\\)\\);print\\('base:',bs.get\\('base_rel_dir'\\) or bs.get\\('base'\\)\\);print\\('plugins:',json.dumps\\(d.get\\('plugins'\\)\\)\\);print\\('build_image:',d.get\\('build_image'\\)\\)\")",
+      "Read(//tmp/**)",
+      "mcp__Sanity__get_schema",
+      "WebFetch(domain:motion.dev)",
+      "Bash(git --no-pager diff --stat HEAD)",
+      "Bash(git --no-pager status)",
+      "Bash(git --no-pager diff HEAD --stat)",
+      "Bash(git *)",
+      "Bash(pkill -f \"next start\")",
+      "Bash(pkill -f \"next-server\")"
     ]
   },
   "enableAllProjectMcpServers": true,
