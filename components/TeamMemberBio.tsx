@@ -23,10 +23,10 @@ export default function TeamMemberBio({ member }: { member: Member }) {
     <main className="header-offset bg-white text-blue pb-24 px-5">
       <div className="bio-inner max-w-[1100px] mx-auto">
         <Link
-          href="/team/"
+          href="/leadership/"
           className="inline-block font-sans font-semibold text-[0.95rem] text-blue no-underline mb-10 transition-colors duration-[250ms] hover:text-accent"
         >
-          ← Back to Team
+          ← Back to Leadership
         </Link>
 
         <div className="grid grid-cols-[minmax(280px,420px)_1fr] gap-14 items-start max-[860px]:grid-cols-1 max-[860px]:gap-8">

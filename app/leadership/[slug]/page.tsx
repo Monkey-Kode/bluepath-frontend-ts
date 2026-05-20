@@ -50,7 +50,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function TeamMemberPage({
+export default async function LeadershipMemberPage({
   params,
 }: {
   params: Promise<{ slug: string }>;

@@ -1,7 +1,8 @@
 /**
- * Shared helpers for the Team archive (/team) and bio (/team/[slug]) pages.
- * The view-transition names MUST be derived identically on both pages so the
- * browser pairs the grid card with the bio hero during navigation.
+ * Shared helpers for the Leadership archive (/leadership) and bio
+ * (/leadership/[slug]) pages. The view-transition names MUST be derived
+ * identically on both pages so the browser pairs the grid card with the
+ * bio hero during navigation.
  */
 
 const BLURB_MAX = 165;

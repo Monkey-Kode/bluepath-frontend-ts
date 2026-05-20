@@ -69,7 +69,7 @@ export default function TeamView({ team }: { team: TeamQueryResult }) {
     <main className="header-offset bg-white text-blue pb-24 px-5">
       <div className="team-inner max-w-[1180px] mx-auto min-h-[70vh]">
         <h1 className="font-sans font-bold text-blue text-h1 leading-[1.05] tracking-[-0.01em] m-0 mb-12">
-          Team
+          Leadership
         </h1>
 
         <ul className="list-none m-0 p-0 grid grid-cols-3 gap-x-12 gap-y-16 items-start max-[900px]:grid-cols-2 max-[900px]:gap-x-8 max-[900px]:gap-y-12 max-[600px]:grid-cols-1 max-[600px]:gap-y-12">
@@ -87,7 +87,7 @@ export default function TeamView({ team }: { team: TeamQueryResult }) {
             >
               {member.slug ? (
                 <Link
-                  href={`/team/${member.slug}/`}
+                  href={`/leadership/${member.slug}/`}
                   className={`${CARD_CHROME} ${CARD_HOVER}`}
                 >
                   <CardBody member={member} />

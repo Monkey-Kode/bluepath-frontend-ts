@@ -7,9 +7,9 @@ import { getSiteUrl } from '@/lib/siteUrl';
 const BASE = getSiteUrl();
 
 // Slugs owned by hand-built static routes (mirrors gatsby-node STATIC_PAGE_SLUGS).
-const STATIC_PAGE_SLUGS = new Set(['team', 'news-and-events']);
+const STATIC_PAGE_SLUGS = new Set(['leadership', 'news-and-events']);
 
-const STATIC_ROUTES = ['', 'team', 'news-and-events', 'thankyou'];
+const STATIC_ROUTES = ['', 'leadership', 'news-and-events', 'thankyou'];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [{ data }, { data: teamSlugs }] = await Promise.all([
@@ -60,7 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const m of teamSlugs ?? []) {
     if (!m.slug) continue;
     entries.push({
-      url: `${BASE}/team/${m.slug}/`,
+      url: `${BASE}/leadership/${m.slug}/`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.5,

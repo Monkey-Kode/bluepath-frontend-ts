@@ -7,11 +7,11 @@ import { sanityFetch } from '@/sanity/lib/live';
 import { teamQuery } from '@/sanity/lib/queries';
 
 export const metadata: Metadata = {
-  title: 'Team',
-  description: 'The team behind BluePath Finance.',
+  title: 'Leadership',
+  description: 'The leadership team behind BluePath Finance.',
 };
 
-export default async function TeamPage() {
+export default async function LeadershipPage() {
   const { data: team } = await sanityFetch({ query: teamQuery });
 
   return (
