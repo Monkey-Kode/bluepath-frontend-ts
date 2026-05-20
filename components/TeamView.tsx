@@ -15,7 +15,7 @@ const CARD_CHROME =
   'block no-underline text-inherit ' +
   '[&_.photo]:block [&_.photo]:w-full [&_.photo]:aspect-[4/5] [&_.photo]:overflow-hidden [&_.photo]:bg-surface ' +
   '[&_.photo_img]:w-full [&_.photo_img]:h-full [&_.photo_img]:object-cover [&_.photo_img]:transition-transform [&_.photo_img]:duration-500 [&_.photo_img]:ease-in-out ' +
-  '[&_.name]:font-sans [&_.name]:font-bold [&_.name]:text-blue [&_.name]:text-[var(--text-h3)] [&_.name]:leading-[1.2] [&_.name]:mt-[1.35rem] [&_.name]:mb-0 [&_.name]:transition-colors [&_.name]:duration-[250ms] ' +
+  '[&_.name]:font-sans [&_.name]:font-bold [&_.name]:text-blue [&_.name]:text-h3 [&_.name]:leading-[1.2] [&_.name]:mt-[1.35rem] [&_.name]:mb-0 [&_.name]:transition-colors [&_.name]:duration-[250ms] ' +
   '[&_.role]:font-sans [&_.role]:text-[#1a1a1a] [&_.role]:text-base [&_.role]:leading-[1.4] [&_.role]:mt-[0.3rem] [&_.role]:mb-0 ' +
   '[&_.role-subtitle]:font-sans [&_.role-subtitle]:text-[#1a1a1a] [&_.role-subtitle]:text-base [&_.role-subtitle]:leading-[1.4] [&_.role-subtitle]:mt-[0.3rem] [&_.role-subtitle]:mb-0 ' +
   '[&_.blurb]:font-sans [&_.blurb]:text-[#2b2b2b] [&_.blurb]:text-base [&_.blurb]:leading-[1.6] [&_.blurb]:mt-[1.1rem] [&_.blurb]:mb-0 ' +
@@ -68,7 +68,7 @@ export default function TeamView({ team }: { team: TeamQueryResult }) {
   return (
     <main className="header-offset bg-white text-blue pb-24 px-5">
       <div className="team-inner max-w-[1180px] mx-auto min-h-[70vh]">
-        <h1 className="font-sans font-bold text-blue text-[var(--text-h1)] leading-[1.05] tracking-[-0.01em] m-0 mb-12">
+        <h1 className="font-sans font-bold text-blue text-h1 leading-[1.05] tracking-[-0.01em] m-0 mb-12">
           Team
         </h1>
 

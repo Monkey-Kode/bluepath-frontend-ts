@@ -40,16 +40,16 @@ export default function TeamMemberBio({ member }: { member: Member }) {
             ))}
 
           <div>
-            <h1 className="font-sans font-bold text-blue text-[var(--text-h1)] leading-[1.05] tracking-[-0.01em] m-0">
+            <h1 className="font-sans font-bold text-blue text-h1 leading-[1.05] tracking-[-0.01em] m-0">
               {member.name}
             </h1>
             {member.role && (
-              <p className="font-sans text-[#1a1a1a] text-[var(--text-h4)] leading-[1.35] mt-[0.6rem] mb-0">
+              <p className="font-sans text-[#1a1a1a] text-h4 leading-[1.35] mt-[0.6rem] mb-0">
                 {member.role}
               </p>
             )}
             {member.roleSubtitle && (
-              <p className="font-sans text-[#1a1a1a] text-[var(--text-h4)] leading-[1.35] mt-[0.6rem] mb-0">
+              <p className="font-sans text-[#1a1a1a] text-h4 leading-[1.35] mt-[0.6rem] mb-0">
                 {member.roleSubtitle}
               </p>
             )}

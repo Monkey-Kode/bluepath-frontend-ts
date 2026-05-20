@@ -48,7 +48,7 @@ export default function EventView({
             )}
           </div>
           {content.name && (
-            <h1 className="font-serif font-bold text-blue text-[var(--text-h1)] leading-[1.2] m-0 mb-6 text-balance">
+            <h1 className="font-serif font-bold text-blue text-h1 leading-[1.2] m-0 mb-6 text-balance">
               {content.name}
             </h1>
           )}

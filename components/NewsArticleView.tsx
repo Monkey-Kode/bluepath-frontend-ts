@@ -21,7 +21,7 @@ export default function NewsArticleView({
     <main className="header-offset bg-white text-black px-5 pb-20">
       <article className="mx-auto max-w-[760px]">
         {article.title && (
-          <h1 className="font-sans font-bold text-blue text-[var(--text-h1)] leading-[1.2] m-0 mb-6 text-balance">
+          <h1 className="font-sans font-bold text-blue text-h1 leading-[1.2] m-0 mb-6 text-balance">
             {article.title}
           </h1>
         )}

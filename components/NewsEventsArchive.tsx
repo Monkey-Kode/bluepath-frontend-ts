@@ -99,7 +99,7 @@ export default function NewsEventsArchive({
   return (
     <main className="header-offset bg-white text-blue px-5 pb-20">
       <div className="mx-auto max-w-[1200px]">
-        <h1 className="font-sans font-bold text-blue tracking-[0.02em] text-[var(--text-h2)] leading-[1.1] my-8 mb-10 text-balance max-tablet:mb-0">
+        <h1 className="font-sans font-bold text-blue tracking-[0.02em] text-h2 leading-[1.1] my-8 mb-10 text-balance max-tablet:mb-0">
           News &amp; Events
         </h1>
         {shown.map((item) => {
@@ -148,7 +148,7 @@ export default function NewsEventsArchive({
                     </span>
                   )}
                 </div>
-                <h2 className="font-serif font-bold text-blue text-[var(--text-h2)] leading-[1.2] m-0 text-balance">
+                <h2 className="font-serif font-bold text-blue text-h2 leading-[1.2] m-0 text-balance">
                   <Link
                     href={href}
                     className="text-blue no-underline font-inherit p-0 inline transition-colors duration-300 ease-in-out hover:text-accent"

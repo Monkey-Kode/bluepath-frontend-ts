@@ -12,59 +12,69 @@
  * `bg-blue`, `text-accent`, `border-accent` produce readable utilities.
  */
 @theme {
-  /* Font families — next/font sets --font-inter / --font-baskerville on <html> */
-  --font-sans:
-    var(--font-inter), Inter, system-ui, -apple-system, "Segoe UI", Helvetica,
-    Arial, sans-serif;
-  --font-serif:
-    var(--font-baskerville), "Libre Baskerville", Georgia, serif;
+    /* Font families — next/font sets --font-inter / --font-baskerville on <html> */
+    --font-sans:
+        var(--font-inter), Inter, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-serif: var(--font-baskerville), "Libre Baskerville", Georgia, serif;
 
-  /* Brand & neutral palette */
-  --color-blue: #004181;
-  --color-blue-soft: rgba(0, 65, 129, 0.85);
-  --color-accent: #168fcb;
-  --color-ink: #1a1a1a;
-  --color-gray-1: #6e7c85;
-  --color-gray-2: #616567;
-  --color-gray-3: #595959;
-  --color-surface: #f6f7f9;
+    /* Brand & neutral palette */
+    --color-blue: #004181;
+    --color-blue-soft: rgba(0, 65, 129, 0.85);
+    --color-accent: #168fcb;
+    --color-ink: #1a1a1a;
+    --color-gray-1: #6e7c85;
+    --color-gray-2: #616567;
+    --color-gray-3: #595959;
+    --color-surface: #f6f7f9;
 
-  /* Utopia fluid type scale (overrides Tailwind text-* defaults) */
-  --text-xs: clamp(0.6944rem, 0.6852rem + 0.0455vw, 0.72rem);
-  --text-xs--line-height: 1.5;
-  --text-sm: clamp(0.8333rem, 0.8094rem + 0.116vw, 0.9rem);
-  --text-sm--line-height: 1.55;
-  --text-base: clamp(1rem, 0.9565rem + 0.2174vw, 1.125rem);
-  --text-base--line-height: 1.7;
-  --text-lg: clamp(1.2rem, 1.128rem + 0.3587vw, 1.4063rem);
-  --text-lg--line-height: 1.5;
-  --text-xl: clamp(1.44rem, 1.3286rem + 0.5527vw, 1.7578rem);
-  --text-xl--line-height: 1.3;
-  --text-2xl: clamp(1.728rem, 1.5645rem + 0.8154vw, 2.1973rem);
-  --text-2xl--line-height: 1.25;
-  --text-3xl: clamp(2.0736rem, 1.8403rem + 1.1665vw, 2.7466rem);
-  --text-3xl--line-height: 1.2;
-  --text-4xl: clamp(2.4883rem, 2.1588rem + 1.6477vw, 3.4332rem);
-  --text-4xl--line-height: 1.15;
-  --text-5xl: clamp(2.986rem, 2.5269rem + 2.2954vw, 4.2915rem);
-  --text-5xl--line-height: 1.1;
+    /* Utopia fluid type scale (overrides Tailwind text-* defaults) */
+    --text-xs: clamp(0.6944rem, 0.6852rem + 0.0455vw, 0.72rem);
+    --text-xs--line-height: 1.5;
+    --text-sm: clamp(0.8333rem, 0.8094rem + 0.116vw, 0.9rem);
+    --text-sm--line-height: 1.55;
+    --text-base: clamp(1rem, 0.9565rem + 0.2174vw, 1.125rem);
+    --text-base--line-height: 1.7;
+    --text-lg: clamp(1.2rem, 1.128rem + 0.3587vw, 1.4063rem);
+    --text-lg--line-height: 1.5;
+    --text-xl: clamp(1.44rem, 1.3286rem + 0.5527vw, 1.7578rem);
+    --text-xl--line-height: 1.3;
+    --text-2xl: clamp(1.728rem, 1.5645rem + 0.8154vw, 2.1973rem);
+    --text-2xl--line-height: 1.25;
+    --text-3xl: clamp(2.0736rem, 1.8403rem + 1.1665vw, 2.7466rem);
+    --text-3xl--line-height: 1.2;
+    --text-4xl: clamp(2.4883rem, 2.1588rem + 1.6477vw, 3.4332rem);
+    --text-4xl--line-height: 1.15;
+    --text-5xl: clamp(2.986rem, 2.5269rem + 2.2954vw, 4.2915rem);
+    --text-5xl--line-height: 1.1;
 
-  /* Utopia fluid space scale (alphabetical t-shirt sizes, fluid) */
-  --spacing-3xs: clamp(0.25rem, 0.2391rem + 0.0543vw, 0.2813rem);
-  --spacing-2xs: clamp(0.5rem, 0.4783rem + 0.1087vw, 0.5625rem);
-  --spacing-xs: clamp(0.75rem, 0.7174rem + 0.163vw, 0.8438rem);
-  --spacing-s: clamp(1rem, 0.9565rem + 0.2174vw, 1.125rem);
-  --spacing-m: clamp(1.5rem, 1.4348rem + 0.3261vw, 1.6875rem);
-  --spacing-l: clamp(2rem, 1.913rem + 0.4348vw, 2.25rem);
-  --spacing-xl: clamp(3rem, 2.8696rem + 0.6522vw, 3.375rem);
-  --spacing-2xl: clamp(4rem, 3.8261rem + 0.8696vw, 4.5rem);
-  --spacing-3xl: clamp(6rem, 5.7391rem + 1.3043vw, 6.75rem);
+    /* Semantic heading-scale tokens (generate text-display, text-h1, …,
+     * text-eyebrow, text-fine, text-micro utilities). Coexist with the
+     * Utopia t-shirt scale above. */
+    --text-display: clamp(2rem, 1.17rem + 3.54vw, 3rem);
+    --text-h1: clamp(1.75rem, 1.34rem + 1.77vw, 2.75rem);
+    --text-h2: clamp(1.5rem, 1.29rem + 0.88vw, 2rem);
+    --text-h3: clamp(1.125rem, 0.97rem + 0.66vw, 1.25rem);
+    --text-h4: clamp(1rem, 0.95rem + 0.22vw, 1.125rem);
+    --text-eyebrow: clamp(1rem, 0.9rem + 0.44vw, 1rem);
+    --text-fine: clamp(0.75rem, 0.7rem + 0.22vw, 0.875rem);
+    --text-micro: clamp(0.625rem, 0.57rem + 0.22vw, 0.75rem);
 
-  /* Layout container width (existing --laptop = 1920px) */
-  --container-laptop: 120rem;
+    /* Utopia fluid space scale (alphabetical t-shirt sizes, fluid) */
+    --spacing-3xs: clamp(0.25rem, 0.2391rem + 0.0543vw, 0.2813rem);
+    --spacing-2xs: clamp(0.5rem, 0.4783rem + 0.1087vw, 0.5625rem);
+    --spacing-xs: clamp(0.75rem, 0.7174rem + 0.163vw, 0.8438rem);
+    --spacing-s: clamp(1rem, 0.9565rem + 0.2174vw, 1.125rem);
+    --spacing-m: clamp(1.5rem, 1.4348rem + 0.3261vw, 1.6875rem);
+    --spacing-l: clamp(2rem, 1.913rem + 0.4348vw, 2.25rem);
+    --spacing-xl: clamp(3rem, 2.8696rem + 0.6522vw, 3.375rem);
+    --spacing-2xl: clamp(4rem, 3.8261rem + 0.8696vw, 4.5rem);
+    --spacing-3xl: clamp(6rem, 5.7391rem + 1.3043vw, 6.75rem);
 
-  /* Custom breakpoint to match the legacy 800px mobile/desktop split */
-  --breakpoint-tablet: 50rem;
+    /* Layout container width (existing --laptop = 1920px) */
+    --container-laptop: 120rem;
+
+    /* Custom breakpoint to match the legacy 800px mobile/desktop split */
+    --breakpoint-tablet: 50rem;
 }
 
 /* ─── Runtime + legacy CSS variables ─────────────────────────────────────
@@ -73,45 +83,35 @@
  * a handful of components (CarouselSlide, ContentBox dividers, etc.).
  */
 :root {
-  --header-height: 100px;
-  --mobile-header-height: 153px;
+    --header-height: 100px;
+    --mobile-header-height: 153px;
 
-  --box-width: 725px;
-  --laptop: 1920px;
-  --big-heading-size: 8.27rem;
-  --small-heading-size: 2.405625rem;
-  --big-heading-padding: 0.5rem;
-  --small-content-width: 40vw;
+    --box-width: 725px;
+    --laptop: 1920px;
+    --big-heading-size: 8.27rem;
+    --small-heading-size: 2.405625rem;
+    --big-heading-padding: 0.5rem;
+    --small-content-width: 40vw;
 
-  --border-left: 4px solid var(--color-accent);
-  --border-right: 2px solid var(--color-accent);
-  --border-bottom: 2px solid var(--color-accent);
-
-  /* Legacy heading-scale tokens (referenced by NewsArticleView, Team*, etc.) */
-  --text-display: clamp(2rem, 1.17rem + 3.54vw, 3rem);
-  --text-h1: clamp(1.75rem, 1.34rem + 1.77vw, 2.75rem);
-  --text-h2: clamp(1.5rem, 1.29rem + 0.88vw, 2rem);
-  --text-h3: clamp(1.125rem, 0.97rem + 0.66vw, 1.25rem);
-  --text-h4: clamp(1rem, 0.95rem + 0.22vw, 1.125rem);
-  --text-eyebrow: clamp(1rem, 0.9rem + 0.44vw, 1rem);
-  --text-fine: clamp(0.75rem, 0.7rem + 0.22vw, 0.875rem);
-  --text-micro: clamp(0.625rem, 0.57rem + 0.22vw, 0.75rem);
+    --border-left: 4px solid var(--color-accent);
+    --border-right: 2px solid var(--color-accent);
+    --border-bottom: 2px solid var(--color-accent);
 }
 
 /* Clears the fixed Header — replaces the legacy headerOffset mixin. */
 .header-offset {
-  padding-top: calc(var(--header-height, 100px) + 1.5rem);
+    padding-top: calc(var(--header-height, 100px) + 1.5rem);
 }
 
 /* TableOfContents hex tile background pan on hover */
 @keyframes tofPan {
-  0%,
-  100% {
-    background-position: left center;
-  }
-  50% {
-    background-position: right center;
-  }
+    0%,
+    100% {
+        background-position: left center;
+    }
+    50% {
+        background-position: right center;
+    }
 }
 
 /* ─── Legacy layout primitives ──────────────────────────────────────────
@@ -125,48 +125,46 @@
  * exclusion keeps utility sections (Sonner's <section aria-label="Notifications">
  * toast region, etc.) out of the 100vh / 100vw flex layout. */
 section:not([aria-label]) {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 2vw;
-  width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 2vw;
+    width: 100vw;
 }
 @media (max-width: 800px) {
-  section:not([aria-label]) {
-    display: block;
-    padding: 0;
-  }
+    section:not([aria-label]) {
+        display: block;
+        padding: 0;
+    }
 }
 @media (min-width: 801px) {
-  section:not([aria-label]) {
-    min-height: 100vh;
-  }
+    section:not([aria-label]) {
+        min-height: 100vh;
+    }
 }
 section:not([aria-label]) > div {
-  width: 100%;
+    width: 100%;
 }
 section:not([aria-label])
-  > div:not(.team-wrapper):not([class*="Contact"]):not([class*="Impact"]):not(
-    [class*="prose"]
-  ) {
-  display: flex;
-  align-items: center;
-  height: 100%;
+    > div:not(.team-wrapper):not([class*="Contact"]):not([class*="Impact"]):not([class*="prose"]) {
+    display: flex;
+    align-items: center;
+    height: 100%;
 }
 @media (max-width: 800px) {
-  section:not([aria-label])
-    > div:not(.team-wrapper):not([class*="Contact"]):not([class*="Impact"]):not(
-      [class*="prose"]
-    ) {
-    background-color: var(--color-blue);
-    margin-inline: auto;
-  }
+    section:not([aria-label])
+        > div:not(.team-wrapper):not([class*="Contact"]):not([class*="Impact"]):not(
+            [class*="prose"]
+        ) {
+        background-color: var(--color-blue);
+        margin-inline: auto;
+    }
 }
 
 .wrap {
-  max-width: var(--laptop);
-  margin: 0 auto;
-  width: 100%;
+    max-width: var(--laptop);
+    margin: 0 auto;
+    width: 100%;
 }
 
 /* Box alignment within a section (set via Sanity `boxLocation`).
@@ -175,203 +173,203 @@ section:not([aria-label])
 .left,
 .right,
 .center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 .left {
-  justify-content: flex-start;
+    justify-content: flex-start;
 }
 .right {
-  justify-content: flex-end;
+    justify-content: flex-end;
 }
 .center {
-  justify-content: center;
+    justify-content: center;
 }
 
 .box {
-  padding: 0 0 1rem;
-  background: var(--color-blue-soft);
-  width: var(--box-width);
+    padding: 0 0 1rem;
+    background: var(--color-blue-soft);
+    width: var(--box-width);
 }
 .box * {
-  color: white;
+    color: white;
 }
 .box h2 {
-  font-size: var(--big-heading-size);
-  text-align: center;
-  color: white;
+    font-size: var(--big-heading-size);
+    text-align: center;
+    color: white;
 }
 .box p {
-  color: white;
-  text-align: justify;
-  line-height: 1.9;
-  font-size: 1rem;
-  font-weight: 300;
+    color: white;
+    text-align: justify;
+    line-height: 1.9;
+    font-size: 1rem;
+    font-weight: 300;
 }
 .box a {
-  font-weight: 400;
-  color: white;
+    font-weight: 400;
+    color: white;
 }
 @media (max-width: 800px) {
-  .box {
-    width: auto;
-    max-width: 100%;
-    margin: 0 auto;
-  }
-  .box p {
-    font-size: 0.75rem;
-    text-align: left;
-  }
-  .box h2 {
-    --big-heading-size: clamp(1rem, 7cqi + 1rem, 2.5rem);
-    line-height: 1;
-    padding-inline: 0.5rem;
-  }
+    .box {
+        width: auto;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+    .box p {
+        font-size: 0.75rem;
+        text-align: left;
+    }
+    .box h2 {
+        --big-heading-size: clamp(1rem, 7cqi + 1rem, 2.5rem);
+        line-height: 1;
+        padding-inline: 0.5rem;
+    }
 }
 
 .home .box {
-  background: #fff;
+    background: #fff;
 }
 .home .box *,
 .home .box h2,
 .home .box h3 {
-  color: var(--color-blue);
+    color: var(--color-blue);
 }
 .home .box p {
-  color: #000;
+    color: #000;
 }
 .home .box a {
-  color: var(--color-blue);
+    color: var(--color-blue);
 }
 
 .hide-for-desktop {
-  display: none !important;
+    display: none !important;
 }
 @media (max-width: 800px) {
-  .hide-for-desktop {
-    display: block !important;
-  }
+    .hide-for-desktop {
+        display: block !important;
+    }
 }
 .hide-for-mobile {
-  display: block !important;
+    display: block !important;
 }
 @media (max-width: 799px) {
-  .hide-for-mobile {
-    display: none !important;
-  }
+    .hide-for-mobile {
+        display: none !important;
+    }
 }
 
 .alignfull {
-  margin: 0 calc(50% - 50vw);
-  max-width: 100vw;
-  width: 100vw;
+    margin: 0 calc(50% - 50vw);
+    max-width: 100vw;
+    width: 100vw;
 }
 
 .light-logo {
-  display: none;
+    display: none;
 }
 .hidden {
-  display: none;
+    display: none;
 }
 
 /* Section padding on individual sub-pages (.page wrapper) */
 .page section:not([aria-label]) {
-  padding: calc(var(--mobile-header-height) + 2rem) 5% 5%;
+    padding: calc(var(--mobile-header-height) + 2rem) 5% 5%;
 }
 @media (max-width: 799px) {
-  .page .hide-for-desktop.image-atop + section:not([aria-label]) {
-    padding-top: 10%;
-  }
-  .page .hide-for-desktop.image-atop {
-    padding-top: var(--mobile-header-height);
-  }
+    .page .hide-for-desktop.image-atop + section:not([aria-label]) {
+        padding-top: 10%;
+    }
+    .page .hide-for-desktop.image-atop {
+        padding-top: var(--mobile-header-height);
+    }
 }
 
 /* ─── Google Maps InfoWindow chrome (Projects map) ────────────────────── */
 .gm-style .gm-ui-hover-effect img {
-  filter: invert(1);
-  transform: scale(2) translate(-5px, 5px);
+    filter: invert(1);
+    transform: scale(2) translate(-5px, 5px);
 }
 .gm-style .gm-style-iw-c {
-  border-radius: 0 !important;
-  background-color: var(--color-blue);
-  padding: 0 !important;
-  transform: scale(0.5) translate(-115%, -52%) !important;
-  transform-origin: 0% 0%;
+    border-radius: 0 !important;
+    background-color: var(--color-blue);
+    padding: 0 !important;
+    transform: scale(0.5) translate(-115%, -52%) !important;
+    transform-origin: 0% 0%;
 }
 .gm-style .gm-style-iw-c * {
-  color: white;
+    color: white;
 }
 .gm-style .gm-style-iw-c #content {
-  max-width: 380px;
+    max-width: 380px;
 }
 .gm-style .gm-style-iw-c #siteNotice {
-  text-align: center;
-  text-transform: uppercase;
+    text-align: center;
+    text-transform: uppercase;
 }
 .gm-style .gm-style-iw-c #siteNotice h3 {
-  margin-bottom: 0;
-  padding: 0 0 0.3rem;
-  font-weight: 300;
-  font-size: 1.2rem;
+    margin-bottom: 0;
+    padding: 0 0 0.3rem;
+    font-weight: 300;
+    font-size: 1.2rem;
 }
 .gm-style .gm-style-iw-c #siteNotice p {
-  font-weight: bold;
-  font-size: 1.3rem;
-  padding: 0;
-  margin: 0;
-  line-height: 1.25;
+    font-weight: bold;
+    font-size: 1.3rem;
+    padding: 0;
+    margin: 0;
+    line-height: 1.25;
 }
 @media (max-width: 480px) {
-  .gm-style .gm-style-iw-c #siteNotice p {
-    font-size: 0.8rem;
-  }
+    .gm-style .gm-style-iw-c #siteNotice p {
+        font-size: 0.8rem;
+    }
 }
 .gm-style .gm-style-iw-c .image {
-  background-color: var(--color-gray-2);
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-bottom: 1px solid var(--color-accent);
-  flex-flow: column wrap;
-  padding: 8%;
+    background-color: var(--color-gray-2);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 1px solid var(--color-accent);
+    flex-flow: column wrap;
+    padding: 8%;
 }
 .gm-style .gm-style-iw-c .image svg,
 .gm-style .gm-style-iw-c .image img {
-  max-width: 180px;
-  display: block;
-  flex: 1 auto;
+    max-width: 180px;
+    display: block;
+    flex: 1 auto;
 }
 .gm-style .gm-style-iw-c .line-content {
-  padding: 0.7rem 1.3rem;
+    padding: 0.7rem 1.3rem;
 }
 .gm-style .gm-style-iw-c .content {
-  padding: 0.5rem 1rem 1.5rem;
+    padding: 0.5rem 1rem 1.5rem;
 }
 .gm-style .gm-style-iw-c .list-title {
-  font-weight: bold;
-  text-transform: uppercase;
+    font-weight: bold;
+    text-transform: uppercase;
 }
 .gm-style-iw-d {
-  overflow: hidden !important;
+    overflow: hidden !important;
 }
 .gm-style .gm-style-iw-t::after {
-  background: var(--color-blue) !important;
-  transform: translate(-36px, 18px) rotate(-45deg);
-  box-shadow: none;
+    background: var(--color-blue) !important;
+    transform: translate(-36px, 18px) rotate(-45deg);
+    box-shadow: none;
 }
 #markerLayer img {
-  transform-origin: center;
-  transform: scale(0.5);
-  transition: transform 0.35s ease-out;
+    transform-origin: center;
+    transform: scale(0.5);
+    transition: transform 0.35s ease-out;
 }
 #markerLayer img.grow {
-  transform: scale(1);
+    transform: scale(1);
 }
 #markerLayer img.shrink {
-  transform: scale(0.5);
+    transform: scale(0.5);
 }
 
 /* ─── Home page header overlay ──────────────────────────────────────────
@@ -380,39 +378,39 @@ section:not([aria-label])
  * the `.show` class on <header> to revert to the standard white chrome.
  */
 .home .header-overlay header {
-  background-color: transparent;
-  box-shadow: none;
+    background-color: transparent;
+    box-shadow: none;
 }
 .home .header-overlay header .dark-logo {
-  display: none;
+    display: none;
 }
 .home .header-overlay header .light-logo {
-  display: block;
+    display: block;
 }
 .home .header-overlay header .burger-menu > span {
-  background-color: white;
+    background-color: white;
 }
 .home .header-overlay header nav ul li a {
-  color: #fff;
-  font-weight: 100;
+    color: #fff;
+    font-weight: 100;
 }
 .home .header-overlay header.show {
-  background-color: #fff;
+    background-color: #fff;
 }
 .home .header-overlay header.show .dark-logo {
-  display: block;
+    display: block;
 }
 .home .header-overlay header.show .light-logo {
-  display: none;
+    display: none;
 }
 .home .header-overlay header.show .burger-menu:not([data-open="true"]) > span {
-  background-color: var(--color-blue);
+    background-color: var(--color-blue);
 }
 @media (min-width: 800px) {
-  .home .header-overlay header.show nav ul li a {
-    color: var(--color-blue);
-    font-weight: 400;
-  }
+    .home .header-overlay header.show nav ul li a {
+        color: var(--color-blue);
+        font-weight: 400;
+    }
 }
 
 /* ─── Base reset / page setup ──────────────────────────────────────────
@@ -422,60 +420,60 @@ section:not([aria-label])
  *  - antialiased body text
  */
 @layer base {
-  html {
-    scroll-behavior: smooth;
-    scroll-padding-top: var(--header-height);
-  }
+    html {
+        scroll-behavior: smooth;
+        scroll-padding-top: var(--header-height);
+    }
 
-  html,
-  body {
-    overflow-x: hidden;
-    width: 100%;
-  }
+    html,
+    body {
+        overflow-x: hidden;
+        width: 100%;
+    }
 
-  body {
-    font-family: var(--font-sans);
-    color: var(--color-ink);
-    background: #fff;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+    body {
+        font-family: var(--font-sans);
+        color: var(--color-ink);
+        background: #fff;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: var(--font-serif);
-  }
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: var(--font-serif);
+    }
 
-  img {
-    max-width: 100%;
-    height: auto;
-  }
+    img {
+        max-width: 100%;
+        height: auto;
+    }
 }
 
 /* ─── View Transition: team grid card ↔ bio hero shared-element morph ──
  * Triggered by share="morph" on next/view-transitions <Link>.
  */
 ::view-transition-group(.morph) {
-  animation-duration: 380ms;
-  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    animation-duration: 380ms;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 ::view-transition-image-pair(.morph) {
-  animation-name: vt-morph-blur;
+    animation-name: vt-morph-blur;
 }
 @keyframes vt-morph-blur {
-  30% {
-    filter: blur(3px);
-  }
+    30% {
+        filter: blur(3px);
+    }
 }
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(*),
-  ::view-transition-new(*),
-  ::view-transition-group(*) {
-    animation-duration: 0s !important;
-    animation-delay: 0s !important;
-  }
+    ::view-transition-old(*),
+    ::view-transition-new(*),
+    ::view-transition-group(*) {
+        animation-duration: 0s !important;
+        animation-delay: 0s !important;
+    }
 }
