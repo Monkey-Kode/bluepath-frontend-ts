@@ -39,7 +39,7 @@ export default function TableOfContents({
           </h2>
         )}
 
-        <hr className="w-full max-w-[750px] border-0 border-t border-accent m-0" />
+        {/*<hr className="w-full max-w-[750px] border-0 border-t border-accent m-0" />*/}
 
         {/*<ul className="list-none flex justify-center items-center gap-10 py-8 m-0 w-full max-w-[1100px] flex-wrap max-tablet:gap-1 max-tablet:py-5">
           {hardcodedSections.map((section) => (
@@ -62,7 +62,7 @@ export default function TableOfContents({
           ))}
         </ul>*/}
 
-        <hr className="w-full max-w-[750px] border-0 border-t border-accent m-0" />
+        {/*<hr className="w-full max-w-[750px] border-0 border-t border-accent m-0" />*/}
 
         {paragraphs.length > 0 && (
           <div className="max-w-[680px] text-center py-8 font-sans text-black leading-[1.6] text-h4 text-pretty min-[1440px]:text-h3 [&_p]:m-0 [&_p]:mb-4 [&_p]:text-black [&_p:last-child]:mb-0">
