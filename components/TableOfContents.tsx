@@ -41,7 +41,7 @@ export default function TableOfContents({
 
         <hr className="w-full max-w-[750px] border-0 border-t border-accent m-0" />
 
-        <ul className="list-none flex justify-center items-center gap-10 py-8 m-0 w-full max-w-[1100px] flex-wrap max-tablet:gap-1 max-tablet:py-5">
+        {/*<ul className="list-none flex justify-center items-center gap-10 py-8 m-0 w-full max-w-[1100px] flex-wrap max-tablet:gap-1 max-tablet:py-5">
           {hardcodedSections.map((section) => (
             <li key={section.anchorId} className="relative m-0 p-0 group">
               <figure
@@ -60,7 +60,7 @@ export default function TableOfContents({
               </a>
             </li>
           ))}
-        </ul>
+        </ul>*/}
 
         <hr className="w-full max-w-[750px] border-0 border-t border-accent m-0" />
 
