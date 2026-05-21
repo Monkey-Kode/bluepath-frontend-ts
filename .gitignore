@@ -30,3 +30,6 @@ public/robots.txt
 # next-agents-md
 .next-docs/
 .playwright-mcp/
+
+# large video assets (served from Sanity CDN, not the repo)
+*.mp4
