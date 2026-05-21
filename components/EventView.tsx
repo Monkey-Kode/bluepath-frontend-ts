@@ -3,14 +3,19 @@
 import FormBasic from '@/components/FormBasic';
 import NewsBody from '@/components/NewsBody';
 import SanityImage from '@/components/SanityImage';
+import ViewTransition from '@/components/ViewTransition';
+import { mediaTransitionName } from '@/lib/newsEvents';
 import type { EventBySlugQueryResult } from '@/sanity.types';
 
 export default function EventView({
   content,
+  slug,
 }: {
   content: NonNullable<EventBySlugQueryResult>;
+  slug: string;
 }) {
   const richText = content.content ?? null;
+  const mediaVt = mediaTransitionName('event', slug);
   const eventDate = content.eventAt
     ? (() => {
         const [year, month, day] = content.eventAt.split('-').map(Number);
@@ -27,12 +32,14 @@ export default function EventView({
       <div className="mx-auto grid max-w-7xl px-5 grid-cols-[360px_1fr] items-start gap-14 max-[900px]:grid-cols-1 max-[900px]:gap-8">
         <div>
           {content.image?.asset?._id && (
-            <SanityImage
-              className="w-full h-auto"
-              image={content.image}
-              alt={content.name ?? 'Event'}
-              width={720}
-            />
+            <ViewTransition name={mediaVt} share="morph">
+              <SanityImage
+                className="w-full h-auto"
+                image={content.image}
+                alt={content.name ?? 'Event'}
+                width={720}
+              />
+            </ViewTransition>
           )}
         </div>
         <div>

@@ -2,13 +2,18 @@
 
 import NewsBody from '@/components/NewsBody';
 import SanityImage from '@/components/SanityImage';
+import ViewTransition from '@/components/ViewTransition';
+import { mediaTransitionName } from '@/lib/newsEvents';
 import type { NewsBySlugQueryResult } from '@/sanity.types';
 
 export default function NewsArticleView({
   article,
+  slug,
 }: {
   article: NonNullable<NewsBySlugQueryResult>;
+  slug: string;
 }) {
+  const mediaVt = mediaTransitionName('news', slug);
   const publishedAt = article.publishedAt
     ? new Date(article.publishedAt).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -26,14 +31,16 @@ export default function NewsArticleView({
           </h1>
         )}
         {article.heroImage?.asset?._id && (
-          <figure className="m-0 mb-4">
-            <SanityImage
-              className="block h-auto w-full"
-              image={article.heroImage}
-              alt={article.title ?? 'Article hero image'}
-              width={1440}
-            />
-          </figure>
+          <ViewTransition name={mediaVt} share="morph">
+            <figure className="m-0 mb-4">
+              <SanityImage
+                className="block h-auto w-full"
+                image={article.heroImage}
+                alt={article.title ?? 'Article hero image'}
+                width={1440}
+              />
+            </figure>
+          </ViewTransition>
         )}
         {publishedAt && (
           <time className="block font-sans text-[0.8125rem] font-bold uppercase tracking-[0.1em] text-black mt-6 mb-8">

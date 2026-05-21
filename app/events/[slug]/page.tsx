@@ -52,7 +52,7 @@ export default async function EventPage({
   return (
     <div className="event">
       <SiteHeader />
-      <EventView content={content} />
+      <EventView content={content} slug={slug} />
       <SiteFooter />
     </div>
   );

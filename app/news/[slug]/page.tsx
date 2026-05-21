@@ -61,7 +61,7 @@ export default async function NewsArticlePage({
   return (
     <div className="news">
       <SiteHeader />
-      <NewsArticleView article={article} />
+      <NewsArticleView article={article} slug={slug} />
       <SiteFooter />
     </div>
   );

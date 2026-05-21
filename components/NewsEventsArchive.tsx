@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
 import SanityImage from '@/components/SanityImage';
+import ViewTransition from '@/components/ViewTransition';
+import { mediaTransitionName } from '@/lib/newsEvents';
 import type { AllEventsQueryResult, AllNewsQueryResult } from '@/sanity.types';
 
 const PAGE_SIZE = 10;
@@ -106,6 +108,7 @@ export default function NewsEventsArchive({
               : `/events/${item.slug}`;
           const ctaLabel =
             item.kind === 'news' ? 'CONTINUE READING' : 'VIEW EVENT DETAILS';
+          const mediaVt = mediaTransitionName(item.kind, item.slug);
 
           return (
             <article
@@ -117,19 +120,21 @@ export default function NewsEventsArchive({
                 aria-label={item.title}
                 className="block w-full max-w-[273px] p-0 max-tablet:max-w-none"
               >
-                {item.image?.asset?._id ? (
-                  <SanityImage
-                    className="w-full h-auto aspect-[273/387] object-cover"
-                    image={item.image}
-                    alt={item.title}
-                    width={600}
-                  />
-                ) : (
-                  <div
-                    aria-hidden
-                    className="w-full aspect-[273/387] bg-[rgba(0,65,129,0.08)]"
-                  />
-                )}
+                <ViewTransition name={mediaVt} share="morph">
+                  {item.image?.asset?._id ? (
+                    <SanityImage
+                      className="w-full h-auto aspect-[273/387] object-cover"
+                      image={item.image}
+                      alt={item.title}
+                      width={600}
+                    />
+                  ) : (
+                    <div
+                      aria-hidden
+                      className="w-full aspect-[273/387] bg-[rgba(0,65,129,0.08)]"
+                    />
+                  )}
+                </ViewTransition>
               </Link>
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-1  text-[0.8125rem] uppercase tracking-[0.1em]">
