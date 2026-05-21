@@ -117,7 +117,9 @@ function Team({
         id="teamWrapper"
         className="team-wrapper w-full tablet:mt-[107px] max-tablet:px-[5%] max-tablet:py-[10%]"
       >
-        <h2 className="text-white text-[3rem] max-tablet:text-[2rem]">{name}</h2>
+        <h2 className="text-white text-[3rem] max-tablet:text-[2rem]">
+          {name}
+        </h2>
 
         <div className="relative w-full mb-12 max-tablet:mb-0">
           {members.map(({ id, image, name, role, bio }) => {

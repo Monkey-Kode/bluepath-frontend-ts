@@ -25,7 +25,9 @@ export default function StickyNationalProjects({
     if (typeof window === 'undefined') return;
 
     const update = () => {
-      const target = tableOfContentsRef.entry?.target as HTMLElement | undefined;
+      const target = tableOfContentsRef.entry?.target as
+        | HTMLElement
+        | undefined;
       if (!target) {
         setIsPastTableOfContents(false);
         return;

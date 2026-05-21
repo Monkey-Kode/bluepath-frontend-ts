@@ -30,9 +30,7 @@ function BurgerMenu({
       <span
         className={classNames(
           BAR,
-          open
-            ? 'bg-white rotate-45 -translate-y-[6px]'
-            : 'bg-blue rotate-0',
+          open ? 'bg-white rotate-45 -translate-y-[6px]' : 'bg-blue rotate-0',
         )}
       />
       <span

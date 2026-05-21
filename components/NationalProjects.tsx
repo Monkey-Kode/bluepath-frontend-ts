@@ -7,8 +7,7 @@ import Link from 'next/link';
 import { getImageComponent } from '@/utils/ImageSelector';
 import { extractState } from '@/utils/extractState';
 
-export type CaseStudy =
-  import('@/sanity.types').CasestudiesQueryResult[number];
+export type CaseStudy = import('@/sanity.types').CasestudiesQueryResult[number];
 
 type NationalProjectsProps = { caseStudies: CaseStudy[] };
 

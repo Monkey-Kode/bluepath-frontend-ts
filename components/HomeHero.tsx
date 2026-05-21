@@ -112,7 +112,7 @@ export default function HomeHero({
         <h1
           ref={titleRef}
           style={titleStyle}
-          className={`pointer-events-none z-20 mx-auto max-w-[1100px] px-6 text-balance text-center font-serif font-extrabold text-h1 transition-colors duration-300 ease-out min-[1440px]:text-display ${
+          className={`pointer-events-none z-20 mx-auto max-w-[1100px] px-6 text-balance text-center font-serif font-extrabold text-h1 transition-colors duration-300 ease-out ${
             onWhite ? 'text-blue' : 'text-white'
           }`}
         >

@@ -11,10 +11,10 @@ export default function NewsArticleView({
 }) {
   const publishedAt = article.publishedAt
     ? new Date(article.publishedAt).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
     : null;
 
   return (

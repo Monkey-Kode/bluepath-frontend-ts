@@ -4,10 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
 import SanityImage from '@/components/SanityImage';
-import type {
-  AllEventsQueryResult,
-  AllNewsQueryResult,
-} from '@/sanity.types';
+import type { AllEventsQueryResult, AllNewsQueryResult } from '@/sanity.types';
 
 const PAGE_SIZE = 10;
 
@@ -137,9 +134,7 @@ export default function NewsEventsArchive({
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-1  text-[0.8125rem] uppercase tracking-[0.1em]">
                   {item.date && (
-                    <span className="font-light text-black">
-                      {item.date}
-                    </span>
+                    <span className="font-light text-black">{item.date}</span>
                   )}
                   {item.label && (
                     <span className="text-black font-semibold text-h3 pb-3">
@@ -161,7 +156,7 @@ export default function NewsEventsArchive({
                   </p>
                 )}
                 {item.excerpt && (
-                  <p className="text-black m-0  text-p max-w-[60ch]">
+                  <p className="text-black m-0  text-base max-w-[60ch]">
                     {item.excerpt}
                   </p>
                 )}

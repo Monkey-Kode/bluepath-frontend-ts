@@ -18,7 +18,11 @@ const nextConfig: NextConfig = {
     return [
       { source: '/events', destination: '/news-and-events', statusCode: 301 },
       { source: '/event/:slug', destination: '/events/:slug', statusCode: 301 },
-      { source: '/assessment-request', destination: '/connect', statusCode: 301 },
+      {
+        source: '/assessment-request',
+        destination: '/connect',
+        statusCode: 301,
+      },
       {
         source: '/assessment-request/:path*',
         destination: '/connect',

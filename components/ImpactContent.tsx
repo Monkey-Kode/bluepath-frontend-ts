@@ -8,7 +8,9 @@ import type { ImpactItemsQueryResult } from '@/sanity.types';
 function boxHeading(heading: string | number | null | undefined) {
   if (!heading || heading === 'null') return '';
   return (
-    <h3 className='text-white'>{isNaN(Number(heading)) ? heading : formatNumber(Number(heading))}</h3>
+    <h3 className="text-white">
+      {isNaN(Number(heading)) ? heading : formatNumber(Number(heading))}
+    </h3>
   );
 }
 
@@ -48,15 +50,15 @@ function ImpactContent({
         </div>
         <div>
           {boxHeading(String(contentheading2))}
-          {content2 && <p className='text-white'>{content2}</p>}
+          {content2 && <p className="text-white">{content2}</p>}
         </div>
         <div>
           {boxHeading(String(contentheading3))}
-          {content2 && <p className='text-white'>{content3}</p>}
+          {content2 && <p className="text-white">{content3}</p>}
         </div>
         <div>
           {boxHeading(String(contentheading4))}
-          {content4 && <p className='text-white'>{content4}</p>}
+          {content4 && <p className="text-white">{content4}</p>}
         </div>
       </div>
     </motion.div>

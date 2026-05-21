@@ -12,25 +12,69 @@ if (!TOKEN) {
 }
 
 const STATE_ABBREVIATIONS = {
-  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas',
-  CA: 'California', CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware',
-  FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho',
-  IL: 'Illinois', IN: 'Indiana', IA: 'Iowa', KS: 'Kansas',
-  KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland',
-  MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi',
-  MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada',
-  NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York',
-  NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma',
-  OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina',
-  SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah',
-  VT: 'Vermont', VA: 'Virginia', WA: 'Washington', WV: 'West Virginia',
-  WI: 'Wisconsin', WY: 'Wyoming', DC: 'District of Columbia',
+  AL: 'Alabama',
+  AK: 'Alaska',
+  AZ: 'Arizona',
+  AR: 'Arkansas',
+  CA: 'California',
+  CO: 'Colorado',
+  CT: 'Connecticut',
+  DE: 'Delaware',
+  FL: 'Florida',
+  GA: 'Georgia',
+  HI: 'Hawaii',
+  ID: 'Idaho',
+  IL: 'Illinois',
+  IN: 'Indiana',
+  IA: 'Iowa',
+  KS: 'Kansas',
+  KY: 'Kentucky',
+  LA: 'Louisiana',
+  ME: 'Maine',
+  MD: 'Maryland',
+  MA: 'Massachusetts',
+  MI: 'Michigan',
+  MN: 'Minnesota',
+  MS: 'Mississippi',
+  MO: 'Missouri',
+  MT: 'Montana',
+  NE: 'Nebraska',
+  NV: 'Nevada',
+  NH: 'New Hampshire',
+  NJ: 'New Jersey',
+  NM: 'New Mexico',
+  NY: 'New York',
+  NC: 'North Carolina',
+  ND: 'North Dakota',
+  OH: 'Ohio',
+  OK: 'Oklahoma',
+  OR: 'Oregon',
+  PA: 'Pennsylvania',
+  RI: 'Rhode Island',
+  SC: 'South Carolina',
+  SD: 'South Dakota',
+  TN: 'Tennessee',
+  TX: 'Texas',
+  UT: 'Utah',
+  VT: 'Vermont',
+  VA: 'Virginia',
+  WA: 'Washington',
+  WV: 'West Virginia',
+  WI: 'Wisconsin',
+  WY: 'Wyoming',
+  DC: 'District of Columbia',
 };
 
 const INFORMAL_ABBREVIATIONS = {
-  Ill: 'Illinois', Calif: 'California', Minn: 'Minnesota',
-  Wash: 'Washington', Conn: 'Connecticut', Mass: 'Massachusetts',
-  Penn: 'Pennsylvania', Tenn: 'Tennessee', Wis: 'Wisconsin',
+  Ill: 'Illinois',
+  Calif: 'California',
+  Minn: 'Minnesota',
+  Wash: 'Washington',
+  Conn: 'Connecticut',
+  Mass: 'Massachusetts',
+  Penn: 'Pennsylvania',
+  Tenn: 'Tennessee',
+  Wis: 'Wisconsin',
 };
 
 function extractState(address) {
@@ -95,7 +139,9 @@ async function mutate(mutations) {
 }
 
 async function migrate() {
-  const docs = await query('*[_type == "casestudies"]{_id, title, address, state}');
+  const docs = await query(
+    '*[_type == "casestudies"]{_id, title, address, state}',
+  );
   console.log(`Found ${docs.length} case studies`);
 
   const toUpdate = [];
@@ -103,7 +149,10 @@ async function migrate() {
   let skipped = 0;
 
   for (const doc of docs) {
-    if (doc.state) { skipped++; continue; }
+    if (doc.state) {
+      skipped++;
+      continue;
+    }
 
     const state = extractState(doc.address);
     if (!state) {
@@ -122,10 +171,14 @@ async function migrate() {
       patch: { id: d.id, set: { state: d.state } },
     }));
     await mutate(mutations);
-    console.log(`Patched ${Math.min(i + BATCH, toUpdate.length)}/${toUpdate.length}`);
+    console.log(
+      `Patched ${Math.min(i + BATCH, toUpdate.length)}/${toUpdate.length}`,
+    );
   }
 
-  console.log(`\nDone! Updated: ${toUpdate.length} | Skipped: ${skipped} | Failed: ${failed.length}`);
+  console.log(
+    `\nDone! Updated: ${toUpdate.length} | Skipped: ${skipped} | Failed: ${failed.length}`,
+  );
 
   if (failed.length > 0) {
     console.log('\nNeed manual state entry in Sanity Studio:');
@@ -135,4 +188,7 @@ async function migrate() {
   }
 }
 
-migrate().catch((err) => { console.error(err); process.exit(1); });
+migrate().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

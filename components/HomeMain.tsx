@@ -48,8 +48,7 @@ function HomeMain({
     (s) => s?.contentType?.name === 'TOF',
   );
   const restSections = orderedSections.filter(
-    (s) =>
-      s?.contentType?.name !== 'Video' && s?.contentType?.name !== 'TOF',
+    (s) => s?.contentType?.name !== 'Video' && s?.contentType?.name !== 'TOF',
   );
 
   return (

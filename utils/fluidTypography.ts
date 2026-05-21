@@ -11,12 +11,12 @@ function fluidType(
   minScreen: string,
   maxScreen: string,
   minFont: string,
-  maxFont: string
+  maxFont: string,
 ) {
   return `
       font-size: calc(${minFont} + (${
-    parseInt(maxFont) - parseInt(minFont)
-  }) * (100vw - ${minScreen})/(${parseInt(maxScreen) - parseInt(minScreen)}));
+        parseInt(maxFont) - parseInt(minFont)
+      }) * (100vw - ${minScreen})/(${parseInt(maxScreen) - parseInt(minScreen)}));
     `;
 }
 

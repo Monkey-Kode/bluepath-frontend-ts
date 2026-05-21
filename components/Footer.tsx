@@ -25,10 +25,7 @@ function Footer({
       </div>
       <div className="wrap tablet:row-[1/2] tablet:col-[2/3]">
         {addressesOrdered.map(({ _id, details }) => (
-          <div
-            key={_id}
-            className="address border-l-4 border-accent pl-2.5"
-          >
+          <div key={_id} className="address border-l-4 border-accent pl-2.5">
             <address className="not-italic leading-[1.3] text-blue">
               {splitByNewLines(String(details))}
             </address>

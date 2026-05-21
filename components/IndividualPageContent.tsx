@@ -40,9 +40,7 @@ const IndividualPageContent = ({ page }: { page: Page }) => {
 
   if (background) {
     return (
-      <div
-        className={`${boxAlign} max-tablet:mt-[119px] max-tablet:block`}
-      >
+      <div className={`${boxAlign} max-tablet:mt-[119px] max-tablet:block`}>
         {background?.asset?._id && (
           <SanityImage
             alt="Background scenery"

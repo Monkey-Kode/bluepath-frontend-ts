@@ -2,7 +2,10 @@ import {
   createImageUrlBuilder,
   type SanityImageSource,
 } from '@sanity/image-url';
-import { createDataAttribute, type CreateDataAttributeProps } from 'next-sanity';
+import {
+  createDataAttribute,
+  type CreateDataAttributeProps,
+} from 'next-sanity';
 
 import { dataset, projectId, studioUrl } from '@/sanity/lib/api';
 

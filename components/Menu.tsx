@@ -50,7 +50,16 @@ function Menu({
     >
       <ul className="m-0 flex flex-wrap tablet:justify-end max-tablet:flex-col max-tablet:justify-center">
         {navItems.map(
-          ({ name: title, page, jumpLinkId, linkType, _id, header, footer, url }) => {
+          ({
+            name: title,
+            page,
+            jumpLinkId,
+            linkType,
+            _id,
+            header,
+            footer,
+            url,
+          }) => {
             if (!header && isHeader) return null;
             if (!footer && !isHeader) return null;
 
@@ -68,10 +77,7 @@ function Menu({
             }
 
             return (
-              <li
-                key={_id}
-                className="list-none tablet:px-4"
-              >
+              <li key={_id} className="list-none tablet:px-4">
                 {!jumpLinkId ? (
                   <Link href={`/${pageLink}`} className={linkClass}>
                     {title}

@@ -134,12 +134,10 @@ function Projects({
           );
 
           infowindow.addListener('closeclick', function () {
-            document
-              .querySelectorAll(`#markerLayer div img`)
-              .forEach((img) => {
-                img.classList.remove('grow');
-                img.classList.remove('shrink');
-              });
+            document.querySelectorAll(`#markerLayer div img`).forEach((img) => {
+              img.classList.remove('grow');
+              img.classList.remove('shrink');
+            });
             activeInfoWindow = null;
           });
         });

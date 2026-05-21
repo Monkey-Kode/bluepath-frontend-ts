@@ -30,15 +30,16 @@ export default function CarouselSlide({
   const linkOne = firstLinkId
     ? `#${firstLinkId}`
     : firstLinkURL
-    ? `/${firstLinkURL}`
-    : '';
+      ? `/${firstLinkURL}`
+      : '';
   const linkTwo = secondLinkId
     ? `#${secondLinkId}`
     : secondLinkURL
-    ? `/${secondLinkURL}`
-    : '';
+      ? `/${secondLinkURL}`
+      : '';
 
-  const linkBase = 'block py-[0.4rem] text-[0.95rem] max-[480px]:text-[0.78rem]';
+  const linkBase =
+    'block py-[0.4rem] text-[0.95rem] max-[480px]:text-[0.78rem]';
   const firstLinkClass = `${linkBase} pl-6`;
   const secondLinkClass = `${linkBase} pr-6 text-right`;
 
