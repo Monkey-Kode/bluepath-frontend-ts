@@ -2,11 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MouseEvent } from 'react';
 
 import DarkLogo from '@/assets/dark-logo336.svg';
 import LightLogo from '@/assets/light-logo.svg';
-import scrollTo from '@/lib/scrollTo';
 
 interface LogoProps {
   image: unknown;
