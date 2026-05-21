@@ -49,7 +49,6 @@
     --color-gray-2: #616567;
     --color-gray-3: #595959;
     --color-surface: #f6f7f9;
-    --color-black: #000;
 
     /* ── Type scale: Axios sizes converted into our fluid (Utopia) method ──
      * Each step's DESKTOP ceiling (@1240px) equals the matching Axios token
@@ -225,7 +224,7 @@ section:not([aria-label])
         > div:not(.team-wrapper):not([class*="Contact"]):not([class*="Impact"]):not(
             [class*="prose"]
         ) {
-        background-color: var(--color-blue);
+        background-color: white;
         margin-inline: auto;
     }
 }
