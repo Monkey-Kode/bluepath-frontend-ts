@@ -58,7 +58,7 @@ export default function EventView({
               <NewsBody value={richText} />
             </div>
           )}
-          <div className="mt-6 max-w-none tablet:max-w-[500px]">
+          <div className="mt-6 max-w-none tablet:max-w-[550px]">
             <FormBasic name={content.name} />
           </div>
         </div>
