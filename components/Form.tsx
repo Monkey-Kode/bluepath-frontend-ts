@@ -52,6 +52,7 @@ function FormBody({
           data-netlify="true"
           data-netlify-honeypot="bot-field"
           onSubmit={handleSubmit}
+          className="grid grid-cols-2 gap-x-4 gap-y-1 max-[480px]:grid-cols-1 [&_input]:w-full [&_input]:bg-white [&_input]:px-3 [&_input]:py-2 [&_select]:w-full [&_select]:bg-white [&_select]:px-3 [&_select]:py-2 [&_textarea]:w-full [&_textarea]:bg-white [&_textarea]:px-3 [&_textarea]:py-2"
         >
           <input type="hidden" name="form-name" value={formName} />
           <p hidden>
@@ -158,7 +159,7 @@ function FormBody({
               <option value="Wyoming">Wyoming</option>
             </select>
           </div>
-          <div>
+          <div className="col-span-2 max-[480px]:col-span-1">
             <label htmlFor="message">Message:</label>
             <textarea
               id="message"
@@ -168,7 +169,7 @@ function FormBody({
               cols={33}
             />
           </div>
-          <div>
+          <div className="col-span-2 max-[480px]:col-span-1">
             <button type="submit">Send</button>
           </div>
         </form>
