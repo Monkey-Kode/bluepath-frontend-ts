@@ -115,11 +115,11 @@ export default function NewsEventsArchive({
               <Link
                 href={href}
                 aria-label={item.title}
-                className="block w-full max-w-[273px] p-0"
+                className="block w-full max-w-[273px] p-0 max-tablet:max-w-none"
               >
                 {item.image?.asset?._id ? (
                   <SanityImage
-                    className="w-full h-auto !object-contain"
+                    className="w-full h-auto aspect-[273/387] object-cover"
                     image={item.image}
                     alt={item.title}
                     width={600}
