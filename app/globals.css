@@ -440,6 +440,10 @@ section:not([aria-label])
         font-family: var(--font-sans);
         scroll-behavior: smooth;
         scroll-padding-top: var(--header-height);
+        /* Tailwind preflight sets html line-height: 1.5; tighten the
+         * inherited default to 1.25. Elements with a text-* utility still
+         * use their own token line-height (--text-*--line-height). */
+        line-height: 1.25;
     }
 
     html,
