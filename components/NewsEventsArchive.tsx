@@ -98,7 +98,7 @@ export default function NewsEventsArchive({
   return (
     <main className="header-offset bg-white text-blue pb-20">
       <div className="mx-auto max-w-7xl px-5">
-        <h1 className="font-sans font-bold text-blue tracking-[0.02em] text-h1  my-8 mb-10 text-balance max-tablet:mb-0">
+        <h1 className="font-sans font-bold text-blue tracking-[0.02em] text-h2  my-8 mb-10 text-balance max-tablet:mb-0">
           News &amp; Events
         </h1>
         {shown.map((item) => {
@@ -114,7 +114,7 @@ export default function NewsEventsArchive({
           return (
             <article
               key={item.id}
-              className="grid grid-cols-[273px_1fr] items-start gap-10 py-10 first-of-type:pt-4 max-tablet:grid-cols-1 max-tablet:gap-5"
+              className="grid grid-cols-[273px_1fr] items-start gap-10 py-10 first-of-type:pt-4 max-tablet:grid-cols-1 max-tablet:gap-6 max-tablet:py-12"
             >
               <Link
                 href={href}
@@ -143,7 +143,7 @@ export default function NewsEventsArchive({
                     <span className="font-light text-black">{item.date}</span>
                   )}
                   {item.label && (
-                    <span className="text-black font-semibold text-h3 pb-3">
+                    <span className="text-black font-semibold">
                       {item.label}
                     </span>
                   )}
