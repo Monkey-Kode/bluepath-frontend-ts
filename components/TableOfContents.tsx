@@ -63,19 +63,25 @@ export default function TableOfContents({
                 {paragraphs.length > 0 && (
                     <div
                         data-tof-body
-                        className="prose max-w-[680px] text-center py-8 font-sans text-black text-pretty min-[1440px]:text-h3 [&_p]:m-0 [&_p]:mb-4 [&_p]:text-black [&_p:last-child]:mb-0"
+                        className="prose max-w-[680px] text-center py-8 font-sans text-black text-pretty"
                     >
                         {paragraphs.map((p, i) => (
-                            <p key={i}>{p}</p>
+                            <p
+                                key={i}
+                                className={`m-0 text-black ${i === paragraphs.length - 1 ? 'mb-0' : 'mb-4'}`}
+                            >
+                                {p}
+                            </p>
                         ))}
                     </div>
                 )}
 
-                <div className="flex justify-center pt-4 pb-8 [&_svg]:w-[23px] [&_svg]:h-[27px] [&_svg]:fill-white [&_svg]:stroke-accent [&_svg]:[stroke-width:1] [&_svg]:[vector-effect:non-scaling-stroke] [&_svg]:rotate-90">
+                <div className="flex justify-center pt-4 pb-8">
                     <svg
                         viewBox="0 0 20 24"
                         preserveAspectRatio="xMidYMid meet"
                         aria-hidden="true"
+                        className="w-[23px] h-[27px] fill-white stroke-accent [stroke-width:1] [vector-effect:non-scaling-stroke] rotate-90"
                     >
                         <polygon points="2,2 18,12 2,22" />
                     </svg>

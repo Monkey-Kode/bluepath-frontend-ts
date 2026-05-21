@@ -25,9 +25,10 @@ export default function EventView({
     return (
         <main className="bg-white text-black pt-[calc(var(--header-height,100px)+4rem)] pb-20">
             <div className="mx-auto grid max-w-7xl px-5 grid-cols-[360px_1fr] items-start gap-14 max-[900px]:grid-cols-1 max-[900px]:gap-8">
-                <div className="[&_img]:w-full [&_img]:h-auto">
+                <div>
                     {content.image?.asset?._id && (
                         <SanityImage
+                            className="w-full h-auto"
                             image={content.image}
                             alt={content.name ?? 'Event'}
                             width={720}
@@ -57,7 +58,7 @@ export default function EventView({
                             <NewsBody value={richText} />
                         </div>
                     )}
-                    <div className="mt-6 max-w-none tablet:max-w-[500px] [&_label]:hidden [&_input]:bg-white [&_input]:border [&_input]:border-[var(--color-gray-3)] [&_input]:rounded-none [&_input]:mb-[0.6rem] [&_input]:px-3 [&_input]:py-[0.65rem] [&_input]:font-sans [&_input]:text-[var(--color-gray-3)] [&_input]:text-sm [&_textarea]:bg-white [&_textarea]:border [&_textarea]:border-[var(--color-gray-3)] [&_textarea]:rounded-none [&_textarea]:mb-[0.6rem] [&_textarea]:px-3 [&_textarea]:py-[0.65rem] [&_textarea]:font-sans [&_textarea]:text-[var(--color-gray-3)] [&_textarea]:text-sm [&_select]:bg-white [&_select]:border [&_select]:border-[var(--color-gray-3)] [&_select]:rounded-none [&_select]:mb-[0.6rem] [&_select]:px-3 [&_select]:py-[0.65rem] [&_select]:font-sans [&_select]:text-[var(--color-gray-3)] [&_select]:text-sm [&_input::placeholder]:text-[var(--color-gray-3)] [&_input::placeholder]:uppercase [&_input::placeholder]:tracking-[0.06em] [&_input::placeholder]:text-[1.25rem] [&_textarea::placeholder]:text-[var(--color-gray-3)] [&_textarea::placeholder]:uppercase [&_textarea::placeholder]:tracking-[0.06em] [&_textarea::placeholder]:text-[1.25rem] [&_button[type=submit]]:bg-white [&_button[type=submit]]:text-[var(--color-gray-3)] [&_button[type=submit]]:border [&_button[type=submit]]:border-[var(--color-gray-3)] [&_button[type=submit]]:rounded-none [&_button[type=submit]]:uppercase [&_button[type=submit]]:tracking-[0.5px] [&_button[type=submit]]:text-[1.25rem] [&_button[type=submit]]:font-medium [&_button[type=submit]]:py-2 [&_button[type=submit]]:px-2 [&_button[type=submit]]:cursor-pointer [&_button[type=submit]]:transition-colors [&_button[type=submit]:hover]:bg-accent [&_button[type=submit]:hover]:text-white [&_button[type=submit]:hover]:border-accent [&_.submit-row]:flex [&_.submit-row]:items-center [&_.submit-row]:justify-center [&_.submit-row]:gap-[0.6rem] [&_.submit-row]:mt-4 [&_.submit-triangle]:w-[23px] [&_.submit-triangle]:h-[27px] [&_.submit-triangle]:fill-white [&_.submit-triangle]:stroke-accent [&_.submit-triangle]:[stroke-width:1] [&_.submit-triangle]:[vector-effect:non-scaling-stroke] [&_.submit-triangle]:block [&_.submit-triangle]:origin-center [&_.submit-triangle]:transition-all [&_.submit-row:hover_.submit-triangle]:fill-accent [&_.submit-row:hover_.submit-triangle]:translate-x-1 [&_.submit-row:hover_.submit-triangle]:scale-[1.12]">
+                    <div className="mt-6 max-w-none tablet:max-w-[500px]">
                         <FormBasic name={content.name} />
                     </div>
                 </div>

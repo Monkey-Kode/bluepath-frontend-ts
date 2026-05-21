@@ -14,8 +14,13 @@ export default function TeamMemberBio({ member }: { member: Member }) {
     const photoVt = photoTransitionName(member.slug);
 
     const photo = member.image?.asset?._id ? (
-        <div className="w-full aspect-[4/5] overflow-hidden bg-surface [&_img]:w-full [&_img]:h-full [&_img]:object-cover">
-            <SanityImage image={member.image} alt={member.name ?? ''} width={900} />
+        <div className="w-full aspect-[4/5] overflow-hidden bg-surface">
+            <SanityImage
+                className="w-full h-full object-cover"
+                image={member.image}
+                alt={member.name ?? ''}
+                width={900}
+            />
         </div>
     ) : null;
 
@@ -49,12 +54,12 @@ export default function TeamMemberBio({ member }: { member: Member }) {
                             </p>
                         )}
                         {member.roleSubtitle && (
-                            <p className="font-sans text-[#1a1a1a] text-h4 ] mt-[0.6rem] mb-0">
+                            <p className="font-sans text-[#1a1a1a] text-h4 mt-[0.6rem] mb-0">
                                 {member.roleSubtitle}
                             </p>
                         )}
                         <hr className="h-px bg-accent border-0 w-full my-7" />
-                        <div className="prose">
+                        <div className="prose prose-lg prose-default prose-p:leading-relaxed prose-p:my-7 prose-headings:font-sans prose-headings:text-black prose-h2:mt-14 prose-h2:mb-4 prose-h3:mt-10 prose-h3:mb-3 prose-a:text-black prose-a:font-medium hover:prose-a:text-accent prose-blockquote:border-accent prose-blockquote:text-black prose-strong:font-semibold">
                             {paragraphs.map((p, i) => (
                                 <p key={i}>{p}</p>
                             ))}

@@ -26,8 +26,9 @@ export default function NewsArticleView({
           </h1>
         )}
         {article.heroImage?.asset?._id && (
-          <figure className="m-0 mb-4 [&_img]:block [&_img]:h-auto [&_img]:w-full">
+          <figure className="m-0 mb-4">
             <SanityImage
+              className="block h-auto w-full"
               image={article.heroImage}
               alt={article.title ?? 'Article hero image'}
               width={1440}

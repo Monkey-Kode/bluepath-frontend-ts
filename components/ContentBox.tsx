@@ -95,13 +95,13 @@ function ContentBox({
                 transition={isMobile ? { duration: 0 } : { duration: 1, delay: 0.5 }}
             >
                 <div className="box-inner bg-white h-full px-8 py-4 max-[1024px]:px-6">
-                    <div
-                        ref={headerRef}
-                        className="[&_h2]:m-0 [&_h2]:max-w-full [&_h2]:border-none [&_h2]:pb-2 [&_h2]:pt-6 [&_h2]:leading-none [&_h2]:text-7xl max-tablet:[&_h2]:text-center max-tablet:[&_h2]:text-[1.75rem] [&_h3]:m-0 [&_h3]:pb-6 [&_h3]:text-center [&_h3]:italic [&_h3]:lowercase [&_h3]:text-[calc(1.875rem+0.5vw)] max-tablet:[&_h3]:text-[1.5rem] [&_h3]:leading-none"
-                    >
+                    <div ref={headerRef}>
                         {!hidetitle && (
                             <motion.h2
-                                className={sectionHeadingPosition ? 'hide-for-desktop' : ''}
+                                className={classNames(
+                                    'm-0 max-w-full border-none pb-2 pt-6 leading-none text-7xl max-tablet:text-center max-tablet:text-[1.75rem]',
+                                    { 'hide-for-desktop': sectionHeadingPosition },
+                                )}
                                 initial={isMobile ? 'visible' : 'hidden'}
                                 animate={hasAnimated ? 'visible' : 'hidden'}
                                 variants={fadeIn}
@@ -112,7 +112,10 @@ function ContentBox({
                         )}
                         {!hidetitle && (
                             <motion.h3
-                                className={sectionHeadingPosition ? 'hide-for-desktop' : ''}
+                                className={classNames(
+                                    'm-0 pb-6 text-center italic lowercase text-[calc(1.875rem+0.5vw)] max-tablet:text-[1.5rem] leading-none',
+                                    { 'hide-for-desktop': sectionHeadingPosition },
+                                )}
                                 initial={isMobile ? 'visible' : 'hidden'}
                                 animate={hasAnimated ? 'visible' : 'hidden'}
                                 variants={fadeIn}
@@ -133,10 +136,7 @@ function ContentBox({
                             isMobile ? { duration: 0 } : { duration: 0.5, delay: 1 }
                         }
                     />
-                    <div
-                        ref={contentRef}
-                        className="p-4 [&_a]:block [&_a]:text-center"
-                    >
+                    <div ref={contentRef} className="p-4">
                         <motion.div
                             className="prose"
                             initial={isMobile ? 'visible' : 'hidden'}
@@ -149,6 +149,7 @@ function ContentBox({
                             <p>{splitByNewLines(String(sectionContent))}</p>
                             {ctaLink && sectionContentCTAtext && sectionContentCTAjumpId && (
                                 <a
+                                    className="block text-center"
                                     href={ctaLink}
                                     onClick={(e) => {
                                         e.preventDefault();
@@ -159,7 +160,9 @@ function ContentBox({
                                 </a>
                             )}
                             {ctaLink && sectionContentCTAtext && !sectionContentCTAjumpId && (
-                                <Link href={ctaLink}>{sectionContentCTAtext}</Link>
+                                <Link className="block text-center" href={ctaLink}>
+                                    {sectionContentCTAtext}
+                                </Link>
                             )}
                         </motion.div>
                     </div>

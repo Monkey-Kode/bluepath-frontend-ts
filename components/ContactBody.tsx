@@ -51,9 +51,9 @@ export const ContactBody = ({
     }, [orderedAddresses]);
 
     return (
-        <div className="relative !grid grid-cols-[90vw] grid-rows-[150px_repeat(2,700px)] gap-[30px] justify-center !items-start w-auto max-w-full mx-auto [&_a]:text-white [&_a]:font-bold [&_a]:underline [&_h1]:text-white [&_h1>p]:text-white min-[1200px]:grid-cols-[auto_repeat(2,430px)] min-[1200px]:grid-rows-[auto] min-[1200px]:max-w-[80vw] min-[1200px]:!items-center min-[1129px]:max-[1200px]:pt-[20%] min-[800px]:max-[1128px]:pt-[30%] max-[600px]:pt-0">
+        <div className="relative !grid grid-cols-[90vw] grid-rows-[150px_repeat(2,700px)] gap-[30px] justify-center !items-start w-auto max-w-full mx-auto [&_a]:text-white [&_a]:font-bold [&_a]:underline min-[1200px]:grid-cols-[auto_repeat(2,430px)] min-[1200px]:grid-rows-[auto] min-[1200px]:max-w-[80vw] min-[1200px]:!items-center min-[1129px]:max-[1200px]:pt-[20%] min-[800px]:max-[1128px]:pt-[30%] max-[600px]:pt-0">
             <div className="text-white" style={{ minWidth: '255px' }}>
-                <h1>{Heading || name}</h1>
+                <h1 className="text-white">{Heading || name}</h1>
                 {richcontent?.map((content) =>
                     content?.children?.map((c) => <p key={id}>{c?.text}</p>),
                 )}
@@ -75,9 +75,11 @@ export const ContactBody = ({
                     onClick={() => setShowInfo(Boolean(_id))}
                     onMouseEnter={() => setShowInfo(Boolean(_id))}
                     onMouseLeave={() => setShowInfo(false)}
-                    className="max-w-[430px] m-0 max-[600px]:max-w-[calc(100vw-20px)] max-[600px]:max-h-[calc(calc(calc(100%-20px)*330px)/430px)] [&_h3]:bg-blue [&_h3]:text-white [&_h3]:text-lg [&_h3]:py-4 [&_h3]:px-6 [&_h3]:mb-0 [&_h3]:tracking-[1.3px] [&_h3]:uppercase [&_p]:text-white [&_p]:font-thin [&_p]:text-[1.3rem] [&_p]:p-[1.24rem] [&_p]:m-0 [&_p]:leading-[1.3]"
+                    className="max-w-[430px] m-0 max-[600px]:max-w-[calc(100vw-20px)] max-[600px]:max-h-[calc(calc(calc(100%-20px)*330px)/430px)]"
                 >
-                    <h3>{splitByNewLines(String(address))}</h3>
+                    <h3 className="bg-blue text-white text-lg py-4 px-6 mb-0 tracking-[1.3px] uppercase">
+                        {splitByNewLines(String(address))}
+                    </h3>
                     <div
                         id={_id ?? undefined}
                         className="w-[430px] h-[330px] max-[600px]:max-w-full max-[600px]:max-h-[calc(calc(calc(100%-20px)*330px)/430px)]"
@@ -88,7 +90,9 @@ export const ContactBody = ({
                             { '!opacity-100': showInfo === Boolean(_id) },
                         )}
                     >
-                        <p>{splitByNewLines(String(details))}</p>
+                        <p className="text-white font-thin text-[1.3rem] p-[1.24rem] m-0 leading-[1.3]">
+                            {splitByNewLines(String(details))}
+                        </p>
                     </div>
                 </div>
             ))}

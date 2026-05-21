@@ -41,7 +41,7 @@ const IndividualPageContent = ({ page }: { page: Page }) => {
   if (background) {
     return (
       <div
-        className={`${boxAlign} max-tablet:mt-[119px] max-tablet:block max-tablet:[&_section]:bg-blue max-tablet:[&_section]:p-0 max-tablet:[&_section]:before:!bg-none max-tablet:[&_section]:after:!bg-none`}
+        className={`${boxAlign} max-tablet:mt-[119px] max-tablet:block`}
       >
         {background?.asset?._id && (
           <SanityImage
@@ -55,7 +55,7 @@ const IndividualPageContent = ({ page }: { page: Page }) => {
         <SanityBackgroundImage
           as="section"
           id={id ?? undefined}
-          className="individual-page"
+          className="individual-page max-tablet:bg-blue max-tablet:p-0 max-tablet:before:!bg-none max-tablet:after:!bg-none"
           image={sectionBg}
           style={{ backgroundColor: bgColor }}
           width={2000}

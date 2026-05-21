@@ -32,7 +32,7 @@ function TeamCard({
                 <div
                     id={id}
                     key={id}
-                    className="grid h-full w-auto grid-cols-[284px_1fr_1fr] grid-rows-[1fr_2.5fr] bg-blue max-tablet:flex max-tablet:flex-col max-tablet:w-auto [&_.gatsby-image-wrapper]:col-[1/2] [&_.gatsby-image-wrapper]:row-[1/4]"
+                    className="grid h-full w-auto grid-cols-[284px_1fr_1fr] grid-rows-[1fr_2.5fr] bg-blue max-tablet:flex max-tablet:flex-col max-tablet:w-auto"
                 >
                     {image?.asset?._id && (
                         <SanityImage image={image} alt={`Team ${name}`} width={284} />
@@ -45,9 +45,14 @@ function TeamCard({
                         </span>
                     </h3>
                     {text && (
-                        <div className="col-[2/4] row-[2/4] px-8 py-4  font-thin text-white min-[500px]:columns-2 [&_p]:pr-4 [&_p]:pb-2 [&_p]:m-0 [&_p]:text-justify [&_p]:text-xs max-tablet:[&_p]:font-normal max-tablet:[&_p]:text-left max-tablet:[&_p]:text-[0.65rem] max-tablet:[&_p]:break-words">
+                        <div className="col-[2/4] row-[2/4] px-8 py-4  font-thin text-white min-[500px]:columns-2">
                             {text.map((paragraph, index) => (
-                                <p key={index}>{paragraph}</p>
+                                <p
+                                    key={index}
+                                    className="pr-4 pb-2 m-0 text-justify text-xs max-tablet:font-normal max-tablet:text-left max-tablet:text-[0.65rem] max-tablet:break-words"
+                                >
+                                    {paragraph}
+                                </p>
                             ))}
                         </div>
                     )}

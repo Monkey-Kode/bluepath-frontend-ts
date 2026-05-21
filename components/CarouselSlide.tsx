@@ -38,6 +38,10 @@ export default function CarouselSlide({
     ? `/${secondLinkURL}`
     : '';
 
+  const linkBase = 'block py-[0.4rem] text-[0.95rem] max-[480px]:text-[0.78rem]';
+  const firstLinkClass = `${linkBase} pl-6`;
+  const secondLinkClass = `${linkBase} pr-6 text-right`;
+
   return (
     <div id={`${_id}_carousel`}>
       <div
@@ -58,12 +62,15 @@ export default function CarouselSlide({
             <h2>{heading}</h2>
             <div className="wrap">
               <p>{splitByNewLines(String(content))}</p>
-              <div className="links flex justify-between [&_a]:block [&_a]:py-[0.4rem] [&_a]:text-[0.95rem] max-[480px]:[&_a]:text-[0.78rem] [&_a:first-child]:pl-6 [&_a:last-child]:pr-6 [&_a:last-child]:text-right">
+              <div className="links flex justify-between">
                 {firstLinkId === null ? (
-                  <Link href={linkOne}>{firstLink}</Link>
+                  <Link href={linkOne} className={firstLinkClass}>
+                    {firstLink}
+                  </Link>
                 ) : (
                   <a
                     href={linkOne}
+                    className={firstLinkClass}
                     onClick={(e) => {
                       e.preventDefault();
                       scrollTo(linkOne);
@@ -73,10 +80,13 @@ export default function CarouselSlide({
                   </a>
                 )}
                 {secondLinkId === null ? (
-                  <Link href={linkTwo}>{secondLink}</Link>
+                  <Link href={linkTwo} className={secondLinkClass}>
+                    {secondLink}
+                  </Link>
                 ) : (
                   <a
                     href={linkTwo}
+                    className={secondLinkClass}
                     onClick={(e) => {
                       e.preventDefault();
                       scrollTo(linkTwo);

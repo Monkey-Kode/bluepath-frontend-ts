@@ -11,6 +11,9 @@ interface FormEventState {
   details: string;
 }
 
+const inputClass =
+  'bg-white border border-[var(--color-gray-3)] rounded-none mb-[0.6rem] px-3 py-[0.65rem] font-sans text-[var(--color-gray-3)] text-sm placeholder:text-[var(--color-gray-3)] placeholder:uppercase placeholder:tracking-[0.06em] placeholder:text-[1.25rem]';
+
 const FormBasic = ({ name }: { name: string | null | undefined }) => {
   const router = useRouter();
   const [state, setState] = useState<FormEventState>({
@@ -58,7 +61,9 @@ const FormBasic = ({ name }: { name: string | null | undefined }) => {
           Don’t fill this out: <input name="bot-field" />
         </label>
       </p>
-      <label htmlFor="name">Name:</label>
+      <label htmlFor="name" className="hidden">
+        Name:
+      </label>
       <input
         id="name"
         type="text"
@@ -66,8 +71,11 @@ const FormBasic = ({ name }: { name: string | null | undefined }) => {
         placeholder="Name"
         value={state.name}
         onChange={handleChange}
+        className={inputClass}
       />
-      <label htmlFor="company">Company:</label>
+      <label htmlFor="company" className="hidden">
+        Company:
+      </label>
       <input
         id="company"
         type="text"
@@ -75,8 +83,11 @@ const FormBasic = ({ name }: { name: string | null | undefined }) => {
         placeholder="Company"
         value={state.company}
         onChange={handleChange}
+        className={inputClass}
       />
-      <label htmlFor="title">Title:</label>
+      <label htmlFor="title" className="hidden">
+        Title:
+      </label>
       <input
         id="title"
         type="text"
@@ -84,8 +95,11 @@ const FormBasic = ({ name }: { name: string | null | undefined }) => {
         placeholder="Title"
         value={state.title}
         onChange={handleChange}
+        className={inputClass}
       />
-      <label htmlFor="email">Email:</label>
+      <label htmlFor="email" className="hidden">
+        Email:
+      </label>
       <input
         id="email"
         type="email"
@@ -93,9 +107,12 @@ const FormBasic = ({ name }: { name: string | null | undefined }) => {
         placeholder="Email"
         value={state.email}
         onChange={handleChange}
+        className={inputClass}
       />
 
-      <label htmlFor="details">Details:</label>
+      <label htmlFor="details" className="hidden">
+        Details:
+      </label>
       <input
         id="details"
         type="text"
@@ -103,17 +120,23 @@ const FormBasic = ({ name }: { name: string | null | undefined }) => {
         placeholder="Preferred meeting time"
         value={state.details}
         onChange={handleChange}
+        className={inputClass}
       />
-      <div className="submit-row">
+      <div className="group flex items-center justify-center gap-[0.6rem] mt-4">
         <svg
-          className="submit-triangle"
+          className="w-[23px] h-[27px] fill-white stroke-accent [stroke-width:1] [vector-effect:non-scaling-stroke] block origin-center transition-all group-hover:fill-accent group-hover:translate-x-1 group-hover:scale-[1.12]"
           viewBox="0 0 20 24"
           preserveAspectRatio="xMidYMid meet"
           aria-hidden="true"
         >
           <polygon points="2,2 18,12 2,22" />
         </svg>
-        <button type="submit">Submit</button>
+        <button
+          type="submit"
+          className="bg-white text-[var(--color-gray-3)] border border-[var(--color-gray-3)] rounded-none uppercase tracking-[0.5px] text-[1.25rem] font-medium py-2 px-2 cursor-pointer transition-colors hover:bg-accent hover:text-white hover:border-accent"
+        >
+          Submit
+        </button>
       </div>
     </form>
   );

@@ -15,7 +15,7 @@ import SanityBackgroundImage from '@/components/SanityBackgroundImage';
 import type { PageBySlugQueryResult, TeamQueryResult } from '@/sanity.types';
 
 const TEAM_SECTION_CLASS =
-  '!bg-fixed bg-[center_bottom] bg-no-repeat [background-size:100%_100%] bg-[linear-gradient(173deg,rgba(24,85,140,1)_0%,rgba(116,162,195,1)_32%,rgba(172,208,232,1)_50%,rgba(116,162,195,1)_70%,rgba(1,65,127,1)_100%)] before:!bg-fixed [&_h2]:text-white [&_h2]:text-[3rem] max-tablet:[&_h2]:text-[2rem] [&_.team-wrapper]:w-full tablet:[&_.team-wrapper]:mt-[107px] max-tablet:[&_.team-wrapper]:px-[5%] max-tablet:[&_.team-wrapper]:py-[10%]';
+  '!bg-fixed bg-[center_bottom] bg-no-repeat [background-size:100%_100%] bg-[linear-gradient(173deg,rgba(24,85,140,1)_0%,rgba(116,162,195,1)_32%,rgba(172,208,232,1)_50%,rgba(116,162,195,1)_70%,rgba(1,65,127,1)_100%)] before:!bg-fixed';
 
 function Team({
   page,
@@ -113,8 +113,11 @@ function Team({
       className={TEAM_SECTION_CLASS}
       onClick={(_e: SyntheticEvent) => setcurrentSlide('')}
     >
-      <div id="teamWrapper" className="team-wrapper">
-        <h2>{name}</h2>
+      <div
+        id="teamWrapper"
+        className="team-wrapper w-full tablet:mt-[107px] max-tablet:px-[5%] max-tablet:py-[10%]"
+      >
+        <h2 className="text-white text-[3rem] max-tablet:text-[2rem]">{name}</h2>
 
         <div className="relative w-full mb-12 max-tablet:mb-0">
           {members.map(({ id, image, name, role, bio }) => {

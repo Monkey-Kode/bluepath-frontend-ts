@@ -32,9 +32,7 @@ function Plain({ content }: { content: Section }) {
   const boxAlign = boxLocation || 'left';
 
   return background ? (
-    <div
-      className={`${boxAlign} max-tablet:block max-tablet:[&_section]:bg-blue max-tablet:[&_section]:p-0 max-tablet:[&_section]:before:!bg-none max-tablet:[&_section]:after:!bg-none`}
-    >
+    <div className={`${boxAlign} max-tablet:block`}>
       {background?.asset?._id && (
         <SanityImage
           alt="Background scenery"
@@ -47,7 +45,7 @@ function Plain({ content }: { content: Section }) {
       <SanityBackgroundImage
         as="section"
         id={anchorId ?? undefined}
-        className={`plain ${name ?? ''}`}
+        className={`plain ${name ?? ''} max-tablet:bg-blue max-tablet:p-0 max-tablet:before:!bg-none max-tablet:after:!bg-none`}
         image={background}
         style={{ backgroundColor: bgColor }}
         width={2000}

@@ -84,10 +84,18 @@ export const newsBodyComponents: PortableTextComponents = {
             const url = imageUrlFor(value?.image);
             if (!url) return null;
             return (
-                <figure className="not-prose my-8 [&_img]:block [&_img]:h-auto [&_img]:w-full [&_figcaption]:mt-2 [&_figcaption]:text-center [&_figcaption]:font-sans [&_figcaption]:text-sm [&_figcaption]:text-[var(--color-gray-2)]">
+                <figure className="not-prose my-8">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={url} alt={value?.alt ?? ''} />
-                    {value?.caption && <figcaption>{value.caption}</figcaption>}
+                    <img
+                        className="block h-auto w-full"
+                        src={url}
+                        alt={value?.alt ?? ''}
+                    />
+                    {value?.caption && (
+                        <figcaption className="mt-2 text-center font-sans text-sm text-[var(--color-gray-2)]">
+                            {value.caption}
+                        </figcaption>
+                    )}
                 </figure>
             );
         },
@@ -95,8 +103,9 @@ export const newsBodyComponents: PortableTextComponents = {
             const id = value?.url ? getYouTubeId(value.url) : null;
             if (!id) return null;
             return (
-                <div className="not-prose relative my-8 h-0 pb-[56.25%] [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full [&_iframe]:border-0">
+                <div className="not-prose relative my-8 h-0 pb-[56.25%]">
                     <iframe
+                        className="absolute inset-0 h-full w-full border-0"
                         src={`https://www.youtube.com/embed/${id}`}
                         title="YouTube video"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

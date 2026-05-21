@@ -57,12 +57,13 @@ function NationalProjects({ caseStudies }: NationalProjectsProps) {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="flex justify-between w-full mb-0 [&_a]:pt-0 min-[1025px]:flex-row max-[1024px]:flex-nowrap max-[1024px]:overflow-x-auto max-[1024px]:snap-x max-[1024px]:snap-mandatory max-[1024px]:[-webkit-overflow-scrolling:touch] max-[1024px]:[&>*]:flex-[0_0_auto] max-[1024px]:[&>*]:snap-start"
+        className="flex justify-between w-full mb-0 min-[1025px]:flex-row max-[1024px]:flex-nowrap max-[1024px]:overflow-x-auto max-[1024px]:snap-x max-[1024px]:snap-mandatory max-[1024px]:[-webkit-overflow-scrolling:touch]"
       >
         {projectSets.map((projectSet, columnIndex) => (
           <Link
             href="/projects"
             key={columnIndex}
+            className="pt-0 max-[1024px]:flex-[0_0_auto] max-[1024px]:snap-start"
             style={{
               display: 'block',
               textDecoration: 'none',

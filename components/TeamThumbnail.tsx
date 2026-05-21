@@ -32,7 +32,7 @@ function TeamThumbnail({
           scrollTo('body');
           setcurrentSlide(id);
         }}
-        className="mx-auto grid h-full w-[200px] max-w-[200px] grid-rows-[auto_auto_auto] self-stretch overflow-hidden bg-blue pt-0 max-[1023px]:w-auto max-[1023px]:max-w-none [&_.gatsby-image-wrapper]:aspect-[3/4] [&_.gatsby-image-wrapper]:overflow-hidden [&_.gatsby-image-wrapper]:border-b-[var(--border-bottom)] [&_.gatsby-image-wrapper_img]:!object-top"
+        className="mx-auto grid h-full w-[200px] max-w-[200px] grid-rows-[auto_auto_auto] self-stretch overflow-hidden bg-blue pt-0 max-[1023px]:w-auto max-[1023px]:max-w-none"
       >
         {image?.asset?._id && (
           <SanityImage image={image} alt={`${name}`} width={284} />

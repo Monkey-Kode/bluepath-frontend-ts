@@ -43,8 +43,10 @@ function FormBody({
 
   return (
     <div className={boxAlign}>
-      <div className="bg-blue border-l-[var(--border-left)] p-4 [&_h2]:text-[2.35rem] [&_h2]:px-8 max-tablet:[&_h2]:p-[0.375rem] [&_label]:hidden [&_>form>div]:px-0 [&_>form>div]:py-1">
-        <h2>{name || sectionHeading}</h2>
+      <div className="bg-blue border-l-[var(--border-left)] p-4 [&_label]:hidden [&_>form>div]:px-0 [&_>form>div]:py-1">
+        <h2 className="text-[2.35rem] px-8 max-tablet:p-[0.375rem]">
+          {name || sectionHeading}
+        </h2>
         <form
           name={formName}
           action="/thankyou/"
