@@ -3,6 +3,7 @@
 import ContentBox from '@/components/ContentBox';
 import SanityBackgroundImage from '@/components/SanityBackgroundImage';
 import SanityImage from '@/components/SanityImage';
+import boxAlignClass from '@/utils/boxAlignClass';
 import type { PageBySlugQueryResult } from '@/sanity.types';
 
 type Page = NonNullable<PageBySlugQueryResult>;
@@ -36,7 +37,7 @@ const IndividualPageContent = ({ page }: { page: Page }) => {
   }
 
   const bgColor = backgroundColor?.hex ?? 'var(--color-blue)';
-  const boxAlign = boxLocation || 'left';
+  const boxAlign = boxAlignClass(boxLocation);
 
   if (background) {
     return (

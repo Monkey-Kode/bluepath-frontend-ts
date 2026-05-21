@@ -5,6 +5,7 @@ import { useInView } from 'react-intersection-observer';
 import ContentBox from '@/components/ContentBox';
 import SanityBackgroundImage from '@/components/SanityBackgroundImage';
 import SanityImage from '@/components/SanityImage';
+import boxAlignClass from '@/utils/boxAlignClass';
 import intersectionObserverOptions from '@/utils/intersectionObserverOptions';
 import type { HomesectionsQueryResult } from '@/sanity.types';
 
@@ -29,7 +30,7 @@ function Plain({ content }: { content: Section }) {
   const { ref } = useInView(intersectionObserverOptions);
 
   const bgColor = backgroundColor?.hex ?? '#fff';
-  const boxAlign = boxLocation || 'left';
+  const boxAlign = boxAlignClass(boxLocation);
 
   return background ? (
     <div className={`${boxAlign} max-tablet:block`}>

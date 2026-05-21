@@ -236,25 +236,10 @@ section:not([aria-label])
     width: 100%;
 }
 
-/* Box alignment within a section (set via Sanity `boxLocation`).
- * Each variant is a flex column so `align-items` centers the .box on the
- * cross (horizontal) axis. justify-content controls vertical placement. */
-.left,
-.right,
-.center {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-.left {
-    justify-content: flex-start;
-}
-.right {
-    justify-content: flex-end;
-}
-.center {
-    justify-content: center;
-}
+/* Box alignment (Sanity `boxLocation`) is applied via Tailwind utilities in
+ * the component layer — see utils/boxAlignClass.ts. The former global
+ * `.left/.right/.center` rules were removed: the raw boxLocation value is
+ * stega-encoded in draft mode, so a class-name match silently failed there. */
 
 .box {
     padding: 0 0 1rem;

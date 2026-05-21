@@ -1,5 +1,6 @@
 'use client';
 
+import boxAlignClass from '@/utils/boxAlignClass';
 import sortObject from '@/utils/sortObject';
 import CarouselSlide from './CarouselSlide';
 import SanityBackgroundImage from '@/components/SanityBackgroundImage';
@@ -16,15 +17,12 @@ function Carousel({
   slides: CarouselQueryResult;
 }) {
   const sortedSlides = sortObject(slides) as CarouselQueryResult;
-  let boxAlign = 'left';
 
   return (
     <div id={`${content.anchorId}`}>
       {sortedSlides &&
         sortedSlides.map((content) => {
-          if (content.boxLocation) {
-            boxAlign = content.boxLocation;
-          }
+          const boxAlign = boxAlignClass(content.boxLocation);
 
           return (
             <SanityBackgroundImage

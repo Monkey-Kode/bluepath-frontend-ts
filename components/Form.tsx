@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 
 import SanityBackgroundImage from '@/components/SanityBackgroundImage';
+import boxAlignClass from '@/utils/boxAlignClass';
 import type { PageBySlugQueryResult } from '@/sanity.types';
 
 type Page = NonNullable<PageBySlugQueryResult>;
@@ -38,7 +39,7 @@ function FormBody({
     message =
       'Summary of proposed project, including technologies and preferred financing structure';
   }
-  const boxAlign = boxLocation || 'left';
+  const boxAlign = boxAlignClass(boxLocation);
   const formName = name ?? 'generic';
 
   return (
@@ -183,7 +184,7 @@ function FormBody({
 const Form = ({ page }: { page: Page }) => {
   const { id, name, background, backgroundColor, Heading, boxLocation } = page;
   const bgColor = backgroundColor?.hex ?? '#fff';
-  const boxAlign = boxLocation || 'left';
+  const boxAlign = boxAlignClass(boxLocation);
 
   return background ? (
     <div className={boxAlign}>

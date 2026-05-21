@@ -3,6 +3,7 @@
 import SanityBackgroundImage from '@/components/SanityBackgroundImage';
 import SanityImage from '@/components/SanityImage';
 import { ContactBody } from '@/components/ContactBody';
+import boxAlignClass from '@/utils/boxAlignClass';
 import type {
   AddressesQueryResult,
   PageBySlugQueryResult,
@@ -40,7 +41,7 @@ function Contact({
     }
   }
   const bgColor = backgroundColor?.hex ?? '#fff';
-  const boxAlign = boxLocation || 'left';
+  const boxAlign = boxAlignClass(boxLocation);
 
   return (
     <>
