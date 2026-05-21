@@ -97,7 +97,7 @@ function ContentBox({
                 <div className="box-inner bg-white h-full px-8 py-4 max-[1024px]:px-6">
                     <div
                         ref={headerRef}
-                        className="[&_h2]:m-0 [&_h2]:max-w-full [&_h2]:border-none [&_h2]:pb-2 [&_h2]:pt-6 [&_h2]:leading-[0.9] [&_h2]:[--big-heading-size:3rem] max-tablet:[&_h2]:text-center max-tablet:[&_h2]:text-[1.75rem] [&_h3]:m-0 [&_h3]:pb-6 [&_h3]:text-center [&_h3]:italic [&_h3]:lowercase [&_h3]:text-[calc(1.875rem+0.5vw)] max-tablet:[&_h3]:text-[1.5rem] max-tablet:[&_h3]:leading-none"
+                        className="[&_h2]:m-0 [&_h2]:max-w-full [&_h2]:border-none [&_h2]:pb-2 [&_h2]:pt-6 [&_h2]:leading-none [&_h2]:text-4xl max-tablet:[&_h2]:text-center max-tablet:[&_h2]:text-[1.75rem] [&_h3]:m-0 [&_h3]:pb-6 [&_h3]:text-center [&_h3]:italic [&_h3]:lowercase [&_h3]:text-[calc(1.875rem+0.5vw)] max-tablet:[&_h3]:text-[1.5rem] [&_h3]:leading-none"
                     >
                         {!hidetitle && (
                             <motion.h2

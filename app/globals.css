@@ -1,6 +1,30 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* ─── Prose theme override ──────────────────────────────────────────────
+ * The typography plugin defaults (gray-700 body, gray-300 bullets, etc.)
+ * render as muted slate/blue against this site's white surface. Pin every
+ * --tw-prose-* variable to brand-aligned values so any element with
+ * `prose` (or `prose prose-default`) renders black text + accent quote
+ * borders by default — no per-component prose-* modifier needed. */
+.prose,
+.prose-default {
+    --tw-prose-body: var(--color-black);
+    --tw-prose-headings: #000;
+    --tw-prose-lead: var(--color-black);
+    --tw-prose-links: #000;
+    --tw-prose-bold: #000;
+    --tw-prose-counters: #000;
+    --tw-prose-bullets: #000;
+    --tw-prose-hr: var(--color-gray-3);
+    --tw-prose-quotes: var(--color-black);
+    --tw-prose-quote-borders: var(--color-accent);
+    --tw-prose-captions: var(--color-gray-2);
+    --tw-prose-code: #000;
+    --tw-prose-th-borders: var(--color-gray-3);
+    --tw-prose-td-borders: var(--color-gray-3);
+}
+
 /* ─── Design tokens ─────────────────────────────────────────────────────
  *
  * Type & space scales are fluid (Utopia.fyi method): clamp() between a
@@ -21,7 +45,6 @@
     --color-blue: #004181;
     --color-blue-soft: rgba(0, 65, 129, 0.85);
     --color-accent: #168fcb;
-    --color-ink: #1a1a1a;
     --color-gray-1: #6e7c85;
     --color-gray-2: #616567;
     --color-gray-3: #595959;
@@ -196,36 +219,25 @@ section:not([aria-label])
 .box * {
     color: white;
 }
+/* .box children: only layout/color overrides here.
+ * Font-size MUST come from Tailwind token utilities applied in the
+ * component (e.g. `[&_h2]:text-h2`, `[&_h3]:text-h3`) — never via
+ * CSS custom properties like --big-heading-size, since that bypasses
+ * the design system and breaks consistency. */
 .box h2 {
-    font-size: var(--big-heading-size);
     text-align: center;
-    color: white;
-}
-.box p {
-    color: white;
-    text-align: justify;
-    /*line-height: 1.9;*/
-    /*font-size: 1rem;*/
-    /*font-weight: 300;*/
 }
 .box a {
     font-weight: 400;
-    color: white;
+}
+.box p {
+    text-align: justify;
 }
 @media (max-width: 800px) {
     .box {
         width: auto;
         max-width: 100%;
         margin: 0 auto;
-    }
-    .box p {
-        font-size: 0.75rem;
-        text-align: left;
-    }
-    .box h2 {
-        --big-heading-size: clamp(1rem, 7cqi + 1rem, 2.5rem);
-        line-height: 1;
-        padding-inline: 0.5rem;
     }
 }
 
@@ -470,12 +482,6 @@ section:not([aria-label])
     h6 {
         font-size: var(--text-sm);
     }
-    ul,
-    ol,
-    li {
-        --tw-prose-bullets: black !important;
-    }
-
     img {
         max-width: 100%;
         height: auto;

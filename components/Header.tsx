@@ -35,10 +35,10 @@ function Header({
     return (
         <header
             ref={headerRef}
-            className="fixed top-0 left-0 z-[10000] w-full bg-white px-[7%] py-5 transition-colors duration-300 ease-in-out"
+            className="fixed top-0 left-0 z-[10000] w-full bg-white py-5 transition-colors duration-300 ease-in-out"
         >
-            <div className="tablet:grid tablet:grid-cols-[1fr_2fr]">
-                <div className="flex flex-row flex-nowrap items-center justify-start [&>*]:max-w-[168px] [&>*]:flex-auto max-tablet:py-4 max-tablet:pl-6 max-tablet:pr-8 max-tablet:text-left max-[375px]:px-0">
+            <div className="mx-auto max-w-7xl px-5 tablet:grid tablet:grid-cols-[1fr_2fr]">
+                <div className="flex flex-row flex-nowrap items-center justify-start [&>*]:max-w-[168px] [&>*]:flex-auto max-tablet:py-4  max-tablet:pr-8 max-tablet:text-left max-[375px]:px-0">
                     <Logo className="dark-logo" image={settings?.logoDark} />
                     <Logo className="light-logo" image={settings?.logoLight} />
                 </div>

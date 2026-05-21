@@ -23,8 +23,8 @@ export default function EventView({
         : null;
 
     return (
-        <main className="bg-white text-black pt-[calc(var(--header-height,100px)+4rem)] pb-20 px-5">
-            <div className="mx-auto grid max-w-7xl grid-cols-[360px_1fr] items-start gap-14 max-[900px]:grid-cols-1 max-[900px]:gap-8">
+        <main className="bg-white text-black pt-[calc(var(--header-height,100px)+4rem)] pb-20">
+            <div className="mx-auto grid max-w-7xl px-5 grid-cols-[360px_1fr] items-start gap-14 max-[900px]:grid-cols-1 max-[900px]:gap-8">
                 <div className="[&_img]:w-full [&_img]:h-auto">
                     {content.image?.asset?._id && (
                         <SanityImage
