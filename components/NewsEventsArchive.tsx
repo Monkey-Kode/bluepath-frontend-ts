@@ -113,7 +113,7 @@ export default function NewsEventsArchive({
                     return (
                         <article
                             key={item.id}
-                            className="grid grid-cols-[273px_1fr] items-start gap-10 py-10 max-tablet:grid-cols-1 max-tablet:gap-5"
+                            className="grid grid-cols-[273px_1fr] items-start gap-10 py-10 first-of-type:pt-4 max-tablet:grid-cols-1 max-tablet:gap-5"
                         >
                             <Link
                                 href={href}

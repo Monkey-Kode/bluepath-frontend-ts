@@ -68,7 +68,7 @@ export default function TeamView({ team }: { team: TeamQueryResult }) {
     return (
         <main className="header-offset bg-white text-blue pb-24 px-5">
             <div className="team-inner max-w-[1180px] mx-auto min-h-[70vh]">
-                <h1 className="font-sans font-bold text-blue text-h1 leading-[1.05] tracking-[-0.01em] m-0 mb-12">
+                <h1 className="font-sans font-bold text-blue text-h1 leading-[1.05] tracking-[-0.01em] mx-0 mt-8 mb-12">
                     Leadership
                 </h1>
 
