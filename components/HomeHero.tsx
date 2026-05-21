@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
 import type { InViewHookResponse } from 'react-intersection-observer';
 
 import TableOfContents from '@/components/TableOfContents';
@@ -11,15 +10,26 @@ import type {
   HomevideoQueryResult,
 } from '@/sanity.types';
 
+// Shared by the overlay title and the in-flow title so the pin → flow
+// handoff is pixel-identical. Width context must match too (both centered in
+// the full viewport width, same max-width + padding).
+const TITLE_CLASS =
+  'max-w-[1100px] px-6 text-balance text-center font-serif font-extrabold text-h1';
+
 /**
- * Home hero scroll scene.
+ * Home hero scroll scene (mobile-robust).
  *
- * A muted/looping/controlless video stays pinned (sticky, z-0) behind the
- * title. The title (z-20) is JS-pinned at viewport centre over the
- * black-scrimmed video — white at first, flipping to blue once the white
- * Table-of-Contents panel (z-10) rises behind it. The title holds that
- * centred position until the TOF body content rises up to meet it, then
- * releases into normal flow just above the body and scrolls away.
+ * - The video stays pinned (sticky, z-0) behind everything.
+ * - The white Table-of-Contents panel (z-10) holds the *real* title in normal
+ *   flow, centred above the paragraph below the header — so layout is
+ *   device-independent and never collides with the fixed header.
+ * - A fixed overlay title (z-20) sits centred over the video. It is drawn
+ *   twice — a white copy plus a blue copy clipped to the white panel's top
+ *   edge — so the colour boundary follows the rising seam exactly (the title
+ *   can straddle the video/white edge across any number of lines).
+ * - When the in-flow title rises to meet the overlay, we swap visibility:
+ *   overlay hides, in-flow title shows and scrolls away normally. Seamless,
+ *   because both copies are identical at the swap frame.
  */
 export default function HomeHero({
   videoSection,
@@ -33,57 +43,39 @@ export default function HomeHero({
   tableOfContentsRef: InViewHookResponse;
 }) {
   const sceneRef = useRef<HTMLDivElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
   const whiteRef = useRef<HTMLDivElement>(null);
-  const [titleStyle, setTitleStyle] = useState<CSSProperties>({
-    position: 'fixed',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    left: 0,
-    right: 0,
-  });
-  const [onWhite, setOnWhite] = useState(false);
+  const overlayTitleRef = useRef<HTMLHeadingElement>(null);
+
+  const [overlayTop, setOverlayTop] = useState(0);
+  const [clipTop, setClipTop] = useState(99999);
+  const [showOverlay, setShowOverlay] = useState(true);
 
   useEffect(() => {
     let raf = 0;
     const measure = () => {
       raf = 0;
-      const scene = sceneRef.current;
-      const title = titleRef.current;
       const white = whiteRef.current;
-      if (!scene || !title || !white) return;
+      const overlayTitle = overlayTitleRef.current;
+      if (!white || !overlayTitle) return;
 
       const vh = window.innerHeight;
-      const titleH = title.offsetHeight;
-      const pinnedTop = Math.max((vh - titleH) / 2, 0);
-      const pinnedBottom = pinnedTop + titleH;
+      const titleH = overlayTitle.offsetHeight;
+      const top = Math.max((vh - titleH) / 2, 0);
+      setOverlayTop(top);
 
-      // Top of the actual TOF copy (body paragraph) inside the white panel.
-      const body = white.querySelector<HTMLElement>('[data-tof-body]');
-      const bodyTop = (body ?? white).getBoundingClientRect().top;
+      // Blue copy reveals where the white panel sits behind the title
+      // (everything below the panel's top edge).
+      const whiteTop = white.getBoundingClientRect().top;
+      setClipTop(Math.max(whiteTop - top, 0));
 
-      if (bodyTop > pinnedBottom) {
-        // PIN — hold the title at viewport centre over the video.
-        setTitleStyle({
-          position: 'fixed',
-          top: `${pinnedTop}px`,
-          left: 0,
-          right: 0,
-        });
-      } else {
-        // RELEASE — settle into the scene just above the body, then scroll.
-        const sceneTop = scene.getBoundingClientRect().top + window.scrollY;
-        const bodyDocTop = bodyTop + window.scrollY;
-        setTitleStyle({
-          position: 'absolute',
-          top: `${Math.max(bodyDocTop - sceneTop - titleH, 0)}px`,
-          left: 0,
-          right: 0,
-        });
+      // Handoff: once the in-flow title has risen to the pinned position,
+      // hide the overlay and show the real (flow) title.
+      const flow = white.querySelector<HTMLElement>('[data-tof-title]');
+      if (flow) {
+        const handoff = flow.getBoundingClientRect().top <= top;
+        setShowOverlay(!handoff);
+        flow.style.visibility = handoff ? 'visible' : 'hidden';
       }
-
-      // White panel risen behind the title's midline → flip to blue.
-      setOnWhite(white.getBoundingClientRect().top <= pinnedTop + titleH / 2);
     };
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(measure);
@@ -107,24 +99,36 @@ export default function HomeHero({
         <Video content={videoSection} videos={videos} />
       </div>
 
-      {/* z-20 — JS-pinned title (fixed → absolute on release) */}
+      {/* z-20 — fixed overlay title (white base + seam-clipped blue copy) */}
       {heading && (
-        <h1
-          ref={titleRef}
-          style={titleStyle}
-          className={`pointer-events-none z-20 mx-auto max-w-[1100px] px-6 text-balance text-center font-serif font-extrabold text-h1 transition-colors duration-300 ease-out ${
-            onWhite ? 'text-blue' : 'text-white'
-          }`}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-x-0 z-20 flex justify-center"
+          style={{
+            top: `${overlayTop}px`,
+            visibility: showOverlay ? 'visible' : 'hidden',
+          }}
         >
-          {heading}
-        </h1>
+          <div className="relative">
+            <h1 ref={overlayTitleRef} className={`${TITLE_CLASS} text-white`}>
+              {heading}
+            </h1>
+            <h1
+              className={`${TITLE_CLASS} absolute inset-0 text-blue`}
+              style={{ clipPath: `inset(${clipTop}px 0 0 0)` }}
+            >
+              {heading}
+            </h1>
+          </div>
+        </div>
       )}
 
-      {/* z-10 — white TOF content rising over the video */}
+      {/* z-10 — white panel holding the real title + paragraph */}
       <div ref={whiteRef} className="relative z-10 bg-white">
         <TableOfContents
           content={tofSection}
           tableOfContentsRef={tableOfContentsRef}
+          titleClassName={`${TITLE_CLASS} text-blue`}
         />
       </div>
     </div>
