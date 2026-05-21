@@ -1,15 +1,6 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-/* Override the prose-slate color theme. The plugin's `.prose-slate` modifier
- * sets bullets to slate-300 (reads as bluish-gray); !important is needed to
- * beat the modifier's specificity tier. */
-.prose {
-  --tw-prose-body: #000 !important;
-  --tw-prose-bullets: #000 !important;
-  --tw-prose-counters: #000 !important;
-}
-
 /* ─── Design tokens ─────────────────────────────────────────────────────
  *
  * Type & space scales are fluid (Utopia.fyi method): clamp() between a
@@ -172,7 +163,7 @@ section:not([aria-label])
 }
 
 .wrap {
-    max-width: var(--laptop);
+    /*max-width: var(--laptop) px-[7%] ;*/
     margin: 0 auto;
     width: 100%;
 }
@@ -213,9 +204,9 @@ section:not([aria-label])
 .box p {
     color: white;
     text-align: justify;
-    line-height: 1.9;
-    font-size: 1rem;
-    font-weight: 300;
+    /*line-height: 1.9;*/
+    /*font-size: 1rem;*/
+    /*font-weight: 300;*/
 }
 .box a {
     font-weight: 400;
@@ -276,10 +267,13 @@ section:not([aria-label])
     width: 100vw;
 }
 
+/* Hides the alt-theme logo by default. The home-page header overlay
+ * inverts this (see .home .header-overlay header rules below).
+ * `.hidden` is intentionally NOT redeclared here — Tailwind already
+ * generates `.hidden { display: none }` as a utility, and redeclaring
+ * it after Tailwind's utilities would beat the responsive variants
+ * (e.g. `max-tablet:flex` on the mobile burger) via source order. */
 .light-logo {
-    display: none;
-}
-.hidden {
     display: none;
 }
 
@@ -431,6 +425,7 @@ section:not([aria-label])
  */
 @layer base {
     html {
+        font-family: var(--font-sans);
         scroll-behavior: smooth;
         scroll-padding-top: var(--header-height);
     }
@@ -443,7 +438,6 @@ section:not([aria-label])
 
     body {
         font-family: var(--font-sans);
-        color: var(--color-ink);
         background: #fff;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
@@ -475,6 +469,11 @@ section:not([aria-label])
     }
     h6 {
         font-size: var(--text-sm);
+    }
+    ul,
+    ol,
+    li {
+        --tw-prose-bullets: black !important;
     }
 
     img {
