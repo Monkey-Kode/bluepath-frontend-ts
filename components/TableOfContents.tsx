@@ -11,7 +11,7 @@ export default function TableOfContents({
     content: import('@/sanity.types').HomesectionsQueryResult[number];
     tableOfContentsRef: InViewHookResponse;
 }) {
-    const { anchorId, sectionContent, sectionHeading } = content;
+    const { anchorId, sectionContent } = content;
 
     const paragraphs = (sectionContent ?? '')
         .split(/\n\n+/)
@@ -33,11 +33,7 @@ export default function TableOfContents({
                     </defs>
                 </svg>
 
-                {sectionHeading && (
-                    <h2 className="font-serif font-extrabold text-[#1d4483] text-center  m-0 mb-8 text-balance max-w-[1100px] text-h1 min-[1440px]:text-display">
-                        {sectionHeading}
-                    </h2>
-                )}
+                {/* Heading is rendered by HomeHero as the pinned title overlay. */}
 
                 {/*<hr className="w-full max-w-[750px] border-0 border-t border-accent m-0" />*/}
 
@@ -65,7 +61,10 @@ export default function TableOfContents({
                 {/*<hr className="w-full max-w-[750px] border-0 border-t border-accent m-0" />*/}
 
                 {paragraphs.length > 0 && (
-                    <div className="prose max-w-[680px] text-center py-8 font-sans text-black text-pretty min-[1440px]:text-h3 [&_p]:m-0 [&_p]:mb-4 [&_p]:text-black [&_p:last-child]:mb-0">
+                    <div
+                        data-tof-body
+                        className="prose max-w-[680px] text-center py-8 font-sans text-black text-pretty min-[1440px]:text-h3 [&_p]:m-0 [&_p]:mb-4 [&_p]:text-black [&_p:last-child]:mb-0"
+                    >
                         {paragraphs.map((p, i) => (
                             <p key={i}>{p}</p>
                         ))}

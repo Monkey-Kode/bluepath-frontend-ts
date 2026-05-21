@@ -5,6 +5,7 @@ import {
   useInView,
 } from 'react-intersection-observer';
 
+import HomeHero from '@/components/HomeHero';
 import PageContent from '@/components/PageContent';
 import StickyNationalProjects from '@/components/StickyNationalProjects';
 import sortObject from '@/utils/sortObject';
@@ -38,9 +39,30 @@ function HomeMain({
   const orderedSections = sortObject(sections);
   const orderedCaseStudies = sortObject(caseStudies);
 
+  // The Video + TOF sections are choreographed together as the hero scroll
+  // scene (HomeHero); render them there and skip them in the normal flow.
+  const videoSection = orderedSections.find(
+    (s) => s?.contentType?.name === 'Video',
+  );
+  const tofSection = orderedSections.find(
+    (s) => s?.contentType?.name === 'TOF',
+  );
+  const restSections = orderedSections.filter(
+    (s) =>
+      s?.contentType?.name !== 'Video' && s?.contentType?.name !== 'TOF',
+  );
+
   return (
     <main>
-      {orderedSections.map((content) =>
+      {videoSection && tofSection && (
+        <HomeHero
+          videoSection={videoSection}
+          tofSection={tofSection}
+          videos={videos}
+          tableOfContentsRef={tableOfContentsRef}
+        />
+      )}
+      {restSections.map((content) =>
         content ? (
           <PageContent
             key={content.id}
@@ -49,11 +71,6 @@ function HomeMain({
             videos={videos}
             slides={slides}
             team={team}
-            tableOfContentsRef={
-              content?.contentType?.name === 'TOF'
-                ? tableOfContentsRef
-                : undefined
-            }
           />
         ) : null,
       )}
