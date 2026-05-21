@@ -156,7 +156,7 @@ export default function NewsEventsArchive({
                   </p>
                 )}
                 {item.excerpt && (
-                  <p className="text-black m-0  text-base max-w-[60ch]">
+                  <p className="text-black m-0 text-p max-w-[60ch]">
                     {item.excerpt}
                   </p>
                 )}

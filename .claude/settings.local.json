@@ -125,7 +125,8 @@
       "Bash(tee /tmp/bluepath-dev.log)",
       "Bash(kill %1)",
       "Bash(pkill -f \"next dev\")",
-      "Bash(tee /tmp/dev.log)"
+      "Bash(tee /tmp/dev.log)",
+      "Read(//private/tmp/**)"
     ]
   },
   "enableAllProjectMcpServers": true,

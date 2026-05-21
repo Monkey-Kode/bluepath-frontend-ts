@@ -54,7 +54,7 @@ function CardBody({ member }: { member: Member }) {
         </p>
       )}
       {blurb && (
-        <p className="font-sans text-[#2b2b2b] text-base leading-[1.5] mt-[1.1rem] mb-0">
+        <p className="font-sans text-black text-p leading-[1.5] mt-[1.1rem] mb-0">
           {blurb}
         </p>
       )}
