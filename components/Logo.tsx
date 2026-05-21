@@ -22,15 +22,8 @@ function Logo({ image, className }: LogoProps) {
 
   const LogoComponent = className === 'light-logo' ? LightLogo : DarkLogo;
 
-  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
-    if (pathname === '/') {
-      e.preventDefault();
-      scrollTo('#tof');
-    }
-  };
-
   return (
-    <Link className={className} href="/#tof" onClick={handleClick}>
+    <Link className={className} href="/#tof">
       <LogoComponent className="no-pixel" />
     </Link>
   );
