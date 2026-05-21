@@ -15,3 +15,10 @@ export function mediaTransitionName(
 ): string | undefined {
   return slug ? `media-${kind}-${slug}` : undefined;
 }
+
+export function titleTransitionName(
+  kind: NewsEventKind,
+  slug: string | null | undefined,
+): string | undefined {
+  return slug ? `title-${kind}-${slug}` : undefined;
+}

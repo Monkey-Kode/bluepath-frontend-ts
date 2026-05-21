@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import SanityImage from '@/components/SanityImage';
 import ViewTransition from '@/components/ViewTransition';
-import { mediaTransitionName } from '@/lib/newsEvents';
+import { mediaTransitionName, titleTransitionName } from '@/lib/newsEvents';
 import type { AllEventsQueryResult, AllNewsQueryResult } from '@/sanity.types';
 
 const PAGE_SIZE = 10;
@@ -109,6 +109,7 @@ export default function NewsEventsArchive({
           const ctaLabel =
             item.kind === 'news' ? 'CONTINUE READING' : 'VIEW EVENT DETAILS';
           const mediaVt = mediaTransitionName(item.kind, item.slug);
+          const titleVt = titleTransitionName(item.kind, item.slug);
 
           return (
             <article
@@ -147,14 +148,16 @@ export default function NewsEventsArchive({
                     </span>
                   )}
                 </div>
-                <h2 className="font-sans font-bold text-blue text-h2 m-0 text-balance">
-                  <Link
-                    href={href}
-                    className="text-blue no-underline font-inherit p-0 inline transition-colors duration-300 ease-in-out hover:text-accent"
-                  >
-                    {item.title}
-                  </Link>
-                </h2>
+                <ViewTransition name={titleVt} share="morph">
+                  <h2 className="font-sans font-bold text-blue text-h2 m-0 text-balance">
+                    <Link
+                      href={href}
+                      className="text-blue no-underline font-inherit p-0 inline transition-colors duration-300 ease-in-out hover:text-accent"
+                    >
+                      {item.title}
+                    </Link>
+                  </h2>
+                </ViewTransition>
                 {item.subhead && (
                   <p className="italic font-normal text-[1.125rem]  text-blue m-0 text-balance">
                     {item.subhead}

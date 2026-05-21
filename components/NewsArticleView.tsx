@@ -3,7 +3,7 @@
 import NewsBody from '@/components/NewsBody';
 import SanityImage from '@/components/SanityImage';
 import ViewTransition from '@/components/ViewTransition';
-import { mediaTransitionName } from '@/lib/newsEvents';
+import { mediaTransitionName, titleTransitionName } from '@/lib/newsEvents';
 import type { NewsBySlugQueryResult } from '@/sanity.types';
 
 export default function NewsArticleView({
@@ -14,6 +14,7 @@ export default function NewsArticleView({
   slug: string;
 }) {
   const mediaVt = mediaTransitionName('news', slug);
+  const titleVt = titleTransitionName('news', slug);
   const publishedAt = article.publishedAt
     ? new Date(article.publishedAt).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -26,9 +27,11 @@ export default function NewsArticleView({
     <main className="header-offset bg-white text-black px-5 pb-20">
       <article className="mx-auto max-w-2xl">
         {article.title && (
-          <h1 className="font-sans font-bold text-blue text-h1 mx-0 mt-8 mb-6 text-balance">
-            {article.title}
-          </h1>
+          <ViewTransition name={titleVt} share="morph">
+            <h1 className="font-sans font-bold text-blue text-h1 mx-0 mt-8 mb-6 text-balance">
+              {article.title}
+            </h1>
+          </ViewTransition>
         )}
         {article.heroImage?.asset?._id && (
           <ViewTransition name={mediaVt} share="morph">

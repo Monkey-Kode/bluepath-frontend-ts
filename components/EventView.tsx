@@ -4,7 +4,7 @@ import FormBasic from '@/components/FormBasic';
 import NewsBody from '@/components/NewsBody';
 import SanityImage from '@/components/SanityImage';
 import ViewTransition from '@/components/ViewTransition';
-import { mediaTransitionName } from '@/lib/newsEvents';
+import { mediaTransitionName, titleTransitionName } from '@/lib/newsEvents';
 import type { EventBySlugQueryResult } from '@/sanity.types';
 
 export default function EventView({
@@ -16,6 +16,7 @@ export default function EventView({
 }) {
   const richText = content.content ?? null;
   const mediaVt = mediaTransitionName('event', slug);
+  const titleVt = titleTransitionName('event', slug);
   const eventDate = content.eventAt
     ? (() => {
         const [year, month, day] = content.eventAt.split('-').map(Number);
@@ -56,9 +57,11 @@ export default function EventView({
             )}
           </div>
           {content.name && (
-            <h1 className="font-serif font-bold text-blue text-h1 m-0 mb-6 text-balance">
-              {content.name}
-            </h1>
+            <ViewTransition name={titleVt} share="morph">
+              <h1 className="font-serif font-bold text-blue text-h1 m-0 mb-6 text-balance">
+                {content.name}
+              </h1>
+            </ViewTransition>
           )}
           {richText && (
             <div className="prose  max-w-none mb-8 prose-headings:font-serif prose-p:font-serif prose-li:font-serif prose-blockquote:font-serif prose-headings:text-black prose-blockquote:border-accent">
