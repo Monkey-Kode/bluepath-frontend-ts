@@ -58,13 +58,13 @@ export default function EventView({
           </div>
           {content.name && (
             <ViewTransition name={titleVt} share="morph">
-              <h1 className="font-serif font-bold text-blue text-h1 m-0 mb-6 text-balance">
+              <h1 className="font-sans font-bold text-blue text-h1 m-0 mb-6 text-balance">
                 {content.name}
               </h1>
             </ViewTransition>
           )}
           {richText && (
-            <div className="prose  max-w-none mb-8 prose-headings:font-serif prose-p:font-serif prose-li:font-serif prose-blockquote:font-serif prose-headings:text-black prose-blockquote:border-accent">
+            <div className="prose  max-w-none mb-8 prose-headings:font-sans prose-p:font-sans prose-li:font-sans prose-blockquote:font-sans prose-headings:text-black prose-blockquote:border-accent">
               <NewsBody value={richText} />
             </div>
           )}

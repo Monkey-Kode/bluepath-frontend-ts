@@ -14,7 +14,7 @@ import type {
 // handoff is pixel-identical. Width context must match too (both centered in
 // the full viewport width, same max-width + padding).
 const TITLE_CLASS =
-  'max-w-[1100px] px-6 text-balance text-center font-serif font-extrabold text-h1';
+  'max-w-[1100px] px-6 text-balance text-center font-sans font-bold text-h1';
 
 /**
  * Home hero scroll scene (mobile-robust).

@@ -6,7 +6,7 @@ export default function NotFoundContent() {
   return (
     <main className="header-offset bg-white text-blue pb-20 px-5 flex items-center justify-center min-h-[calc(100vh-var(--header-height,100px))]">
       <div className="max-w-[720px] mx-auto text-center">
-        <p className="font-serif font-bold text-blue text-[clamp(5rem,_14vw,_10rem)] leading-none m-0 mb-2">
+        <p className="font-sans font-bold text-blue text-[clamp(5rem,_14vw,_10rem)] leading-none m-0 mb-2">
           404
         </p>
         <hr
@@ -16,7 +16,7 @@ export default function NotFoundContent() {
         <h1 className="font-sans font-bold text-blue tracking-[0.04em] text-[clamp(1.25rem,_2vw,_1.75rem)]  m-0 mb-4">
           Page Not Found
         </h1>
-        <p className="font-serif text-black text-base m-0 mb-8">
+        <p className="font-sans text-black text-base m-0 mb-8">
           The page you’re looking for doesn’t exist or may have moved. Try
           heading back to the homepage, or visit our News &amp; Events to see
           what we’ve been up to.

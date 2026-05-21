@@ -37,7 +37,7 @@ export default function TableOfContents({
             style={{ visibility: 'hidden' }}
             className={
               titleClassName ??
-              'max-w-[1100px] px-6 text-balance text-center font-serif font-extrabold text-h1 text-blue'
+              'max-w-[1100px] px-6 text-balance text-center font-sans font-bold text-h1 text-blue'
             }
           >
             {sectionHeading}
@@ -62,16 +62,6 @@ export default function TableOfContents({
           </div>
         )}
 
-        <div className="flex justify-center pt-4 pb-8">
-          <svg
-            viewBox="0 0 20 24"
-            preserveAspectRatio="xMidYMid meet"
-            aria-hidden="true"
-            className="h-[27px] w-[23px] rotate-90 fill-white stroke-accent [stroke-width:1] [vector-effect:non-scaling-stroke]"
-          >
-            <polygon points="2,2 18,12 2,22" />
-          </svg>
-        </div>
       </div>
     </div>
   );

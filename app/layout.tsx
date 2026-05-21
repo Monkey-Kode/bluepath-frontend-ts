@@ -1,7 +1,7 @@
 import './globals.css';
 
 import type { Metadata } from 'next';
-import { Inter, Libre_Baskerville } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import { draftMode } from 'next/headers';
 import { VisualEditing } from 'next-sanity/visual-editing';
 import { Toaster } from 'sonner';
@@ -20,14 +20,6 @@ const inter = Inter({
   weight: ['300', '400', '500', '600', '700'],
   subsets: ['latin'],
   variable: '--font-inter',
-  display: 'swap',
-});
-
-const baskerville = Libre_Baskerville({
-  weight: ['400', '700'],
-  style: ['normal', 'italic'],
-  subsets: ['latin'],
-  variable: '--font-baskerville',
   display: 'swap',
 });
 
@@ -58,7 +50,7 @@ export default async function RootLayout({
   const { isEnabled: isDraftMode } = await draftMode();
 
   return (
-    <html lang="en" className={`${inter.variable} ${baskerville.variable}`}>
+    <html lang="en" className={inter.variable}>
       <body>
         <GoogleTagManagerNoscript />
         {children}
