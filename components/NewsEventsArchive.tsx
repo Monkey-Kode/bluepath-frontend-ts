@@ -40,7 +40,7 @@ const eventDateToISO = (eventAt: string | null | undefined) =>
   eventAt ? `${eventAt}T00:00:00` : null;
 
 const CTA_CLASS =
-  'inline-block bg-blue text-white  uppercase tracking-[0.12em] text-[0.8125rem] font-normal no-underline px-3 py-2 rounded-md transition-colors duration-200 hover:bg-accent hover:text-white';
+  'group inline-flex items-center gap-2 bg-blue text-white uppercase tracking-[0.12em] text-[0.8125rem] font-normal no-underline px-3 py-2 rounded-md transition-all duration-200 hover:bg-accent hover:text-white hover:-translate-y-0.5 hover:shadow-md';
 
 export default function NewsEventsArchive({
   news,
@@ -162,7 +162,13 @@ export default function NewsEventsArchive({
                 )}
                 <div className="mt-2">
                   <Link href={href} className={CTA_CLASS}>
-                    {ctaLabel}
+                    <span>{ctaLabel}</span>
+                    <span
+                      aria-hidden
+                      className="inline-block transition-transform duration-200 ease-out group-hover:translate-x-1"
+                    >
+                      &rarr;
+                    </span>
                   </Link>
                 </div>
               </div>
@@ -174,7 +180,7 @@ export default function NewsEventsArchive({
             <button
               type="button"
               onClick={() => setVisible((v) => v + PAGE_SIZE)}
-              className="bg-blue border-0 rounded-md text-white px-3 py-2  uppercase tracking-[0.12em] text-[0.8125rem] font-normal cursor-pointer transition-colors duration-200 hover:bg-accent"
+              className="bg-blue border-0 rounded-md text-white px-3 py-2  uppercase tracking-[0.12em] text-[0.8125rem] font-normal cursor-pointer transition-all duration-200 hover:bg-accent hover:-translate-y-0.5 hover:shadow-md"
             >
               LOAD MORE
             </button>
