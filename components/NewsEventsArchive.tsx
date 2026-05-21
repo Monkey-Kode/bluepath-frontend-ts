@@ -99,7 +99,7 @@ export default function NewsEventsArchive({
     return (
         <main className="header-offset bg-white text-blue pb-20">
             <div className="mx-auto max-w-7xl px-5">
-                <h1 className="font-sans font-bold text-blue tracking-[0.02em] text-h2  my-8 mb-10 text-balance max-tablet:mb-0">
+                <h1 className="font-sans font-bold text-blue tracking-[0.02em] text-h1  my-8 mb-10 text-balance max-tablet:mb-0">
                     News &amp; Events
                 </h1>
                 {shown.map((item) => {

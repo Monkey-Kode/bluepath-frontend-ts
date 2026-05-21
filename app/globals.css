@@ -51,48 +51,93 @@
     --color-surface: #f6f7f9;
     --color-black: #000;
 
-    /* Utopia fluid type scale (overrides Tailwind text-* defaults) */
-    --text-xs: clamp(0.6944rem, 0.6852rem + 0.0455vw, 0.72rem);
+    /* ── Type scale: Axios sizes converted into our fluid (Utopia) method ──
+     * Each step's DESKTOP ceiling (@1240px) equals the matching Axios token
+     * value; the mobile floor (@320px) is 16px + half the overshoot, so type
+     * still scales fluidly instead of snapping to fixed rem. Line-height is
+     * Axios's uniform 1.5 on the t-shirt scale; tighter on headings below. */
+    --text-xs: 0.75rem;
     --text-xs--line-height: 1.5;
-    --text-sm: clamp(0.8333rem, 0.8094rem + 0.116vw, 0.9rem);
-    --text-sm--line-height: 1.55;
-    --text-base: clamp(1rem, 0.9565rem + 0.2174vw, 1.125rem);
-    --text-base--line-height: 1.7;
-    --text-lg: clamp(1.2rem, 1.128rem + 0.3587vw, 1.4063rem);
+    --text-sm: 0.875rem;
+    --text-sm--line-height: 1.5;
+    --text-base: 1rem;
+    --text-base--line-height: 1.5;
+    --text-lg: clamp(1.0625rem, 1.0408rem + 0.1087vw, 1.125rem);
     --text-lg--line-height: 1.5;
-    --text-xl: clamp(1.44rem, 1.3286rem + 0.5527vw, 1.7578rem);
-    --text-xl--line-height: 1.3;
-    --text-2xl: clamp(1.728rem, 1.5645rem + 0.8154vw, 2.1973rem);
-    --text-2xl--line-height: 1.25;
-    --text-3xl: clamp(2.0736rem, 1.8403rem + 1.1665vw, 2.7466rem);
-    --text-3xl--line-height: 1.2;
-    --text-4xl: clamp(2.4883rem, 2.1588rem + 1.6477vw, 3.4332rem);
-    --text-4xl--line-height: 1.15;
-    --text-5xl: clamp(2.986rem, 2.5269rem + 2.2954vw, 4.2915rem);
-    --text-5xl--line-height: 1.1;
+    --text-xl: clamp(1.125rem, 1.0815rem + 0.2174vw, 1.25rem);
+    --text-xl--line-height: 1.5;
+    --text-2xl: clamp(1.1875rem, 1.1223rem + 0.3261vw, 1.375rem);
+    --text-2xl--line-height: 1.5;
+    --text-3xl: clamp(1.3125rem, 1.2038rem + 0.5435vw, 1.625rem);
+    --text-3xl--line-height: 1.5;
+    --text-4xl: clamp(1.5rem, 1.3261rem + 0.8696vw, 2rem);
+    --text-4xl--line-height: 1.5;
+    --text-5xl: clamp(1.75rem, 1.4891rem + 1.3043vw, 2.5rem);
+    --text-5xl--line-height: 1.5;
+    --text-6xl: clamp(2rem, 1.6522rem + 1.7391vw, 3rem);
+    --text-6xl--line-height: 1.5;
+    --text-7xl: clamp(2.25rem, 1.8152rem + 2.1739vw, 3.5rem);
+    --text-7xl--line-height: 1.5;
+    --text-8xl: clamp(2.5rem, 1.9783rem + 2.6087vw, 4rem);
+    --text-8xl--line-height: 1.5;
+    --text-9xl: clamp(2.75rem, 2.1413rem + 3.0435vw, 4.5rem);
+    --text-9xl--line-height: 1.5;
+    --text-10xl: clamp(3rem, 2.3043rem + 3.4783vw, 5rem);
+    --text-10xl--line-height: 1.5;
+    --text-11xl: clamp(3.25rem, 2.4674rem + 3.913vw, 5.5rem);
+    --text-11xl--line-height: 1.5;
+    --text-12xl: clamp(3.5rem, 2.6304rem + 4.3478vw, 6rem);
+    --text-12xl--line-height: 1.5;
+    --text-13xl: clamp(3.625rem, 2.712rem + 4.5652vw, 6.25rem);
+    --text-13xl--line-height: 1.5;
 
-    /* Semantic heading-scale tokens (generate text-display, text-h1, …,
-     * text-eyebrow, text-fine, text-micro utilities). Coexist with the
-     * Utopia t-shirt scale above. */
-    --text-display: clamp(2rem, 1.17rem + 3.54vw, 3rem);
-    --text-h1: clamp(1.75rem, 1.34rem + 1.77vw, 2.75rem);
-    --text-h2: clamp(1.5rem, 1.29rem + 0.88vw, 2rem);
-    --text-h3: clamp(1.125rem, 0.97rem + 0.66vw, 1.25rem);
-    --text-h4: clamp(1rem, 0.95rem + 0.22vw, 1.125rem);
-    --text-eyebrow: clamp(1rem, 0.9rem + 0.44vw, 1rem);
-    --text-fine: clamp(0.75rem, 0.7rem + 0.22vw, 0.875rem);
-    --text-micro: clamp(0.625rem, 0.57rem + 0.22vw, 0.75rem);
+    /* Axios special-purpose text tokens (fluid). text-p is the article/body
+     * reading size (18px); text-list/button/tag/caption mirror Axios. */
+    --text-tag: 0.75rem;
+    --text-tag--line-height: 1.5;
+    --text-caption: 0.75rem;
+    --text-caption--line-height: 1.5;
+    --text-p: 1.125rem; /* 18px body — flat, unchanged mobile → desktop */
+    --text-p--line-height: 1.6;
+    --text-button: clamp(1.0625rem, 1.0408rem + 0.1087vw, 1.125rem);
+    --text-button--line-height: 1.5;
+    --text-list: clamp(1.1875rem, 1.1223rem + 0.3261vw, 1.375rem);
+    --text-list--line-height: 1.5;
 
-    /* Utopia fluid space scale (alphabetical t-shirt sizes, fluid) */
-    --spacing-3xs: clamp(0.25rem, 0.2391rem + 0.0543vw, 0.2813rem);
-    --spacing-2xs: clamp(0.5rem, 0.4783rem + 0.1087vw, 0.5625rem);
-    --spacing-xs: clamp(0.75rem, 0.7174rem + 0.163vw, 0.8438rem);
-    --spacing-s: clamp(1rem, 0.9565rem + 0.2174vw, 1.125rem);
-    --spacing-m: clamp(1.5rem, 1.4348rem + 0.3261vw, 1.6875rem);
-    --spacing-l: clamp(2rem, 1.913rem + 0.4348vw, 2.25rem);
-    --spacing-xl: clamp(3rem, 2.8696rem + 0.6522vw, 3.375rem);
-    --spacing-2xl: clamp(4rem, 3.8261rem + 0.8696vw, 4.5rem);
-    --spacing-3xl: clamp(6rem, 5.7391rem + 1.3043vw, 6.75rem);
+    /* Semantic heading tokens. h1 follows Axios's headline pattern
+     * (h5 32px → h3 48px) as a fluid clamp; display sits one step above and
+     * h2/h3/h4 one-or-more steps below (inferred — Axios uses size utilities,
+     * not semantic heading levels). h4 and body are flat (no fluid). */
+    --text-display: clamp(2.5rem, 2.1522rem + 1.7391vw, 3.5rem);
+    --text-display--line-height: 1.1;
+    --text-h1: clamp(2rem, 1.6522rem + 1.7391vw, 3rem);
+    --text-h1--line-height: 1.15;
+    --text-h2: clamp(1.625rem, 1.3207rem + 1.5217vw, 2.5rem);
+    --text-h2--line-height: 1.2;
+    --text-h3: clamp(1.125rem, 0.9511rem + 0.8696vw, 1.625rem);
+    --text-h3--line-height: 1.25;
+    --text-h4: 1.125rem;
+    --text-h4--line-height: 1.35;
+    --text-eyebrow: 1rem;
+    --text-eyebrow--line-height: 1.4;
+    --text-fine: 0.875rem;
+    --text-fine--line-height: 1.5;
+    --text-micro: 0.75rem;
+    --text-micro--line-height: 1.5;
+
+    /* Line-height scale (from the Axios reference the client asked us to
+     * match for spacing/breathing). Generates leading-tight…leading-relaxed.
+     * Body/long-form reading uses leading-relaxed (1.5); headings stay tight. */
+    --leading-tight: 1.2;
+    --leading-snug: 1.3;
+    --leading-normal: 1.4;
+    --leading-relaxed: 1.5;
+
+    /* Letter-spacing scale (Axios). Generates tracking-tight…tracking-wider. */
+    --tracking-tight: -0.025em;
+    --tracking-normal: 0em;
+    --tracking-wide: 0.025em;
+    --tracking-wider: 0.05em;
 
     /* Layout container width (existing --laptop = 1920px) */
     --container-laptop: 120rem;
@@ -449,7 +494,10 @@ section:not([aria-label])
 
     html,
     body {
-        overflow-x: hidden;
+        /* `clip` (not `hidden`) prevents horizontal scroll WITHOUT creating a
+         * scroll container — `hidden` forces overflow-y to auto and breaks
+         * every `position: sticky` descendant (e.g. the HomeHero scene). */
+        overflow-x: clip;
         width: 100%;
     }
 

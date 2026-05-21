@@ -23,8 +23,18 @@ const imageUrlFor = (image: SanityImageRef): string | null =>
 
 export const newsBodyComponents: PortableTextComponents = {
     block: {
+        h1: ({ children }) => <h1>{children}</h1>,
         h2: ({ children }) => <h2>{children}</h2>,
         h3: ({ children }) => <h3>{children}</h3>,
+        h4: ({ children }) => <h4>{children}</h4>,
+        h5: ({ children }) => (
+            <h5 className="mt-8 mb-2 font-sans text-lg font-semibold">{children}</h5>
+        ),
+        h6: ({ children }) => (
+            <h6 className="mt-6 mb-2 font-sans text-base font-semibold uppercase tracking-wide">
+                {children}
+            </h6>
+        ),
         blockquote: ({ children }) => <blockquote>{children}</blockquote>,
         normal: ({ children }) => <p>{children}</p>,
     },
@@ -39,6 +49,18 @@ export const newsBodyComponents: PortableTextComponents = {
     marks: {
         strong: ({ children }) => <strong>{children}</strong>,
         em: ({ children }) => <em>{children}</em>,
+        code: ({ children }) => <code>{children}</code>,
+        underline: ({ children }) => <span className="underline">{children}</span>,
+        'strike-through': ({ children }) => <s>{children}</s>,
+        textAlignLeft: ({ children }) => (
+            <span className="block text-left">{children}</span>
+        ),
+        textAlignCenter: ({ children }) => (
+            <span className="block text-center">{children}</span>
+        ),
+        textAlignRight: ({ children }) => (
+            <span className="block text-right">{children}</span>
+        ),
         link: ({ value, children }) => {
             const href = value?.href ?? '#';
             const target = value?.blank ? '_blank' : undefined;
@@ -58,12 +80,6 @@ export const newsBodyComponents: PortableTextComponents = {
         },
     },
     types: {
-        pullQuote: ({ value }) => (
-            <figure className="not-prose my-8 border-l-4 border-accent py-6 pl-8 pr-6 font-serif text-2xl italic text-blue [&_blockquote]:m-0 [&_blockquote]:border-0 [&_blockquote]:p-0 [&_blockquote]:text-inherit [&_blockquote]:italic [&_figcaption]:mt-3 [&_figcaption]:font-sans [&_figcaption]:text-sm [&_figcaption]:not-italic [&_figcaption]:uppercase [&_figcaption]:tracking-[0.08em] [&_figcaption]:text-[var(--color-gray-2)]">
-                <blockquote>{value?.quote}</blockquote>
-                {value?.attribution && <figcaption>— {value.attribution}</figcaption>}
-            </figure>
-        ),
         imageWithCaption: ({ value }) => {
             const url = imageUrlFor(value?.image);
             if (!url) return null;
@@ -89,8 +105,13 @@ export const newsBodyComponents: PortableTextComponents = {
                 </div>
             );
         },
-        divider: () => (
-            <hr className="not-prose my-10 border-0 border-t border-[var(--color-gray-3,#d0d0d0)]" />
+        divider: () => <div aria-hidden className="not-prose h-8" />,
+        spacer: ({ value }) => (
+            <div
+                aria-hidden
+                className="not-prose"
+                style={{ height: value?.height ?? 100 }}
+            />
         ),
     },
 };
