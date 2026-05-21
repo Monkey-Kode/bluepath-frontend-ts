@@ -23,7 +23,7 @@ function Footer({
       <div className="footer-logo tablet:row-[1/2] tablet:col-[1/2] tablet:mr-[20%] tablet:text-right max-tablet:hidden">
         <DarkLogo style={{ maxWidth: '300px', margin: '0 auto' }} />
       </div>
-      <div className="wrap tablet:row-[1/2] tablet:col-[2/3]">
+      <div className="mx-auto w-full tablet:row-[1/2] tablet:col-[2/3]">
         {addressesOrdered.map(({ _id, details }) => (
           <div key={_id} className="address border-l-4 border-accent pl-2.5">
             <address className="not-italic leading-[1.3] text-blue">

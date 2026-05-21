@@ -229,12 +229,6 @@ section:not([aria-label])
     }
 }
 
-.wrap {
-    /*max-width: var(--laptop) px-[7%] ;*/
-    margin: 0 auto;
-    width: 100%;
-}
-
 /* Box alignment (Sanity `boxLocation`) is applied via Tailwind utilities in
  * the component layer — see utils/boxAlignClass.ts. The former global
  * `.left/.right/.center` rules were removed: the raw boxLocation value is
@@ -293,21 +287,6 @@ section:not([aria-label])
         display: block !important;
     }
 }
-.hide-for-mobile {
-    display: block !important;
-}
-@media (max-width: 799px) {
-    .hide-for-mobile {
-        display: none !important;
-    }
-}
-
-.alignfull {
-    margin: 0 calc(50% - 50vw);
-    max-width: 100vw;
-    width: 100vw;
-}
-
 /* Hides the alt-theme logo by default. The home-page header overlay
  * inverts this (see .home .header-overlay header rules below).
  * `.hidden` is intentionally NOT redeclared here — Tailwind already

@@ -48,7 +48,7 @@ function Contact({
       <div className={boxAlign}>
         {background?.asset?._id && (
           <SanityImage
-            className="hide-for-desktop alignfull image-atop"
+            className="hide-for-desktop mx-[calc(50%-50vw)] my-0 w-screen max-w-[100vw] image-atop"
             image={background}
             alt="Background Image"
             width={2000}

@@ -61,7 +61,7 @@ export default function CarouselSlide({
         >
           <div className="box relative mr-16 overflow-visible [&_*]:text-blue min-[700px]:w-[var(--box-width)] max-[480px]:m-0 max-[480px]:mx-auto">
             <h2>{heading}</h2>
-            <div className="wrap">
+            <div className="mx-auto w-full">
               <p>{splitByNewLines(String(content))}</p>
               <div className="links flex justify-between">
                 {firstLinkId === null ? (

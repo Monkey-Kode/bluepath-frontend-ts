@@ -45,7 +45,7 @@ function Impact({
     <div className="w-full text-center [&_h1]:text-white [&_h1]:w-full [&_h1]:mx-auto [&_h1]:mb-8 max-tablet:[&_h1]:text-[6vw] max-tablet:[&_h1]:max-w-[70vw]">
       {background?.asset?._id && (
         <SanityImage
-          className="hide-for-desktop alignfull image-atop"
+          className="hide-for-desktop mx-[calc(50%-50vw)] my-0 w-screen max-w-[100vw] image-atop"
           image={background}
           alt="Background Impact Image"
         />
