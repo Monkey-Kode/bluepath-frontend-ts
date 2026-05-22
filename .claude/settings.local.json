@@ -24,7 +24,18 @@
       "Bash(gh pr *)",
       "Bash(agent-browser --session bphdr open \"http://localhost:3000/\")",
       "Bash(agent-browser --session bphdr eval '\\(\\(\\)=>{const o=document.querySelector\\(\".fixed.z-20\"\\);const h=o?.querySelector\\(\"h1\"\\);return JSON.stringify\\({overlayTop:o?Math.round\\(o.getBoundingClientRect\\(\\).top\\):null, titleMid:h?Math.round\\(h.getBoundingClientRect\\(\\).top+h.getBoundingClientRect\\(\\).height/2\\):null, vh:window.innerHeight}\\)}\\)\\(\\)')",
-      "Bash(pnpm add *)"
+      "Bash(pnpm add *)",
+      "Skill(agent-browser)",
+      "Bash(agent-browser --session bp set viewport 390 844 2)",
+      "Bash(agent-browser --session bp open http://localhost:3000)",
+      "Bash(agent-browser --session bp wait --load networkidle)",
+      "Bash(agent-browser --session bp eval 'document.querySelector\\(\"footer\"\\)?.scrollIntoView\\(\\); \"ok\"')",
+      "Bash(agent-browser --session bp screenshot footer-mobile.png)",
+      "Bash(agent-browser --session bp screenshot /Users/jullweber/Sites/bluepath/bluepath-frontend-ts/.claude/assets/footer-mobile.png)",
+      "Bash(git check-ignore *)",
+      "Bash(git rm *)",
+      "Bash(pnpm run *)",
+      "Bash(git reset *)"
     ]
   },
   "enableAllProjectMcpServers": true,
