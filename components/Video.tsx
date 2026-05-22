@@ -70,7 +70,7 @@ function Video({
           )}
         </video>
         {/* Black scrim over the muted autoplay video */}
-        <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
+        <div className="absolute inset-0 bg-black/30" aria-hidden="true" />
       </div>
     );
   }
