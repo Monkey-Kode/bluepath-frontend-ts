@@ -10,9 +10,9 @@ import scrollTo from '@/lib/scrollTo';
 import intersectionObserverOptions from '@/utils/intersectionObserverOptions';
 import splitByNewLines from '@/utils/splitByNewLines';
 import useIsMobile from '@/utils/useIsMobile';
-import type { PageBySlugQueryResult } from '@/sanity.types';
+import type { HomesectionsQueryResult } from '@/sanity.types';
 
-type Page = NonNullable<PageBySlugQueryResult>;
+type Section = HomesectionsQueryResult[number];
 
 const containerVariants = (headerHeight: number, contentHeight: number) => ({
   hidden: { height: headerHeight },
@@ -38,13 +38,13 @@ function ContentBox({
   sectionHeadingPosition,
   hidetitle,
 }: {
-  sectionHeading: Page['Heading'];
-  sectionContent: Page['content'];
-  sectionContentCTAjumpId: Page['sectionContentCTAjumpId'];
-  sectionContentCTApageLink: Page['sectionContentCTApageLink'];
-  sectionContentCTAtext: Page['sectionContentCTAtext'];
-  sectionHeadingPosition: Page['sectionHeadingPosition'];
-  hidetitle: Page['hidetitle'];
+  sectionHeading: Section['sectionHeading'];
+  sectionContent: Section['sectionContent'];
+  sectionContentCTAjumpId: Section['sectionContentCTAjumpId'];
+  sectionContentCTApageLink: Section['sectionContentCTApageLink'];
+  sectionContentCTAtext: Section['sectionContentCTAtext'];
+  sectionHeadingPosition: Section['sectionHeadingPosition'];
+  hidetitle: Section['hidetitle'];
 }) {
   const { ref, inView } = useInView(intersectionObserverOptions);
   const isMobile = useIsMobile();

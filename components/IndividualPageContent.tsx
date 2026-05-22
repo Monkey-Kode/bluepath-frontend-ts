@@ -1,6 +1,5 @@
 import { PortableText, type PortableTextComponents } from '@portabletext/react';
 
-import splitByNewLines from '@/utils/splitByNewLines';
 import type { PageBySlugQueryResult } from '@/sanity.types';
 
 type Page = NonNullable<PageBySlugQueryResult>;
@@ -24,10 +23,9 @@ const ptComponents: PortableTextComponents = {
  * Default content page (privacy, terms, etc.). Renders the page's Rich Content
  * as a clean reading-width article. The homepage section box (ContentBox) is
  * intentionally NOT used here — that component is reserved for homesections.
- * Plain `content` is kept only as a transitional fallback.
  */
 const IndividualPageContent = ({ page }: { page: Page }) => {
-  const { Heading, name, content, richcontent } = page;
+  const { Heading, name, richcontent } = page;
   const hasRich = Array.isArray(richcontent) && richcontent.length > 0;
   const title = Heading || name;
 
@@ -42,10 +40,6 @@ const IndividualPageContent = ({ page }: { page: Page }) => {
         <div className="prose prose-default max-w-none">
           {hasRich ? (
             <PortableText value={richcontent} components={ptComponents} />
-          ) : content ? (
-            String(content)
-              .split(/\n\n+/)
-              .map((para, i) => <p key={i}>{splitByNewLines(para)}</p>)
           ) : null}
         </div>
       </article>

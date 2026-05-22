@@ -3084,13 +3084,6 @@
         },
         "optional": true
       },
-      "hidetitle": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "boolean"
-        },
-        "optional": true
-      },
       "contentType": {
         "type": "objectAttribute",
         "value": {
@@ -3103,13 +3096,6 @@
         "type": "objectAttribute",
         "value": {
           "type": "string"
-        },
-        "optional": true
-      },
-      "sectionHeadingPosition": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "boolean"
         },
         "optional": true
       },
@@ -3131,13 +3117,6 @@
               "value": "right"
             }
           ]
-        },
-        "optional": true
-      },
-      "content": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "string"
         },
         "optional": true
       },
@@ -3317,35 +3296,6 @@
               }
             }
           }
-        },
-        "optional": true
-      },
-      "sectionContentCTAtext": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "string"
-        },
-        "optional": true
-      },
-      "sectionContentCTAjumpId": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "string"
-        },
-        "optional": true
-      },
-      "sectionContentCTApageLink": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "inline",
-          "name": "page.reference"
-        },
-        "optional": true
-      },
-      "sectionContentCTAurl": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "string"
         },
         "optional": true
       },
