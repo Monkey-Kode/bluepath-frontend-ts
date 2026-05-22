@@ -23,9 +23,12 @@ function Footer({
       <div className="footer-logo tablet:row-[1/2] tablet:col-[1/2] tablet:mr-[20%] tablet:text-right max-tablet:hidden">
         <DarkLogo style={{ maxWidth: '300px', margin: '0 auto' }} />
       </div>
-      <div className="mx-auto w-full tablet:row-[1/2] tablet:col-[2/3]">
-        {addressesOrdered.map(({ _id, details }) => (
+      <div className="mx-auto flex w-full flex-col gap-5 tablet:row-[1/2] tablet:col-[2/3]">
+        {addressesOrdered.map(({ _id, address, details }) => (
           <div key={_id} className="address border-l-4 border-accent pl-2.5">
+            <h3 className="m-0 mb-1 font-sans font-bold leading-tight text-blue">
+              {address}
+            </h3>
             <address className="not-italic leading-[1.3] text-blue">
               {splitByNewLines(String(details))}
             </address>
