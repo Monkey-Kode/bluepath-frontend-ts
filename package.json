@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit",
     "format": "biome format --write .",
     "format:check": "biome format .",
-    "sanity:typegen": "pnpm --dir ../bluepath-sanity exec sanity schema extract --enforce-required-fields --path ../bluepath-gatsby-ts/sanity.schema.json && sanity typegen generate"
+    "sanity:typegen": "pnpm --dir ../bluepath-sanity exec sanity schema extract --enforce-required-fields --path ../bluepath-frontend-ts/sanity.schema.json && sanity typegen generate"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.10",
