@@ -46,7 +46,6 @@ export default function HomeHero({
   const whiteRef = useRef<HTMLDivElement>(null);
   const overlayTitleRef = useRef<HTMLHeadingElement>(null);
 
-  const [overlayTop, setOverlayTop] = useState(0);
   const [clipTop, setClipTop] = useState(99999);
   const [showOverlay, setShowOverlay] = useState(true);
 
@@ -60,8 +59,9 @@ export default function HomeHero({
 
       const vh = window.innerHeight;
       const titleH = overlayTitle.offsetHeight;
+      // Matches the CSS-centered position (top:50% + translateY(-50%)) so the
+      // clip/handoff math lines up with where the overlay actually renders.
       const top = Math.max((vh - titleH) / 2, 0);
-      setOverlayTop(top);
 
       // Blue copy reveals where the white panel sits behind the title
       // (everything below the panel's top edge).
@@ -105,7 +105,8 @@ export default function HomeHero({
           aria-hidden="true"
           className="pointer-events-none fixed inset-x-0 z-20 flex justify-center"
           style={{
-            top: `${overlayTop}px`,
+            top: '50%',
+            transform: 'translateY(-50%)',
             visibility: showOverlay ? 'visible' : 'hidden',
           }}
         >
