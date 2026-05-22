@@ -37,7 +37,7 @@
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.0"
   },
-  "packageManager": "pnpm@11.1.2",
+  "packageManager": "pnpm@11.2.2",
   "volta": {
     "node": "24.15.0"
   },
