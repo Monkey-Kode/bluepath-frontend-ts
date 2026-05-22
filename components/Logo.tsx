@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 
 import DarkLogo from '@/assets/dark-logo336.svg';
 import LightLogo from '@/assets/light-logo.svg';
@@ -12,8 +11,6 @@ interface LogoProps {
 }
 
 function Logo({ image, className }: LogoProps) {
-  const pathname = usePathname();
-
   if (!image) {
     return null;
   }
@@ -21,7 +18,9 @@ function Logo({ image, className }: LogoProps) {
   const LogoComponent = className === 'light-logo' ? LightLogo : DarkLogo;
 
   return (
-    <Link className={className} href="/#tof">
+    // Object href (pathname + hash) builds the URL from parts rather than
+    // string-appending, which avoids Next's intermittent same-page `#tof#tof`.
+    <Link className={className} href={{ pathname: '/', hash: 'tof' }}>
       <LogoComponent className="no-pixel" />
     </Link>
   );
