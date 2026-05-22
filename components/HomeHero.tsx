@@ -59,8 +59,8 @@ export default function HomeHero({
 
       const vh = window.innerHeight;
       const titleH = overlayTitle.offsetHeight;
-      // Matches the CSS-centered position (top:50% + translateY(-50%)) so the
-      // clip/handoff math lines up with where the overlay actually renders.
+      // Matches where flex centering renders the overlay (vertically centred
+      // in the viewport) so the clip/handoff math lines up with it.
       const top = Math.max((vh - titleH) / 2, 0);
 
       // Blue copy reveals where the white panel sits behind the title
@@ -103,12 +103,8 @@ export default function HomeHero({
       {heading && (
         <div
           aria-hidden="true"
-          className="pointer-events-none fixed inset-x-0 z-20 flex justify-center"
-          style={{
-            top: '50%',
-            transform: 'translateY(-50%)',
-            visibility: showOverlay ? 'visible' : 'hidden',
-          }}
+          className="pointer-events-none fixed inset-0 z-20 flex items-center justify-center"
+          style={{ visibility: showOverlay ? 'visible' : 'hidden' }}
         >
           <div className="relative">
             <h1 ref={overlayTitleRef} className={`${TITLE_CLASS} text-white`}>
