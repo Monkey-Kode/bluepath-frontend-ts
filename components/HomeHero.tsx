@@ -103,7 +103,7 @@ export default function HomeHero({
       {heading && (
         <div
           aria-hidden="true"
-          className="pointer-events-none fixed inset-0 z-20 flex items-center justify-center"
+          className="pointer-events-none fixed inset-0 z-20 grid place-content-center"
           style={{ visibility: showOverlay ? 'visible' : 'hidden' }}
         >
           <div className="relative">
