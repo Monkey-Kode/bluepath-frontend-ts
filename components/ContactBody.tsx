@@ -1,11 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import classNames from 'classnames';
+import type { ReactNode } from 'react';
 
-import { loader } from '@/lib/mapsLoader';
 import sortObject from '@/utils/sortObject';
-import splitByNewLines from '@/utils/splitByNewLines';
 import type {
   AddressesQueryResult,
   PageBySlugQueryResult,
@@ -13,10 +10,27 @@ import type {
 
 type Page = NonNullable<PageBySlugQueryResult>;
 
-const emailLink = '/bluepath-email-link.png';
+const EMAIL_RE = /([^\s@]+@[^\s@]+\.[^\s@]+)/;
+const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+
+// Render plain text, turning any email address into a mailto link.
+function linkifyEmails(text: string): ReactNode[] {
+  return text.split(EMAIL_RE).map((part, i) =>
+    isEmail(part) ? (
+      <a
+        key={i}
+        href={`mailto:${part}`}
+        className="text-blue underline underline-offset-2 transition-colors hover:text-accent"
+      >
+        {part}
+      </a>
+    ) : (
+      part
+    ),
+  );
+}
 
 export const ContactBody = ({
-  id,
   Heading,
   name,
   richcontent,
@@ -28,74 +42,45 @@ export const ContactBody = ({
   richcontent: Page['richcontent'];
   addresses: AddressesQueryResult;
 }) => {
-  const orderedAddresses = sortObject(addresses);
-  const [showInfo, setShowInfo] = useState(false);
-
-  useEffect(() => {
-    loader.load().then(() => {
-      const googleMaps = window.google.maps;
-      const map: Record<number, google.maps.Map> = [];
-
-      orderedAddresses.forEach(({ _id, location: center }) => {
-        if (googleMaps && document.getElementById(String(_id)) !== null) {
-          map[Number(_id)] = new window.google.maps.Map(
-            document.getElementById(String(_id)) as HTMLElement,
-            {
-              center: center as unknown as google.maps.LatLngLiteral,
-              zoom: 12,
-            },
-          );
-        }
-      });
-    });
-  }, [orderedAddresses]);
+  const offices = sortObject(addresses);
 
   return (
-    <div className="relative !grid grid-cols-[90vw] grid-rows-[150px_repeat(2,700px)] gap-[30px] justify-center !items-start w-auto max-w-full mx-auto [&_a]:text-white [&_a]:font-bold [&_a]:underline min-[1200px]:grid-cols-[auto_repeat(2,430px)] min-[1200px]:grid-rows-[auto] min-[1200px]:max-w-[80vw] min-[1200px]:!items-center min-[1129px]:max-[1200px]:pt-[20%] min-[800px]:max-[1128px]:pt-[30%] max-[600px]:pt-0">
-      <div className="text-white" style={{ minWidth: '255px' }}>
-        <h1 className="text-white">{Heading || name}</h1>
-        {richcontent?.map((content) =>
-          content?.children?.map((c) => <p key={id}>{c?.text}</p>),
-        )}
+    <main className="header-offset bg-white text-blue px-5 pb-40 min-h-[80vh]">
+      <div className="mx-auto max-w-7xl">
+        <h1 className="font-sans font-bold text-blue text-h1 mt-8 mb-8 tracking-[-0.01em]">
+          {name || Heading}
+        </h1>
 
-        <button
-          className="cursor-pointer p-0 bg-none -translate-x-3"
-          onClick={(e) => {
-            e.preventDefault();
-            window.open('mailto:info@bluepathfinance.com');
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={emailLink} alt="Bluepath contact email" />
-        </button>
-      </div>
-      {orderedAddresses.map(({ _id, details, address }) => (
-        <div
-          key={_id}
-          onClick={() => setShowInfo(Boolean(_id))}
-          onMouseEnter={() => setShowInfo(Boolean(_id))}
-          onMouseLeave={() => setShowInfo(false)}
-          className="max-w-[430px] m-0 max-[600px]:max-w-[calc(100vw-20px)] max-[600px]:max-h-[calc(calc(calc(100%-20px)*330px)/430px)]"
-        >
-          <h3 className="bg-blue text-white text-lg py-4 px-6 mb-0 tracking-[1.3px] uppercase">
-            {splitByNewLines(String(address))}
-          </h3>
-          <div
-            id={_id ?? undefined}
-            className="w-[430px] h-[330px] max-[600px]:max-w-full max-[600px]:max-h-[calc(calc(calc(100%-20px)*330px)/430px)]"
-          />
-          <div
-            className={classNames(
-              'opacity-0 transition-opacity duration-[240ms] ease-out bg-[var(--color-gray-1)] h-full',
-              { '!opacity-100': showInfo === Boolean(_id) },
-            )}
-          >
-            <p className="text-white font-thin text-[1.3rem] p-[1.24rem] m-0 leading-[1.3]">
-              {splitByNewLines(String(details))}
-            </p>
-          </div>
+        <div className="mb-16 max-w-[680px] text-h4 text-blue [&_p]:m-0 [&_p]:mb-3 [&_p:last-child]:mb-0">
+          {richcontent?.map((block) => {
+            const text = (block?.children ?? [])
+              .map((c) => c?.text ?? '')
+              .join('');
+            return (
+              <p key={block?._key}>{text ? linkifyEmails(text) : ' '}</p>
+            );
+          })}
         </div>
-      ))}
-    </div>
+
+        <div className="grid max-w-[900px] grid-cols-2 gap-x-12 gap-y-10 max-tablet:grid-cols-1">
+          {offices.map((office) => (
+            <div key={office._id}>
+              <h2 className="font-sans font-bold text-blue text-h3 m-0 mb-2">
+                {office.address}
+              </h2>
+              <address className="text-blue not-italic [&_p]:m-0 [&_p]:leading-relaxed">
+                {String(office.details ?? '')
+                  .split('\n')
+                  .map((line) => line.trim())
+                  .filter(Boolean)
+                  .map((line, i) => (
+                    <p key={i}>{line}</p>
+                  ))}
+              </address>
+            </div>
+          ))}
+        </div>
+      </div>
+    </main>
   );
 };

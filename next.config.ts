@@ -18,14 +18,16 @@ const nextConfig: NextConfig = {
     return [
       { source: '/events', destination: '/news-and-events', statusCode: 301 },
       { source: '/event/:slug', destination: '/events/:slug', statusCode: 301 },
+      // Contact page slug was renamed connect → contact-us.
+      { source: '/connect', destination: '/contact-us', statusCode: 301 },
       {
         source: '/assessment-request',
-        destination: '/connect',
+        destination: '/contact-us',
         statusCode: 301,
       },
       {
         source: '/assessment-request/:path*',
-        destination: '/connect',
+        destination: '/contact-us',
         statusCode: 301,
       },
     ];

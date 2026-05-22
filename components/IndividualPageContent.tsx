@@ -1,78 +1,56 @@
-'use client';
+import { PortableText, type PortableTextComponents } from '@portabletext/react';
 
-import ContentBox from '@/components/ContentBox';
-import SanityBackgroundImage from '@/components/SanityBackgroundImage';
-import SanityImage from '@/components/SanityImage';
-import boxAlignClass from '@/utils/boxAlignClass';
+import splitByNewLines from '@/utils/splitByNewLines';
 import type { PageBySlugQueryResult } from '@/sanity.types';
 
 type Page = NonNullable<PageBySlugQueryResult>;
 
+const ptComponents: PortableTextComponents = {
+  marks: {
+    link: ({ children, value }) => (
+      <a
+        href={value?.href}
+        target={value?.blank ? '_blank' : undefined}
+        rel={value?.blank ? 'noopener noreferrer' : undefined}
+        className="text-blue underline underline-offset-2 transition-colors hover:text-accent"
+      >
+        {children}
+      </a>
+    ),
+  },
+};
+
+/**
+ * Default content page (privacy, terms, etc.). Renders the page's Rich Content
+ * as a clean reading-width article. The homepage section box (ContentBox) is
+ * intentionally NOT used here — that component is reserved for homesections.
+ * Plain `content` is kept only as a transitional fallback.
+ */
 const IndividualPageContent = ({ page }: { page: Page }) => {
-  const {
-    background,
-    backgroundColor,
-    mobilebackground,
-    boxLocation,
-    id,
-    hidetitle,
-    content,
-    Heading,
-    sectionContentCTAjumpId,
-    sectionContentCTApageLink,
-    sectionHeadingPosition,
-    sectionContentCTAtext,
-  } = page;
+  const { Heading, name, content, richcontent } = page;
+  const hasRich = Array.isArray(richcontent) && richcontent.length > 0;
+  const title = Heading || name;
 
-  let sectionBg = background;
-  if (typeof window !== 'undefined') {
-    const mql = window.matchMedia('(max-width: 600px)');
-    if (!mql.matches && background) {
-      sectionBg = background;
-    } else if (mql.matches && mobilebackground) {
-      sectionBg = mobilebackground;
-    } else {
-      sectionBg = background;
-    }
-  }
-
-  const bgColor = backgroundColor?.hex ?? 'var(--color-blue)';
-  const boxAlign = boxAlignClass(boxLocation);
-
-  if (background) {
-    return (
-      <div className={`${boxAlign} max-tablet:mt-[119px] max-tablet:block`}>
-        {background?.asset?._id && (
-          <SanityImage
-            alt="Background scenery"
-            className={`hide-for-desktop ${id || 'section'}`}
-            image={background}
-            style={{ marginBottom: '0', display: 'block' }}
-            width={2000}
-          />
+  return (
+    <main className="header-offset bg-white text-blue px-5 pb-24">
+      <article className="mx-auto max-w-3xl">
+        {title && (
+          <h1 className="font-sans font-bold text-blue text-h1 mt-8 mb-8 tracking-[-0.01em]">
+            {title}
+          </h1>
         )}
-        <SanityBackgroundImage
-          as="section"
-          id={id ?? undefined}
-          className="individual-page max-tablet:bg-blue max-tablet:p-0 max-tablet:before:!bg-none max-tablet:after:!bg-none"
-          image={sectionBg}
-          style={{ backgroundColor: bgColor }}
-          width={2000}
-        >
-          <ContentBox
-            hidetitle={hidetitle}
-            sectionContent={content}
-            sectionHeading={Heading}
-            sectionContentCTAjumpId={sectionContentCTAjumpId}
-            sectionContentCTApageLink={sectionContentCTApageLink}
-            sectionHeadingPosition={sectionHeadingPosition}
-            sectionContentCTAtext={sectionContentCTAtext}
-          />
-        </SanityBackgroundImage>
-      </div>
-    );
-  }
-  return <section id={id ?? undefined} />;
+        <div className="prose prose-default max-w-none">
+          {hasRich ? (
+            <PortableText value={richcontent} components={ptComponents} />
+          ) : content ? (
+            String(content)
+              .split(/\n\n+/)
+              .map((para, i) => <p key={i}>{splitByNewLines(para)}</p>)
+          ) : null}
+        </div>
+      </article>
+    </main>
+  );
 };
 
 export default IndividualPageContent;

@@ -272,7 +272,7 @@ section:not([aria-label])
     color: var(--color-blue);
 }
 .home .box p {
-    color: #000;
+    color: var(--color-black);
 }
 .home .box a {
     color: var(--color-blue);
