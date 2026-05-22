@@ -8,11 +8,6 @@ import { Toaster } from 'sonner';
 
 import { handleError } from '@/app/client-utils';
 import DraftModeToast from '@/components/DraftModeToast';
-import {
-  GoogleTagManagerNoscript,
-  GoogleTagManagerScript,
-} from '@/components/GoogleTagManager';
-import GtmRouteTracker from '@/components/GtmRouteTracker';
 import { getSiteUrl } from '@/lib/siteUrl';
 import { SanityLive } from '@/sanity/lib/live';
 
@@ -52,7 +47,6 @@ export default async function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body>
-        <GoogleTagManagerNoscript />
         {children}
         <Toaster />
         {isDraftMode && (
@@ -63,8 +57,6 @@ export default async function RootLayout({
         )}
         {/* SanityLive drives live revalidation for every sanityFetch — always rendered. */}
         <SanityLive onError={handleError} />
-        <GtmRouteTracker />
-        <GoogleTagManagerScript />
       </body>
     </html>
   );
