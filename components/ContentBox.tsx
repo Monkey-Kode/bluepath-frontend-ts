@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { motion } from 'framer-motion';
-import classNames from 'classnames';
+import { twMerge } from 'tailwind-merge';
 
 import scrollTo from '@/lib/scrollTo';
 import intersectionObserverOptions from '@/utils/intersectionObserverOptions';
@@ -82,10 +82,10 @@ function ContentBox({
   return (
     <div
       ref={ref}
-      className={classNames({ active: inView, inactive: !inView })}
+      className={twMerge(inView ? 'active' : 'inactive')}
     >
       <motion.div
-        className={classNames(
+        className={twMerge(
           'box max-w-[38.5rem] overflow-hidden p-0',
           sectionHeading,
         )}
@@ -98,9 +98,9 @@ function ContentBox({
           <div ref={headerRef}>
             {!hidetitle && (
               <motion.h2
-                className={classNames(
+                className={twMerge(
                   'm-0 max-w-full border-none pb-2 pt-6 leading-none text-7xl max-tablet:text-center max-tablet:text-[1.75rem]',
-                  { 'hide-for-desktop': sectionHeadingPosition },
+                  sectionHeadingPosition && 'hide-for-desktop',
                 )}
                 initial={isMobile ? 'visible' : 'hidden'}
                 animate={hasAnimated ? 'visible' : 'hidden'}
@@ -112,9 +112,9 @@ function ContentBox({
             )}
             {!hidetitle && (
               <motion.h3
-                className={classNames(
+                className={twMerge(
                   'm-0 pb-6 text-center italic lowercase text-[calc(1.875rem+0.5vw)] max-tablet:text-[1.5rem] leading-none',
-                  { 'hide-for-desktop': sectionHeadingPosition },
+                  sectionHeadingPosition && 'hide-for-desktop',
                 )}
                 initial={isMobile ? 'visible' : 'hidden'}
                 animate={hasAnimated ? 'visible' : 'hidden'}

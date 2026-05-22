@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import classNames from 'classnames';
+import { twMerge } from 'tailwind-merge';
 import { Dispatch, SetStateAction } from 'react';
 
 import scrollTo from '@/lib/scrollTo';
@@ -27,16 +27,16 @@ function Menu({
 
   const isHeader = siteLocation === 'header';
 
-  const linkClass = classNames(
+  const linkClass = twMerge(
     'cursor-pointer font-normal text-blue no-underline',
     isHeader &&
-      'max-tablet:block max-tablet:py-4 max-tablet:text-[2rem] max-tablet:font-bold max-tablet:uppercase max-tablet:tracking-[0.5rem] max-tablet:text-white max-tablet:no-underline max-tablet:transition-colors max-tablet:duration-300 max-tablet:hover:text-[#343078] max-[576px]:!p-0 max-[576px]:text-center max-[576px]:text-[1.5rem]',
+      'max-tablet:block max-tablet:py-4 max-tablet:text-[2rem] max-tablet:font-bold max-tablet:uppercase max-tablet:tracking-[0.25rem] max-tablet:text-white max-tablet:no-underline max-tablet:transition-colors max-tablet:duration-300 max-tablet:hover:text-[#343078] max-[576px]:!p-0 max-[576px]:text-center max-[576px]:text-[1.5rem]',
   );
 
   return (
     <nav
       data-open={open}
-      className={classNames(
+      className={twMerge(
         siteLocation,
         'my-7 text-base max-[1080px]:text-[0.7rem]',
         // Slide-out drawer on mobile when used in the header

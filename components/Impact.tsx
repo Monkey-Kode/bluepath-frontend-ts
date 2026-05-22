@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import classNames from 'classnames';
+import { twMerge } from 'tailwind-merge';
 
 import SanityBackgroundImage from '@/components/SanityBackgroundImage';
 import SanityImage from '@/components/SanityImage';
@@ -82,9 +82,9 @@ function Impact({
                   index += 1;
                   return (
                     <ImpactThumb
-                      className={classNames({
-                        'btn-active': currentThumb === thumb.id,
-                      })}
+                      className={twMerge(
+                        currentThumb === thumb.id && 'btn-active',
+                      )}
                       setActiveBtn={setActiveBtn}
                       id={`${index}_impact_thumb`}
                       key={thumb.id}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import classNames from 'classnames';
+import { twMerge } from 'tailwind-merge';
 
 import SanityImage from '@/components/SanityImage';
 import formatNumber from '@/utils/formatNumber';
@@ -87,7 +87,7 @@ function ImpactHexagons({
               <button
                 type="button"
                 onClick={() => setcurrentTab(tab.id)}
-                className={classNames(
+                className={twMerge(
                   'appearance-none border-none text-white text-base font-extrabold px-8 py-4 bg-[rgba(0,65,129,0.75)] active:border-none active:outline-0 max-tablet:p-[0.4rem] max-tablet:text-[0.69rem]',
                   currentTab === tab.id &&
                     'bg-[rgba(0,65,129,1)] border border-accent',

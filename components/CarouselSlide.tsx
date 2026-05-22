@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import classNames from 'classnames';
+import { twMerge } from 'tailwind-merge';
 import { useInView } from 'react-intersection-observer';
 
 import intersectionObserverOptions from '@/utils/intersectionObserverOptions';
@@ -46,7 +46,7 @@ export default function CarouselSlide({
   return (
     <div id={`${_id}_carousel`}>
       <div
-        className={classNames(
+        className={twMerge(
           `${heading}_wrapper`,
           'content',
           'grid h-full min-h-screen w-full items-center [&_.active]:flex [&_.active]:justify-start',
@@ -54,8 +54,8 @@ export default function CarouselSlide({
       >
         <div
           ref={ref}
-          className={classNames(
-            { active: inView, inactive: !inView },
+          className={twMerge(
+            inView ? 'active' : 'inactive',
             `${heading}_wrapper`,
           )}
         >

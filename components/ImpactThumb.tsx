@@ -1,12 +1,12 @@
 'use client';
 
 import { Dispatch, SetStateAction, useRef } from 'react';
-import classNames from 'classnames';
+import { twMerge } from 'tailwind-merge';
 
 import SanityImage from '@/components/SanityImage';
 import type { ImpactItemsQueryResult } from '@/sanity.types';
 
-const BLUE_BOX_CLASS = classNames(
+const BLUE_BOX_CLASS = twMerge(
   // Foundation
   'appearance-none cursor-pointer rounded-lg p-4 mx-auto opacity-50 transition-opacity duration-[400ms] ease-out',
   // Color/border (.btn-active parent override)
