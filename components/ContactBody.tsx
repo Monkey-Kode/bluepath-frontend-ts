@@ -46,7 +46,7 @@ export const ContactBody = ({
 
   return (
     <main className="header-offset bg-white text-blue px-5 pb-40 min-h-[80vh]">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-7xl px-5">
         <h1 className="font-sans font-bold text-blue text-h1 mt-8 mb-8 tracking-[-0.01em]">
           {name || Heading}
         </h1>
@@ -56,9 +56,7 @@ export const ContactBody = ({
             const text = (block?.children ?? [])
               .map((c) => c?.text ?? '')
               .join('');
-            return (
-              <p key={block?._key}>{text ? linkifyEmails(text) : ' '}</p>
-            );
+            return <p key={block?._key}>{text ? linkifyEmails(text) : ' '}</p>;
           })}
         </div>
 

@@ -33,7 +33,7 @@ const IndividualPageContent = ({ page }: { page: Page }) => {
 
   return (
     <main className="header-offset bg-white text-blue px-5 pb-24">
-      <article className="mx-auto max-w-3xl">
+      <article className="mx-auto max-w-7xl px-5">
         {title && (
           <h1 className="font-sans font-bold text-blue text-h1 mt-8 mb-8 tracking-[-0.01em]">
             {title}
