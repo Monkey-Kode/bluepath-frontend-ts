@@ -39,9 +39,10 @@ export default function StickyNationalProjects({
             '--header-height',
           ),
         ) || 0;
-      setIsPastTableOfContents(
-        window.scrollY >= target.offsetTop - headerHeight - 1,
-      );
+      // Use the document-relative top, not offsetTop: inside HomeHero the TOF's
+      // offsetParent is a positioned wrapper, so offsetTop would be ~0.
+      const tofDocTop = target.getBoundingClientRect().top + window.scrollY;
+      setIsPastTableOfContents(window.scrollY >= tofDocTop - headerHeight - 1);
     };
 
     update();
