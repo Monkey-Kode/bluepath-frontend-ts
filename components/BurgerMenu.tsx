@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import { Dispatch, SetStateAction } from 'react';
 
 const BAR =
-  'block w-8 h-[0.17rem] rounded-[10px] origin-[1px] transition-all duration-300 ease-linear relative';
+  'block w-8 h-[0.17rem] rounded-[10px] origin-center transition-all duration-300 ease-linear';
 
 function BurgerMenu({
   open,
@@ -30,21 +30,19 @@ function BurgerMenu({
       <span
         className={classNames(
           BAR,
-          open ? 'bg-white rotate-45 -translate-y-[6px]' : 'bg-blue rotate-0',
+          open ? 'bg-white translate-y-[8px] rotate-45' : 'bg-blue rotate-0',
         )}
       />
       <span
         className={classNames(
           BAR,
-          open ? 'bg-white opacity-0 translate-x-5' : 'bg-blue opacity-100',
+          open ? 'bg-white opacity-0' : 'bg-blue opacity-100',
         )}
       />
       <span
         className={classNames(
           BAR,
-          open
-            ? 'bg-white -rotate-45 translate-x-[2px] translate-y-[3px]'
-            : 'bg-blue rotate-0',
+          open ? 'bg-white -translate-y-[8px] -rotate-45' : 'bg-blue rotate-0',
         )}
       />
     </button>
