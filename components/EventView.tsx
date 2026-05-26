@@ -33,13 +33,21 @@ export default function EventView({
       <div className="mx-auto grid max-w-7xl px-5 grid-cols-[360px_1fr] items-start gap-14 max-[900px]:grid-cols-1 max-[900px]:gap-8">
         <div>
           {content.image?.asset?._id && (
-            <ViewTransition name={mediaVt} share="morph">
-              <SanityImage
-                className="w-full h-auto"
-                image={content.image}
-                alt={content.name ?? 'Event'}
-                width={720}
-              />
+            <ViewTransition name={mediaVt} share="morph-media">
+              {/* SanityImage briefly renders a preview <img> alongside the
+               * main <img>; React's <ViewTransition> applies
+               * view-transition-name to every direct child and auto-suffixes
+               * duplicates, which breaks the pairing with the archive's
+               * single named img. The wrapping figure collapses that to one
+               * direct child so only the figure gets the name. */}
+              <figure className="m-0">
+                <SanityImage
+                  className="w-full h-auto"
+                  image={content.image}
+                  alt={content.name ?? 'Event'}
+                  width={720}
+                />
+              </figure>
             </ViewTransition>
           )}
         </div>

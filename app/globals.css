@@ -504,13 +504,27 @@ section:not([aria-label])
 
 /* ─── View Transition: team grid card ↔ bio hero shared-element morph ──
  * Triggered by share="morph" on next/view-transitions <Link>.
+ *
+ * `.morph-media` is the image variant — inherits the same timing + blur but
+ * adds object-fit: cover so the bitmap snapshots crop instead of stretching
+ * when source/destination aspect ratios differ (e.g. archive's 273/387
+ * portrait tile morphing into a detail page's natural-aspect hero). Without
+ * this, the browser's default object-fit: fill warps the snapshot into taffy
+ * mid-flight.
  */
-::view-transition-group(.morph) {
+::view-transition-group(.morph),
+::view-transition-group(.morph-media) {
     animation-duration: 380ms;
     animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
-::view-transition-image-pair(.morph) {
+::view-transition-image-pair(.morph),
+::view-transition-image-pair(.morph-media) {
     animation-name: vt-morph-blur;
+}
+::view-transition-old(.morph-media),
+::view-transition-new(.morph-media) {
+    object-fit: cover;
+    overflow: hidden;
 }
 @keyframes vt-morph-blur {
     30% {

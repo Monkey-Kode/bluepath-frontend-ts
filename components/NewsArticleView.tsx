@@ -34,7 +34,7 @@ export default function NewsArticleView({
           </ViewTransition>
         )}
         {article.heroImage?.asset?._id && (
-          <ViewTransition name={mediaVt} share="morph">
+          <ViewTransition name={mediaVt} share="morph-media">
             <figure className="m-0 mb-4">
               <SanityImage
                 className="block h-auto w-full"

@@ -121,7 +121,7 @@ export default function NewsEventsArchive({
                 aria-label={item.title}
                 className="block w-full max-w-[273px] p-0 max-tablet:max-w-none"
               >
-                <ViewTransition name={mediaVt} share="morph">
+                <ViewTransition name={mediaVt} share="morph-media">
                   {item.image?.asset?._id ? (
                     <SanityImage
                       className="w-full h-auto aspect-[273/387] object-cover"
