@@ -1,13 +1,21 @@
 import Footer from '@/components/Footer';
 import { sanityFetch } from '@/sanity/lib/live';
-import { addressesQuery, navigationQuery } from '@/sanity/lib/queries';
+import {
+  addressesQuery,
+  navigationQuery,
+  settingsQuery,
+} from '@/sanity/lib/queries';
 
-/** Server wrapper: fetches addresses + navigation, renders the client Footer. */
+/** Server wrapper: fetches addresses + navigation + settings, renders the client Footer. */
 export default async function SiteFooter() {
-  const [{ data: addresses }, { data: navigation }] = await Promise.all([
-    sanityFetch({ query: addressesQuery }),
-    sanityFetch({ query: navigationQuery }),
-  ]);
+  const [{ data: addresses }, { data: navigation }, { data: settings }] =
+    await Promise.all([
+      sanityFetch({ query: addressesQuery }),
+      sanityFetch({ query: navigationQuery }),
+      sanityFetch({ query: settingsQuery }),
+    ]);
 
-  return <Footer addresses={addresses} navigation={navigation} />;
+  return (
+    <Footer addresses={addresses} navigation={navigation} settings={settings} />
+  );
 }

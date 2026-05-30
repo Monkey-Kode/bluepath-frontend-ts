@@ -2,26 +2,41 @@
 
 import DarkLogo from '@/assets/dark-logo336.svg';
 import Menu from '@/components/Menu';
+import SanityImage from '@/components/SanityImage';
 import splitByNewLines from '@/utils/splitByNewLines';
 import sortObject from '@/utils/sortObject';
 import type {
   AddressesQueryResult,
   NavigationQueryResult,
+  SettingsQueryResult,
 } from '@/sanity.types';
 
 function Footer({
   addresses,
   navigation,
+  settings,
 }: {
   addresses: AddressesQueryResult;
   navigation: NavigationQueryResult;
+  settings: SettingsQueryResult;
 }) {
   const addressesOrdered = sortObject(addresses);
+  // Footer uses the dark logo from siteSettings; bundled SVG is the fallback.
+  const logo = settings?.logoDark;
 
   return (
     <footer className="w-screen items-center overflow-hidden bg-surface px-[2vw] py-[4vw] max-tablet:px-[5vw] max-tablet:py-[7vw] tablet:grid tablet:grid-cols-[2fr_1fr] tablet:grid-rows-[auto]">
       <div className="footer-logo tablet:row-[1/2] tablet:col-[1/2] tablet:mr-[20%] tablet:text-right max-tablet:hidden">
-        <DarkLogo style={{ maxWidth: '300px', margin: '0 auto' }} />
+        {logo?.asset?._id ? (
+          <SanityImage
+            image={logo}
+            alt={logo.alt || 'Bluepath'}
+            width={600}
+            className="mx-auto h-auto w-full max-w-[300px]"
+          />
+        ) : (
+          <DarkLogo style={{ maxWidth: '300px', margin: '0 auto' }} />
+        )}
       </div>
       <div className="mx-auto flex w-full flex-col gap-5 tablet:row-[1/2] tablet:col-[2/3]">
         {addressesOrdered.map(({ _id, address, details }) => (

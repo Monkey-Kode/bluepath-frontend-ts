@@ -69,7 +69,11 @@ export default function HomeView({
         team={team}
       />
       <div ref={footerRef.ref}>
-        <Footer addresses={addresses} navigation={navigation} />
+        <Footer
+          addresses={addresses}
+          navigation={navigation}
+          settings={settings}
+        />
       </div>
     </div>
   );
