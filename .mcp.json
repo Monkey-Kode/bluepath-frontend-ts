@@ -2,11 +2,16 @@
   "mcpServers": {
     "context7": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp", "--api-key", "${CONTEXT7_MCP_API_KEY}"]
+      "args": [
+        "-y",
+        "@upstash/context7-mcp",
+        "--api-key",
+        "${CONTEXT7_MCP_API_KEY}"
+      ]
     },
     "next-devtools": {
       "command": "npx",
-      "args": ["next-devtools-mcp@latest"]
+      "args": ["-y", "next-devtools-mcp@latest"]
     },
     "Sanity": {
       "url": "https://mcp.sanity.io",

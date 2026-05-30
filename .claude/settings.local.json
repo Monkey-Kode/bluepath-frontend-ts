@@ -37,15 +37,16 @@
       "Bash(pnpm run *)",
       "Bash(git reset *)",
       "mcp__Sanity__patch_document_from_json",
-      "Bash(pnpm exec *)"
+      "Bash(pnpm exec *)",
+      "Bash(ffmpeg -i /tmp/vt-test/events-transition.webm -vf \"fps=10\" /tmp/vt-test/frame_%03d.png)",
+      "Bash(gh repo *)",
+      "Bash(gh api *)",
+      "Bash(gh project *)",
+      "Bash(gh issue *)"
     ]
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "clickup",
-    "context7",
-    "Sanity"
-  ],
+  "enabledMcpjsonServers": ["clickup", "context7", "Sanity"],
   "skillOverrides": {
     "find-skills": "off",
     "mk:accessibility-compliance": "off",
