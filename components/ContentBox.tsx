@@ -80,10 +80,7 @@ function ContentBox({
     headingContent.length > 1 ? headingContent.slice(1).join(' ') : null;
 
   return (
-    <div
-      ref={ref}
-      className={twMerge(inView ? 'active' : 'inactive')}
-    >
+    <div ref={ref} className={twMerge(inView ? 'active' : 'inactive')}>
       <motion.div
         className={twMerge(
           'box max-w-[38.5rem] overflow-hidden p-0',

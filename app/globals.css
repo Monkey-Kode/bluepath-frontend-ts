@@ -9,20 +9,20 @@
  * borders by default — no per-component prose-* modifier needed. */
 .prose,
 .prose-default {
-    --tw-prose-body: var(--color-black);
-    --tw-prose-headings: #000;
-    --tw-prose-lead: var(--color-black);
-    --tw-prose-links: #000;
-    --tw-prose-bold: #000;
-    --tw-prose-counters: #000;
-    --tw-prose-bullets: #000;
-    --tw-prose-hr: var(--color-gray-3);
-    --tw-prose-quotes: var(--color-black);
-    --tw-prose-quote-borders: var(--color-accent);
-    --tw-prose-captions: var(--color-gray-2);
-    --tw-prose-code: #000;
-    --tw-prose-th-borders: var(--color-gray-3);
-    --tw-prose-td-borders: var(--color-gray-3);
+  --tw-prose-body: var(--color-black);
+  --tw-prose-headings: #000;
+  --tw-prose-lead: var(--color-black);
+  --tw-prose-links: #000;
+  --tw-prose-bold: #000;
+  --tw-prose-counters: #000;
+  --tw-prose-bullets: #000;
+  --tw-prose-hr: var(--color-gray-3);
+  --tw-prose-quotes: var(--color-black);
+  --tw-prose-quote-borders: var(--color-accent);
+  --tw-prose-captions: var(--color-gray-2);
+  --tw-prose-code: #000;
+  --tw-prose-th-borders: var(--color-gray-3);
+  --tw-prose-td-borders: var(--color-gray-3);
 }
 
 /* ─── Design tokens ─────────────────────────────────────────────────────
@@ -36,112 +36,113 @@
  * `bg-blue`, `text-accent`, `border-accent` produce readable utilities.
  */
 @theme {
-    /* Font families — next/font sets --font-inter / --font-baskerville on <html> */
-    --font-sans:
-        var(--font-inter), Inter, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  /* Font families — next/font sets --font-inter / --font-baskerville on <html> */
+  --font-sans:
+    var(--font-inter), Inter, system-ui, -apple-system, "Segoe UI", Helvetica,
+    Arial, sans-serif;
 
-    /* Brand & neutral palette */
-    --color-blue: #004181;
-    --color-blue-soft: rgba(0, 65, 129, 0.85);
-    --color-accent: #168fcb;
-    --color-gray-1: #6e7c85;
-    --color-gray-2: #616567;
-    --color-gray-3: #595959;
-    --color-surface: #f6f7f9;
+  /* Brand & neutral palette */
+  --color-blue: #004181;
+  --color-blue-soft: rgba(0, 65, 129, 0.85);
+  --color-accent: #168fcb;
+  --color-gray-1: #6e7c85;
+  --color-gray-2: #616567;
+  --color-gray-3: #595959;
+  --color-surface: #f6f7f9;
 
-    /* ── Type scale: Axios sizes converted into our fluid (Utopia) method ──
+  /* ── Type scale: Axios sizes converted into our fluid (Utopia) method ──
      * Each step's DESKTOP ceiling (@1240px) equals the matching Axios token
      * value; the mobile floor (@320px) is 16px + half the overshoot, so type
      * still scales fluidly instead of snapping to fixed rem. Line-height is
      * Axios's uniform 1.5 on the t-shirt scale; tighter on headings below. */
-    --text-xs: 0.75rem;
-    --text-xs--line-height: 1.5;
-    --text-sm: 0.875rem;
-    --text-sm--line-height: 1.5;
-    --text-base: 1rem;
-    --text-base--line-height: 1.5;
-    --text-lg: clamp(1.0625rem, 1.0408rem + 0.1087vw, 1.125rem);
-    --text-lg--line-height: 1.5;
-    --text-xl: clamp(1.125rem, 1.0815rem + 0.2174vw, 1.25rem);
-    --text-xl--line-height: 1.5;
-    --text-2xl: clamp(1.1875rem, 1.1223rem + 0.3261vw, 1.375rem);
-    --text-2xl--line-height: 1.5;
-    --text-3xl: clamp(1.3125rem, 1.2038rem + 0.5435vw, 1.625rem);
-    --text-3xl--line-height: 1.5;
-    --text-4xl: clamp(1.5rem, 1.3261rem + 0.8696vw, 2rem);
-    --text-4xl--line-height: 1.5;
-    --text-5xl: clamp(1.75rem, 1.4891rem + 1.3043vw, 2.5rem);
-    --text-5xl--line-height: 1.5;
-    --text-6xl: clamp(2rem, 1.6522rem + 1.7391vw, 3rem);
-    --text-6xl--line-height: 1.5;
-    --text-7xl: clamp(2.25rem, 1.8152rem + 2.1739vw, 3.5rem);
-    --text-7xl--line-height: 1.5;
-    --text-8xl: clamp(2.5rem, 1.9783rem + 2.6087vw, 4rem);
-    --text-8xl--line-height: 1.5;
-    --text-9xl: clamp(2.75rem, 2.1413rem + 3.0435vw, 4.5rem);
-    --text-9xl--line-height: 1.5;
-    --text-10xl: clamp(3rem, 2.3043rem + 3.4783vw, 5rem);
-    --text-10xl--line-height: 1.5;
-    --text-11xl: clamp(3.25rem, 2.4674rem + 3.913vw, 5.5rem);
-    --text-11xl--line-height: 1.5;
-    --text-12xl: clamp(3.5rem, 2.6304rem + 4.3478vw, 6rem);
-    --text-12xl--line-height: 1.5;
-    --text-13xl: clamp(3.625rem, 2.712rem + 4.5652vw, 6.25rem);
-    --text-13xl--line-height: 1.5;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5;
+  --text-lg: clamp(1.0625rem, 1.0408rem + 0.1087vw, 1.125rem);
+  --text-lg--line-height: 1.5;
+  --text-xl: clamp(1.125rem, 1.0815rem + 0.2174vw, 1.25rem);
+  --text-xl--line-height: 1.5;
+  --text-2xl: clamp(1.1875rem, 1.1223rem + 0.3261vw, 1.375rem);
+  --text-2xl--line-height: 1.5;
+  --text-3xl: clamp(1.3125rem, 1.2038rem + 0.5435vw, 1.625rem);
+  --text-3xl--line-height: 1.5;
+  --text-4xl: clamp(1.5rem, 1.3261rem + 0.8696vw, 2rem);
+  --text-4xl--line-height: 1.5;
+  --text-5xl: clamp(1.75rem, 1.4891rem + 1.3043vw, 2.5rem);
+  --text-5xl--line-height: 1.5;
+  --text-6xl: clamp(2rem, 1.6522rem + 1.7391vw, 3rem);
+  --text-6xl--line-height: 1.5;
+  --text-7xl: clamp(2.25rem, 1.8152rem + 2.1739vw, 3.5rem);
+  --text-7xl--line-height: 1.5;
+  --text-8xl: clamp(2.5rem, 1.9783rem + 2.6087vw, 4rem);
+  --text-8xl--line-height: 1.5;
+  --text-9xl: clamp(2.75rem, 2.1413rem + 3.0435vw, 4.5rem);
+  --text-9xl--line-height: 1.5;
+  --text-10xl: clamp(3rem, 2.3043rem + 3.4783vw, 5rem);
+  --text-10xl--line-height: 1.5;
+  --text-11xl: clamp(3.25rem, 2.4674rem + 3.913vw, 5.5rem);
+  --text-11xl--line-height: 1.5;
+  --text-12xl: clamp(3.5rem, 2.6304rem + 4.3478vw, 6rem);
+  --text-12xl--line-height: 1.5;
+  --text-13xl: clamp(3.625rem, 2.712rem + 4.5652vw, 6.25rem);
+  --text-13xl--line-height: 1.5;
 
-    /* Axios special-purpose text tokens (fluid). text-p is the article/body
+  /* Axios special-purpose text tokens (fluid). text-p is the article/body
      * reading size (18px); text-list/button/tag/caption mirror Axios. */
-    --text-tag: 0.75rem;
-    --text-tag--line-height: 1.5;
-    --text-caption: 0.75rem;
-    --text-caption--line-height: 1.5;
-    --text-p: 1.125rem; /* 18px body — flat, unchanged mobile → desktop */
-    --text-p--line-height: 1.6;
-    --text-button: clamp(1.0625rem, 1.0408rem + 0.1087vw, 1.125rem);
-    --text-button--line-height: 1.5;
-    --text-list: clamp(1.1875rem, 1.1223rem + 0.3261vw, 1.375rem);
-    --text-list--line-height: 1.5;
+  --text-tag: 0.75rem;
+  --text-tag--line-height: 1.5;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.5;
+  --text-p: 1.125rem; /* 18px body — flat, unchanged mobile → desktop */
+  --text-p--line-height: 1.6;
+  --text-button: clamp(1.0625rem, 1.0408rem + 0.1087vw, 1.125rem);
+  --text-button--line-height: 1.5;
+  --text-list: clamp(1.1875rem, 1.1223rem + 0.3261vw, 1.375rem);
+  --text-list--line-height: 1.5;
 
-    /* Semantic heading tokens. h1 follows Axios's headline pattern
+  /* Semantic heading tokens. h1 follows Axios's headline pattern
      * (h5 32px → h3 48px) as a fluid clamp; display sits one step above and
      * h2/h3/h4 one-or-more steps below (inferred — Axios uses size utilities,
      * not semantic heading levels). h4 and body are flat (no fluid). */
-    --text-display: clamp(2.5rem, 2.1522rem + 1.7391vw, 3.5rem);
-    --text-display--line-height: 1.1;
-    --text-h1: clamp(2rem, 1.6522rem + 1.7391vw, 3rem);
-    --text-h1--line-height: 1.15;
-    --text-h2: clamp(1.625rem, 1.3207rem + 1.5217vw, 2.5rem);
-    --text-h2--line-height: 1.2;
-    --text-h3: clamp(1.125rem, 0.9511rem + 0.8696vw, 1.625rem);
-    --text-h3--line-height: 1.25;
-    --text-h4: 1.125rem;
-    --text-h4--line-height: 1.35;
-    --text-eyebrow: 1rem;
-    --text-eyebrow--line-height: 1.4;
-    --text-fine: 0.875rem;
-    --text-fine--line-height: 1.5;
-    --text-micro: 0.75rem;
-    --text-micro--line-height: 1.5;
+  --text-display: clamp(2.5rem, 2.1522rem + 1.7391vw, 3.5rem);
+  --text-display--line-height: 1.1;
+  --text-h1: clamp(2rem, 1.6522rem + 1.7391vw, 3rem);
+  --text-h1--line-height: 1.15;
+  --text-h2: clamp(1.625rem, 1.3207rem + 1.5217vw, 2.5rem);
+  --text-h2--line-height: 1.2;
+  --text-h3: clamp(1.125rem, 0.9511rem + 0.8696vw, 1.625rem);
+  --text-h3--line-height: 1.25;
+  --text-h4: 1.125rem;
+  --text-h4--line-height: 1.35;
+  --text-eyebrow: 1rem;
+  --text-eyebrow--line-height: 1.4;
+  --text-fine: 0.875rem;
+  --text-fine--line-height: 1.5;
+  --text-micro: 0.75rem;
+  --text-micro--line-height: 1.5;
 
-    /* Line-height scale (from the Axios reference the client asked us to
+  /* Line-height scale (from the Axios reference the client asked us to
      * match for spacing/breathing). Generates leading-tight…leading-relaxed.
      * Body/long-form reading uses leading-relaxed (1.5); headings stay tight. */
-    --leading-tight: 1.2;
-    --leading-snug: 1.3;
-    --leading-normal: 1.4;
-    --leading-relaxed: 1.5;
+  --leading-tight: 1.2;
+  --leading-snug: 1.3;
+  --leading-normal: 1.4;
+  --leading-relaxed: 1.5;
 
-    /* Letter-spacing scale (Axios). Generates tracking-tight…tracking-wider. */
-    --tracking-tight: -0.025em;
-    --tracking-normal: 0em;
-    --tracking-wide: 0.025em;
-    --tracking-wider: 0.05em;
+  /* Letter-spacing scale (Axios). Generates tracking-tight…tracking-wider. */
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
 
-    /* Layout container width (existing --laptop = 1920px) */
-    --container-laptop: 120rem;
+  /* Layout container width (existing --laptop = 1920px) */
+  --container-laptop: 120rem;
 
-    /* Custom breakpoint to match the legacy 800px mobile/desktop split */
-    --breakpoint-tablet: 50rem;
+  /* Custom breakpoint to match the legacy 800px mobile/desktop split */
+  --breakpoint-tablet: 50rem;
 }
 
 /* ─── Runtime + legacy CSS variables ─────────────────────────────────────
@@ -150,35 +151,35 @@
  * a handful of components (CarouselSlide, ContentBox dividers, etc.).
  */
 :root {
-    --header-height: 100px;
-    --mobile-header-height: 153px;
+  --header-height: 100px;
+  --mobile-header-height: 153px;
 
-    --box-width: 725px;
-    --laptop: 1920px;
-    --big-heading-size: 8.27rem;
-    --small-heading-size: 2.405625rem;
-    --big-heading-padding: 0.5rem;
-    --small-content-width: 40vw;
+  --box-width: 725px;
+  --laptop: 1920px;
+  --big-heading-size: 8.27rem;
+  --small-heading-size: 2.405625rem;
+  --big-heading-padding: 0.5rem;
+  --small-content-width: 40vw;
 
-    --border-left: 4px solid var(--color-accent);
-    --border-right: 2px solid var(--color-accent);
-    --border-bottom: 2px solid var(--color-accent);
+  --border-left: 4px solid var(--color-accent);
+  --border-right: 2px solid var(--color-accent);
+  --border-bottom: 2px solid var(--color-accent);
 }
 
 /* Clears the fixed Header — replaces the legacy headerOffset mixin. */
 .header-offset {
-    padding-top: calc(var(--header-height, 100px) + 1.5rem);
+  padding-top: calc(var(--header-height, 100px) + 1.5rem);
 }
 
 /* TableOfContents hex tile background pan on hover */
 @keyframes tofPan {
-    0%,
-    100% {
-        background-position: left center;
-    }
-    50% {
-        background-position: right center;
-    }
+  0%,
+  100% {
+    background-position: left center;
+  }
+  50% {
+    background-position: right center;
+  }
 }
 
 /* ─── Legacy layout primitives ──────────────────────────────────────────
@@ -192,40 +193,42 @@
  * exclusion keeps utility sections (Sonner's <section aria-label="Notifications">
  * toast region, etc.) out of the 100vh / 100vw flex layout. */
 section:not([aria-label]) {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 2vw;
-    width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2vw;
+  width: 100vw;
 }
 @media (max-width: 800px) {
-    section:not([aria-label]) {
-        display: block;
-        padding: 0;
-    }
+  section:not([aria-label]) {
+    display: block;
+    padding: 0;
+  }
 }
 @media (min-width: 801px) {
-    section:not([aria-label]) {
-        min-height: 100vh;
-    }
+  section:not([aria-label]) {
+    min-height: 100vh;
+  }
 }
 section:not([aria-label]) > div {
-    width: 100%;
+  width: 100%;
 }
 section:not([aria-label])
-    > div:not(.team-wrapper):not([class*="Contact"]):not([class*="Impact"]):not([class*="prose"]) {
-    display: flex;
-    align-items: center;
-    height: 100%;
+  > div:not(.team-wrapper):not([class*="Contact"]):not([class*="Impact"]):not(
+    [class*="prose"]
+  ) {
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 @media (max-width: 800px) {
-    section:not([aria-label])
-        > div:not(.team-wrapper):not([class*="Contact"]):not([class*="Impact"]):not(
-            [class*="prose"]
-        ) {
-        background-color: white;
-        margin-inline: auto;
-    }
+  section:not([aria-label])
+    > div:not(.team-wrapper):not([class*="Contact"]):not([class*="Impact"]):not(
+      [class*="prose"]
+    ) {
+    background-color: white;
+    margin-inline: auto;
+  }
 }
 
 /* Box alignment (Sanity `boxLocation`) is applied via Tailwind utilities in
@@ -234,12 +237,12 @@ section:not([aria-label])
  * stega-encoded in draft mode, so a class-name match silently failed there. */
 
 .box {
-    padding: 0 0 1rem;
-    background: var(--color-blue-soft);
-    width: var(--box-width);
+  padding: 0 0 1rem;
+  background: var(--color-blue-soft);
+  width: var(--box-width);
 }
 .box * {
-    color: white;
+  color: white;
 }
 /* .box children: only layout/color overrides here.
  * Font-size MUST come from Tailwind token utilities applied in the
@@ -247,44 +250,44 @@ section:not([aria-label])
  * CSS custom properties like --big-heading-size, since that bypasses
  * the design system and breaks consistency. */
 .box h2 {
-    text-align: center;
+  text-align: center;
 }
 .box a {
-    font-weight: 400;
+  font-weight: 400;
 }
 .box p {
-    text-align: justify;
+  text-align: justify;
 }
 @media (max-width: 800px) {
-    .box {
-        width: auto;
-        max-width: 100%;
-        margin: 0 auto;
-    }
+  .box {
+    width: auto;
+    max-width: 100%;
+    margin: 0 auto;
+  }
 }
 
 .home .box {
-    background: #fff;
+  background: #fff;
 }
 .home .box *,
 .home .box h2,
 .home .box h3 {
-    color: var(--color-blue);
+  color: var(--color-blue);
 }
 .home .box p {
-    color: var(--color-black);
+  color: var(--color-black);
 }
 .home .box a {
-    color: var(--color-blue);
+  color: var(--color-blue);
 }
 
 .hide-for-desktop {
-    display: none !important;
+  display: none !important;
 }
 @media (max-width: 800px) {
-    .hide-for-desktop {
-        display: block !important;
-    }
+  .hide-for-desktop {
+    display: block !important;
+  }
 }
 /* Hides the alt-theme logo by default. The home-page header overlay
  * inverts this (see .home .header-overlay header rules below).
@@ -293,106 +296,106 @@ section:not([aria-label])
  * it after Tailwind's utilities would beat the responsive variants
  * (e.g. `max-tablet:flex` on the mobile burger) via source order. */
 .light-logo {
-    display: none;
+  display: none;
 }
 
 /* Section padding on individual sub-pages (.page wrapper) */
 .page section:not([aria-label]) {
-    padding: calc(var(--mobile-header-height) + 2rem) 5% 5%;
+  padding: calc(var(--mobile-header-height) + 2rem) 5% 5%;
 }
 @media (max-width: 799px) {
-    .page .hide-for-desktop.image-atop + section:not([aria-label]) {
-        padding-top: 10%;
-    }
-    .page .hide-for-desktop.image-atop {
-        padding-top: var(--mobile-header-height);
-    }
+  .page .hide-for-desktop.image-atop + section:not([aria-label]) {
+    padding-top: 10%;
+  }
+  .page .hide-for-desktop.image-atop {
+    padding-top: var(--mobile-header-height);
+  }
 }
 
 /* ─── Google Maps InfoWindow chrome (Projects map) ────────────────────── */
 .gm-style .gm-ui-hover-effect img {
-    filter: invert(1);
-    transform: scale(2) translate(-5px, 5px);
+  filter: invert(1);
+  transform: scale(2) translate(-5px, 5px);
 }
 .gm-style .gm-style-iw-c {
-    border-radius: 0 !important;
-    background-color: var(--color-blue);
-    padding: 0 !important;
-    transform: scale(0.5) translate(-115%, -52%) !important;
-    transform-origin: 0% 0%;
+  border-radius: 0 !important;
+  background-color: var(--color-blue);
+  padding: 0 !important;
+  transform: scale(0.5) translate(-115%, -52%) !important;
+  transform-origin: 0% 0%;
 }
 .gm-style .gm-style-iw-c * {
-    color: white;
+  color: white;
 }
 .gm-style .gm-style-iw-c #content {
-    max-width: 380px;
+  max-width: 380px;
 }
 .gm-style .gm-style-iw-c #siteNotice {
-    text-align: center;
-    text-transform: uppercase;
+  text-align: center;
+  text-transform: uppercase;
 }
 .gm-style .gm-style-iw-c #siteNotice h3 {
-    margin-bottom: 0;
-    padding: 0 0 0.3rem;
-    font-weight: 300;
-    font-size: 1.2rem;
+  margin-bottom: 0;
+  padding: 0 0 0.3rem;
+  font-weight: 300;
+  font-size: 1.2rem;
 }
 .gm-style .gm-style-iw-c #siteNotice p {
-    font-weight: bold;
-    font-size: 1.3rem;
-    padding: 0;
-    margin: 0;
-    line-height: 1.25;
+  font-weight: bold;
+  font-size: 1.3rem;
+  padding: 0;
+  margin: 0;
+  line-height: 1.25;
 }
 @media (max-width: 480px) {
-    .gm-style .gm-style-iw-c #siteNotice p {
-        font-size: 0.8rem;
-    }
+  .gm-style .gm-style-iw-c #siteNotice p {
+    font-size: 0.8rem;
+  }
 }
 .gm-style .gm-style-iw-c .image {
-    background-color: var(--color-gray-2);
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-bottom: 1px solid var(--color-accent);
-    flex-flow: column wrap;
-    padding: 8%;
+  background-color: var(--color-gray-2);
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 1px solid var(--color-accent);
+  flex-flow: column wrap;
+  padding: 8%;
 }
 .gm-style .gm-style-iw-c .image svg,
 .gm-style .gm-style-iw-c .image img {
-    max-width: 180px;
-    display: block;
-    flex: 1 auto;
+  max-width: 180px;
+  display: block;
+  flex: 1 auto;
 }
 .gm-style .gm-style-iw-c .line-content {
-    padding: 0.7rem 1.3rem;
+  padding: 0.7rem 1.3rem;
 }
 .gm-style .gm-style-iw-c .content {
-    padding: 0.5rem 1rem 1.5rem;
+  padding: 0.5rem 1rem 1.5rem;
 }
 .gm-style .gm-style-iw-c .list-title {
-    font-weight: bold;
-    text-transform: uppercase;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 .gm-style-iw-d {
-    overflow: hidden !important;
+  overflow: hidden !important;
 }
 .gm-style .gm-style-iw-t::after {
-    background: var(--color-blue) !important;
-    transform: translate(-36px, 18px) rotate(-45deg);
-    box-shadow: none;
+  background: var(--color-blue) !important;
+  transform: translate(-36px, 18px) rotate(-45deg);
+  box-shadow: none;
 }
 #markerLayer img {
-    transform-origin: center;
-    transform: scale(0.5);
-    transition: transform 0.35s ease-out;
+  transform-origin: center;
+  transform: scale(0.5);
+  transition: transform 0.35s ease-out;
 }
 #markerLayer img.grow {
-    transform: scale(1);
+  transform: scale(1);
 }
 #markerLayer img.shrink {
-    transform: scale(0.5);
+  transform: scale(0.5);
 }
 
 /* ─── Home page header overlay ──────────────────────────────────────────
@@ -401,39 +404,39 @@ section:not([aria-label])
  * the `.show` class on <header> to revert to the standard white chrome.
  */
 .home .header-overlay header {
-    background-color: transparent;
-    box-shadow: none;
+  background-color: transparent;
+  box-shadow: none;
 }
 .home .header-overlay header .dark-logo {
-    display: none;
+  display: none;
 }
 .home .header-overlay header .light-logo {
-    display: block;
+  display: block;
 }
 .home .header-overlay header .burger-menu > span {
-    background-color: white;
+  background-color: white;
 }
 .home .header-overlay header nav ul li a {
-    color: #fff;
+  color: #fff;
 }
 .home .header-overlay header.show {
-    background-color: #fff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 .home .header-overlay header.show .dark-logo {
-    display: block;
+  display: block;
 }
 .home .header-overlay header.show .light-logo {
-    display: none;
+  display: none;
 }
 .home .header-overlay header.show .burger-menu:not([data-open="true"]) > span {
-    background-color: var(--color-blue);
+  background-color: var(--color-blue);
 }
 @media (min-width: 800px) {
-    .home .header-overlay header.show nav ul li a {
-        color: var(--color-blue);
-        font-weight: 400;
-    }
+  .home .header-overlay header.show nav ul li a {
+    color: var(--color-blue);
+    font-weight: 400;
+  }
 }
 
 /* ─── Base reset / page setup ──────────────────────────────────────────
@@ -443,63 +446,63 @@ section:not([aria-label])
  *  - antialiased body text
  */
 @layer base {
-    html {
-        font-family: var(--font-sans);
-        scroll-behavior: smooth;
-        scroll-padding-top: var(--header-height);
-        /* Tailwind preflight sets html line-height: 1.5; tighten the
+  html {
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+    scroll-padding-top: var(--header-height);
+    /* Tailwind preflight sets html line-height: 1.5; tighten the
          * inherited default to 1.25. Elements with a text-* utility still
          * use their own token line-height (--text-*--line-height). */
-        line-height: 1.25;
-    }
+    line-height: 1.25;
+  }
 
-    html,
-    body {
-        /* `clip` (not `hidden`) prevents horizontal scroll WITHOUT creating a
+  html,
+  body {
+    /* `clip` (not `hidden`) prevents horizontal scroll WITHOUT creating a
          * scroll container — `hidden` forces overflow-y to auto and breaks
          * every `position: sticky` descendant (e.g. the HomeHero scene). */
-        overflow-x: clip;
-        width: 100%;
-    }
+    overflow-x: clip;
+    width: 100%;
+  }
 
-    body {
-        font-family: var(--font-sans);
-        background: #fff;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
+  body {
+    font-family: var(--font-sans);
+    background: #fff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-        font-family: var(--font-sans);
-        font-weight: 700;
-    }
-    h1 {
-        font-size: var(--text-h1);
-    }
-    h2 {
-        font-size: var(--text-h2);
-    }
-    h3 {
-        font-size: var(--text-h3);
-    }
-    h4 {
-        font-size: var(--text-h4);
-    }
-    h5 {
-        font-size: var(--text-base);
-    }
-    h6 {
-        font-size: var(--text-sm);
-    }
-    img {
-        max-width: 100%;
-        height: auto;
-    }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-sans);
+    font-weight: 700;
+  }
+  h1 {
+    font-size: var(--text-h1);
+  }
+  h2 {
+    font-size: var(--text-h2);
+  }
+  h3 {
+    font-size: var(--text-h3);
+  }
+  h4 {
+    font-size: var(--text-h4);
+  }
+  h5 {
+    font-size: var(--text-base);
+  }
+  h6 {
+    font-size: var(--text-sm);
+  }
+  img {
+    max-width: 100%;
+    height: auto;
+  }
 }
 
 /* ─── View Transition: team grid card ↔ bio hero shared-element morph ──
@@ -514,28 +517,28 @@ section:not([aria-label])
  */
 ::view-transition-group(.morph),
 ::view-transition-group(.morph-media) {
-    animation-duration: 380ms;
-    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 ::view-transition-image-pair(.morph),
 ::view-transition-image-pair(.morph-media) {
-    animation-name: vt-morph-blur;
+  animation-name: vt-morph-blur;
 }
 ::view-transition-old(.morph-media),
 ::view-transition-new(.morph-media) {
-    object-fit: cover;
-    overflow: hidden;
+  object-fit: cover;
+  overflow: hidden;
 }
 @keyframes vt-morph-blur {
-    30% {
-        filter: blur(3px);
-    }
+  30% {
+    filter: blur(3px);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-    ::view-transition-old(*),
-    ::view-transition-new(*),
-    ::view-transition-group(*) {
-        animation-duration: 0s !important;
-        animation-delay: 0s !important;
-    }
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
 }

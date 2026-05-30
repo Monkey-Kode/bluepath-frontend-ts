@@ -114,9 +114,7 @@ export const newsBodyComponents: PortableTextComponents = {
         </div>
       );
     },
-    divider: () => (
-      <hr className="not-prose my-10 h-px border-0 bg-gray-3" />
-    ),
+    divider: () => <hr className="not-prose my-10 h-px border-0 bg-gray-3" />,
     spacer: ({ value }) => (
       <div
         aria-hidden

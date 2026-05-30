@@ -61,7 +61,6 @@ export default function TableOfContents({
             ))}
           </div>
         )}
-
       </div>
     </div>
   );
