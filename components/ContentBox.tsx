@@ -110,7 +110,7 @@ function ContentBox({
             {!hidetitle && (
               <motion.h3
                 className={twMerge(
-                  'm-0 pb-6 text-center italic lowercase text-[calc(1.875rem+0.5vw)] max-tablet:text-[1.5rem] leading-none',
+                  'm-0 pb-6 text-center lowercase text-[calc(1.875rem+0.5vw)] max-tablet:text-[1.5rem] leading-none',
                   sectionHeadingPosition && 'hide-for-desktop',
                 )}
                 initial={isMobile ? 'visible' : 'hidden'}

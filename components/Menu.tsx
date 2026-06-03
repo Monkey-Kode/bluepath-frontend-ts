@@ -30,7 +30,7 @@ function Menu({
   const linkClass = twMerge(
     'cursor-pointer font-normal text-blue no-underline',
     isHeader &&
-      'max-tablet:block max-tablet:py-4 max-tablet:text-[2rem] max-tablet:font-bold max-tablet:uppercase max-tablet:tracking-[0.25rem] max-tablet:text-white max-tablet:no-underline max-tablet:transition-colors max-tablet:duration-300 max-tablet:hover:text-[#343078] max-[576px]:!p-0 max-[576px]:text-center max-[576px]:text-[1.5rem]',
+      'max-tablet:block max-tablet:py-4 max-tablet:text-[2rem] max-tablet:font-bold max-tablet:uppercase max-tablet:text-white max-tablet:no-underline max-tablet:transition-colors max-tablet:duration-300 max-tablet:hover:text-[#343078] max-[576px]:!p-0 max-[576px]:text-center max-[576px]:text-[1.5rem]',
   );
 
   return (

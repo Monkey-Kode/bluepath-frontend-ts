@@ -41,7 +41,7 @@ function Header({
       className="fixed top-0 left-0 z-[10000] w-full bg-white py-5 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-[background-color,box-shadow] duration-300 ease-in-out"
     >
       <div className="mx-auto max-w-7xl px-5 tablet:grid tablet:grid-cols-[1fr_2fr]">
-        <div className="flex flex-row flex-nowrap items-center justify-start [&>*]:max-w-[185px] [&>*]:flex-auto max-tablet:py-4  max-tablet:pr-8 max-tablet:text-left max-[375px]:px-0">
+        <div className="flex flex-row flex-nowrap items-center justify-start [&>*]:max-w-[200px] [&>*]:flex-auto max-tablet:py-4  max-tablet:pr-8 max-tablet:text-left max-[375px]:px-0">
           <Logo className="dark-logo" image={settings?.logoDark} />
           <Logo className="light-logo" image={settings?.logoLight} />
         </div>
