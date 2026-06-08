@@ -8,6 +8,8 @@ import {
   SyntheticEvent,
 } from 'react';
 
+import { twMerge } from 'tailwind-merge';
+
 import sortObject from '@/utils/sortObject';
 import TeamCard from '@/components/TeamCard';
 import TeamThumbnail from '@/components/TeamThumbnail';
@@ -17,12 +19,22 @@ import type { PageBySlugQueryResult, TeamQueryResult } from '@/sanity.types';
 const TEAM_SECTION_CLASS =
   '!bg-fixed bg-[center_bottom] bg-no-repeat [background-size:100%_100%] bg-[linear-gradient(173deg,rgba(24,85,140,1)_0%,rgba(116,162,195,1)_32%,rgba(172,208,232,1)_50%,rgba(116,162,195,1)_70%,rgba(1,65,127,1)_100%)] before:!bg-fixed';
 
+/**
+ * Full-bleed home-box layout — the former global `section:not([aria-label])`
+ * rule, passed in only when this Team section is a home box (`fullHeight`).
+ * On its own page (`/leadership`) it's normal-flow and clears the fixed header.
+ */
+const BOX_SECTION =
+  'flex w-screen items-center justify-start p-[2vw] [&>div]:w-full max-tablet:block max-tablet:p-0';
+
 function Team({
   page,
   team,
+  fullHeight = false,
 }: {
   page: NonNullable<PageBySlugQueryResult>;
   team: TeamQueryResult;
+  fullHeight?: boolean;
 }) {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -110,7 +122,11 @@ function Team({
       id={name ?? undefined}
       image={sectionBg ?? null}
       style={{ backgroundColor: bgColor ?? undefined }}
-      className={TEAM_SECTION_CLASS}
+      className={twMerge(
+        TEAM_SECTION_CLASS,
+        fullHeight ? BOX_SECTION : 'header-offset',
+      )}
+      fullHeight={fullHeight}
       onClick={(_e: SyntheticEvent) => setcurrentSlide('')}
     >
       <div

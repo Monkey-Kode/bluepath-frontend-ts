@@ -11,6 +11,9 @@ import EnvironmentalImpact from './EnvironmentalImpact';
  * `Heading` titles the Environmental Impact section; the Carbon Offsets title
  * is fixed in its component. Both children render nothing when their array is
  * absent, so a missing/empty singleton degrades gracefully (NFR-006).
+ *
+ * The two child sections are normal-flow (each carries an `aria-label`, which
+ * also names them as landmarks); `header-offset` here clears the fixed header.
  */
 function Impact({
   page,
@@ -23,7 +26,7 @@ function Impact({
   const categories = content?.environmentalCategories ?? [];
 
   return (
-    <div id={page.id ?? undefined} className="w-full bg-transparent">
+    <div id={page.id ?? undefined} className="header-offset w-full bg-transparent">
       <CarbonOffsets tabs={tabs} />
       <EnvironmentalImpact categories={categories} heading={page.Heading} />
     </div>

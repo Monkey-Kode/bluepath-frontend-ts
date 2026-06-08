@@ -182,36 +182,17 @@
 }
 
 /* ─── Legacy layout primitives ──────────────────────────────────────────
- * Class-name primitives still referenced by the section-wrapper components
- * (Plain, IndividualPageContent, Contact, Carousel, Impact, etc.). These
- * predate the Tailwind migration; preserve until each component is
- * rewritten to drop the class.
+ * Class-name primitives (.box, etc.) still referenced by section-wrapper
+ * components. These predate the Tailwind migration; preserve until each
+ * component is rewritten to drop the class.
+ *
+ * The former global `section:not([aria-label])` flex / 100vw / padding layout
+ * was removed: it was migration cruft from when every page was a full-bleed
+ * background section. Only the home boxes need it now, so that styling is
+ * passed in at the component level (Plain/Team via the `fullHeight` prop).
+ * Sub-page sections are normal-flow and clear the fixed header via their own
+ * `header-offset`.
  */
-
-/* Layout primitives apply only to content sections. The `:not([aria-label])`
- * exclusion keeps utility sections (Sonner's <section aria-label="Notifications">
- * toast region, etc.) out of the 100vh / 100vw flex layout. */
-section:not([aria-label]) {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 2vw;
-    width: 100vw;
-}
-@media (max-width: 800px) {
-    section:not([aria-label]) {
-        display: block;
-        padding: 0;
-    }
-}
-@media (min-width: 801px) {
-    section:not([aria-label]) {
-        min-height: 100vh;
-    }
-}
-section:not([aria-label]) > div {
-    width: 100%;
-}
 
 /* Box alignment (Sanity `boxLocation`) is applied via Tailwind utilities in
  * the component layer — see utils/boxAlignClass.ts. The former global
@@ -276,19 +257,6 @@ section:not([aria-label]) > div {
  * (e.g. `max-tablet:flex` on the mobile burger) via source order. */
 .light-logo {
     display: none;
-}
-
-/* Section padding on individual sub-pages (.page wrapper) */
-.page section:not([aria-label]) {
-    padding: calc(var(--mobile-header-height) + 2rem) 5% 5%;
-}
-@media (max-width: 799px) {
-    .page .hide-for-desktop.image-atop + section:not([aria-label]) {
-        padding-top: 10%;
-    }
-    .page .hide-for-desktop.image-atop {
-        padding-top: var(--mobile-header-height);
-    }
 }
 
 /* ─── Google Maps InfoWindow chrome (Projects map) ────────────────────── */

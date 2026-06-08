@@ -31,7 +31,7 @@ export default function TeamMemberBio({ member }: { member: Member }) {
           href="/leadership/"
           className="inline-block font-sans font-semibold text-sm text-blue no-underline mb-10 transition-colors duration-[250ms] hover:text-accent"
         >
-          ← Back to Leadership
+          ← Back
         </Link>
 
         <div className="grid grid-cols-[minmax(280px,420px)_1fr] gap-14 items-start max-[860px]:grid-cols-1 max-[860px]:gap-8">

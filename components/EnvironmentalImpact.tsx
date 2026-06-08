@@ -1,16 +1,24 @@
 'use client';
 
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 import SanityImage from '@/components/SanityImage';
 import formatNumber from '@/utils/formatNumber';
+import { useOnClickOutside } from '@/utils/useOnClickOutside';
 import type { ImpactPageContentQueryResult } from '@/sanity.types';
 
 type EnvironmentalCategory = NonNullable<
   NonNullable<ImpactPageContentQueryResult>['environmentalCategories']
 >[number];
+
+// Springy scale-bounce for the interactive menu icons (gated on reduced motion).
+const ICON_HOVER = {
+  scale: 1.08,
+  transition: { type: 'spring' as const, stiffness: 400, damping: 12 },
+};
+const ICON_TAP = { scale: 0.94 };
 
 /**
  * Stat values are stored as plain integer strings ("56657") and get thousands
@@ -57,6 +65,12 @@ function EnvironmentalImpact({
 }) {
   const reduceMotion = useReducedMotion();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  // Collapse back to the 4-icon grid. Triggered by the lead icon, the active
+  // tab label, clicking the heading, and clicking anywhere outside the section.
+  const collapse = useCallback(() => setSelectedIndex(null), []);
+  useOnClickOutside(sectionRef, collapse);
 
   // Defensive: nothing to render without categories (NFR-006).
   if (!categories.length) return null;
@@ -77,8 +91,19 @@ function EnvironmentalImpact({
       };
 
   return (
-    <section className="w-full py-12 text-center tablet:py-20 flex-col place-items-center justify-center">
-      <h2 className="text-blue mb-4 px-4 text-[7vw] font-extrabold leading-tight tablet:mb-8 tablet:text-[3rem]">
+    <section
+      ref={sectionRef}
+      aria-label={heading || 'Environmental Impact Measurement'}
+      className="w-full py-12 text-center tablet:py-20 flex-col place-items-center justify-center"
+    >
+      {/* When a category is open, clicking the heading returns to the grid. */}
+      <h2
+        onClick={selectedIndex !== null ? collapse : undefined}
+        className={twMerge(
+          'text-blue mb-4 px-4 text-[7vw] font-extrabold leading-tight tablet:mb-8 tablet:text-[3rem]',
+          selectedIndex !== null && 'cursor-pointer',
+        )}
+      >
         {heading || 'Environmental Impact Measurement'}
       </h2>
 
@@ -106,10 +131,12 @@ function EnvironmentalImpact({
               <button
                 type="button"
                 aria-pressed={isActive}
-                onClick={() => setSelectedIndex(i)}
+                onClick={() => setSelectedIndex(isActive ? null : i)}
                 className={twMerge(
                   'cursor-pointer appearance-none border-none bg-transparent px-1 py-1 uppercase transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent',
-                  isActive ? 'text-blue' : 'text-gray-1 hover:text-blue',
+                  isActive
+                    ? 'text-accent'
+                    : 'text-gray-1 hover:text-accent',
                 )}
               >
                 {category.name}
@@ -119,61 +146,70 @@ function EnvironmentalImpact({
         })}
       </div>
 
-      <motion.div
-        layout={!reduceMotion}
-        className="mx-auto flex max-w-5xl flex-col items-center justify-center gap-8 px-4 tablet:flex-row tablet:items-center tablet:gap-12"
-      >
-        {/* Icon area: 4-icon grid when collapsed; lead icon when open. */}
-        <motion.div
-          layout={!reduceMotion}
-          className={twMerge(
-            'grid shrink-0 place-items-center gap-6 tablet:gap-8',
-            selectedIndex === null
-              ? 'grid-cols-2 tablet:grid-cols-4'
-              : 'grid-cols-1',
-          )}
-        >
-          <AnimatePresence mode="popLayout" initial={false}>
-            {categories.map((category, i) => {
-              if (selectedIndex !== null && i !== selectedIndex) return null;
-              const isActive = i === selectedIndex;
-              return (
+      {/*
+        Collapsed = 4-icon grid; open = lead icon + stats, cross-faded by
+        `mode="wait"` keyed on the selection. The lead icon is always a freshly
+        mounted, in-flow button (no popLayout/layoutId), so clicking it to
+        collapse always lands — that combo previously left the lead icon's hit
+        target overlaid/offset, which is why you couldn't get back to the grid.
+      */}
+      <div className="mx-auto flex min-h-[200px] max-w-5xl flex-col items-center justify-center px-4 tablet:min-h-[240px]">
+        <AnimatePresence mode="wait" initial={false}>
+          {selectedIndex === null || !selected ? (
+            <motion.div
+              key="grid"
+              initial="hidden"
+              animate="visible"
+              exit={fadeUp.exit}
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: reduceMotion ? 0 : 0.07,
+                    delayChildren: reduceMotion ? 0 : 0.05,
+                  },
+                },
+              }}
+              className="grid grid-cols-2 place-items-center gap-6 tablet:grid-cols-4 tablet:gap-8"
+            >
+              {categories.map((category, i) => (
                 <motion.button
                   key={category._key}
-                  layout={!reduceMotion}
-                  layoutId={reduceMotion ? undefined : category._key}
                   type="button"
-                  initial={fadeUp.initial}
-                  animate={fadeUp.animate}
-                  exit={fadeUp.exit}
+                  variants={{ hidden: fadeUp.initial, visible: fadeUp.animate }}
                   transition={spring}
-                  onClick={() => setSelectedIndex(isActive ? null : i)}
-                  aria-label={
-                    isActive
-                      ? `Collapse ${category.name ?? 'category'}`
-                      : `Show ${category.name ?? 'category'} stats`
-                  }
-                  aria-expanded={isActive}
-                  className="cursor-pointer appearance-none rounded-full border-none bg-transparent p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                  whileHover={reduceMotion ? undefined : ICON_HOVER}
+                  whileTap={reduceMotion ? undefined : ICON_TAP}
+                  onClick={() => setSelectedIndex(i)}
+                  aria-label={`Show ${category.name ?? 'category'} stats`}
+                  className="cursor-pointer appearance-none border-none bg-transparent p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
                 >
-                  <IconCircle category={category} active={isActive} />
+                  <IconCircle category={category} />
                 </motion.button>
-              );
-            })}
-          </AnimatePresence>
-        </motion.div>
-
-        {/* Content: 3 stats + summary, cross-faded on category switch. */}
-        <AnimatePresence mode="wait" initial={false}>
-          {selected && (
+              ))}
+            </motion.div>
+          ) : (
             <motion.div
-              key={selected._key}
+              key={`cat-${selectedIndex}`}
               initial={fadeUp.initial}
               animate={fadeUp.animate}
               exit={fadeUp.exit}
               transition={spring}
-              className="flex flex-col items-center gap-6 tablet:items-start"
+              className="flex w-full flex-col items-center justify-center gap-8 tablet:flex-row tablet:items-center tablet:gap-12"
             >
+              <motion.button
+                type="button"
+                whileHover={reduceMotion ? undefined : ICON_HOVER}
+                whileTap={reduceMotion ? undefined : ICON_TAP}
+                onClick={() => setSelectedIndex(null)}
+                aria-label={`Collapse ${selected.name ?? 'category'}`}
+                aria-expanded
+                className="shrink-0 cursor-pointer appearance-none border-none bg-transparent p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+              >
+                <IconCircle category={selected} active />
+              </motion.button>
+
               <motion.div
                 initial="hidden"
                 animate="visible"
@@ -183,36 +219,38 @@ function EnvironmentalImpact({
                     transition: { staggerChildren: reduceMotion ? 0 : 0.08 },
                   },
                 }}
-                className="flex flex-col items-center gap-6 tablet:flex-row tablet:items-start tablet:gap-10"
+                className="flex flex-col items-center gap-6 tablet:items-start"
               >
-                {(selected.stats ?? []).map((stat) => (
-                  <motion.div
-                    key={stat._key}
-                    variants={{
-                      hidden: fadeUp.initial,
-                      visible: fadeUp.animate,
-                    }}
-                    transition={spring}
-                    className="flex max-w-[16ch] flex-col items-center text-center"
-                  >
-                    <span className="text-blue text-2xl font-extrabold leading-tight tablet:text-3xl">
-                      {displayStat(stat.value)}
-                    </span>
-                    <span className="text-gray-1 mt-1 text-xs leading-snug">
-                      {stat.label}
-                    </span>
-                  </motion.div>
-                ))}
+                <div className="flex flex-col items-center gap-6 tablet:flex-row tablet:items-start tablet:gap-10">
+                  {(selected.stats ?? []).map((stat) => (
+                    <motion.div
+                      key={stat._key}
+                      variants={{
+                        hidden: fadeUp.initial,
+                        visible: fadeUp.animate,
+                      }}
+                      transition={spring}
+                      className="flex max-w-[16ch] flex-col items-center text-center"
+                    >
+                      <span className="text-blue text-2xl font-extrabold leading-tight tablet:text-3xl">
+                        {displayStat(stat.value)}
+                      </span>
+                      <span className="text-gray-1 mt-1 text-xs leading-snug">
+                        {stat.label}
+                      </span>
+                    </motion.div>
+                  ))}
+                </div>
+                {selected.summary && (
+                  <p className="text-blue w-full text-center text-sm tablet:text-base">
+                    {selected.summary}
+                  </p>
+                )}
               </motion.div>
-              {selected.summary && (
-                <p className="text-blue w-full text-center text-sm tablet:text-base">
-                  {selected.summary}
-                </p>
-              )}
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
+      </div>
     </section>
   );
 }
