@@ -212,21 +212,6 @@ section:not([aria-label]) {
 section:not([aria-label]) > div {
     width: 100%;
 }
-section:not([aria-label])
-    > div:not(.team-wrapper):not([class*="Contact"]):not([class*="Impact"]):not([class*="prose"]) {
-    display: flex;
-    align-items: center;
-    height: 100%;
-}
-@media (max-width: 800px) {
-    section:not([aria-label])
-        > div:not(.team-wrapper):not([class*="Contact"]):not([class*="Impact"]):not(
-            [class*="prose"]
-        ) {
-        background-color: white;
-        margin-inline: auto;
-    }
-}
 
 /* Box alignment (Sanity `boxLocation`) is applied via Tailwind utilities in
  * the component layer — see utils/boxAlignClass.ts. The former global
