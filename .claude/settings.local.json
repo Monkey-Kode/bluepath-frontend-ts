@@ -43,10 +43,17 @@
       "Bash(gh api *)",
       "Bash(gh project *)",
       "Bash(gh issue *)"
+    ],
+    "additionalDirectories": [
+      "/Users/jullweber/Sites/bluepath"
     ]
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["clickup", "context7", "Sanity"],
+  "enabledMcpjsonServers": [
+    "clickup",
+    "context7",
+    "Sanity"
+  ],
   "skillOverrides": {
     "find-skills": "off",
     "mk:accessibility-compliance": "off",
