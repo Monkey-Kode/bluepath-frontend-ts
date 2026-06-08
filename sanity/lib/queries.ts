@@ -150,32 +150,29 @@ export const pageBySlugQuery = defineQuery(`
 
 /* ---------- page content clusters (contentType dispatch) ---------- */
 
-export const impactItemsQuery = defineQuery(`
-  *[_type == "impact"] | order(order asc){
+export const impactPageContentQuery = defineQuery(`
+  *[_id == "impactPageContent"][0]{
     _id,
-    "id": _id,
-    name,
-    order,
-    content1, content2, content3, content4,
-    contentheading1, contentheading2, contentheading3, contentheading4,
-    image{ ${imageFields} }
-  }
-`);
-
-export const carbonoffsetsQuery = defineQuery(`
-  *[_type == "carbonoffsets"] | order(order asc){
-    _id,
-    "id": _id,
-    name,
-    order,
-    hexagons[]{
+    carbonOffsetTabs[]{
       _key,
-      heading,
-      order,
       name,
-      content,
-      backgroundColor{ hex },
-      icon{ ${imageFields} }
+      metrics[]{
+        _key,
+        value,
+        label,
+        icon{ ${imageFields} }
+      }
+    },
+    environmentalCategories[]{
+      _key,
+      name,
+      summary,
+      icon{ ${imageFields} },
+      stats[]{
+        _key,
+        value,
+        label
+      }
     }
   }
 `);
