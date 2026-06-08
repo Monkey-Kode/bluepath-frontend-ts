@@ -36,9 +36,9 @@
  * `bg-blue`, `text-accent`, `border-accent` produce readable utilities.
  */
 @theme {
-    /* Font families — next/font sets --font-inter / --font-baskerville on <html> */
+    /* Font families — next/font sets --font-urbanist on <html> */
     --font-sans:
-        var(--font-inter), Inter, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+        var(--font-urbanist), Urbanist, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
 
     /* Brand & neutral palette */
     --color-blue: #004181;
