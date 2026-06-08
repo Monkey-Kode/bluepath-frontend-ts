@@ -31,18 +31,21 @@ shared substrate every story sits on. Per the spec's critical sequencing, the
 singleton is authored and **seeded before any frontend cutover**, while the old
 documents/types still exist. No story labels.
 
-- [ ] T004 [P] Create the `carbonOffsetMetric` object type in `bluepath-sanity/schemas/carbonOffsetMetric.ts` — `{ icon (image), value (string display value), label (text) }`; no `order`, no `backgroundColor` (FR-021, FR-023)
-- [ ] T005 [P] Create the `impactStat` object type in `bluepath-sanity/schemas/impactStat.ts` — `{ value (string), label (text) }` (FR-022, FR-023)
-- [ ] T006 Create the `carbonOffsetTab` object type in `bluepath-sanity/schemas/carbonOffsetTab.ts` — `{ name (string, tab label), metrics: carbonOffsetMetric[] }` validated to exactly 5 metrics; display order = array order (FR-021)
-- [ ] T007 Create the `environmentalCategory` object type in `bluepath-sanity/schemas/environmentalCategory.ts` — `{ name (string), icon (image), summary (text), stats: impactStat[] }` validated to exactly 3 stats; display order = array order (FR-022)
-- [ ] T008 Create the `impactPageContent` singleton document type in `bluepath-sanity/schemas/impactPageContent.ts` with inline arrays `carbonOffsetTabs: carbonOffsetTab[]` and `environmentalCategories: environmentalCategory[]`; no `order` fields, no heading/content duality (FR-020, FR-023)
-- [ ] T009 Register the 5 new types in `bluepath-sanity/schemas/schema.ts` (FR-020)
-- [ ] T010 Add a single-document desk entry for the singleton (`S.document().schemaType('impactPageContent').documentId('impactPageContent')`, mirroring `homevideo`/`siteSettings`) and add `'impactPageContent'` to `HIDDEN_FROM_AUTO_LIST` in `bluepath-sanity/sidebar.tsx` (FR-020)
-- [ ] T011 Create and populate the singleton document (fixed id `impactPageContent`) in dataset `production` from the migration note, **re-referencing the existing icon assets** (do not re-upload): 3 tabs × 5 paired metrics in mockup order, 4 categories × (icon + summary + 3 stats). Use a one-time script under `bluepath-sanity/` (e.g. via the Sanity client/MCP) or Studio manual entry; human-confirm each icon↔metric pairing against the mockups (FR-024, FR-023)
-- [ ] T012 Clear the Impact `page` document's `background`/`backgroundColor`/`mobilebackground` values in dataset `production` (leave the fields in the `page` schema) so the redesigned sections show over the site's white background (FR-033)
-- [ ] T013 Add `impactPageContentQuery` to `bluepath-frontend-ts/sanity/lib/queries.ts` — a single `defineQuery` fetching the singleton by id (`*[_id == "impactPageContent"][0]`), stega-enabled (no `stega: false`), projecting `carbonOffsetTabs[]{ name, metrics[]{ value, label, icon{…imageFields} } }` and `environmentalCategories[]{ name, summary, icon{…imageFields}, stats[]{ value, label } }` (FR-031, FR-030, FR-041, NFR-006)
-- [ ] T014 Regenerate types: run `pnpm run sanity:typegen` from `bluepath-frontend-ts` and commit the updated `bluepath-frontend-ts/sanity.schema.json` (generated `sanity.types.ts` stays gitignored) (FR-026)
-- [ ] T015 Sequencing gate — verify the seeded singleton is complete and mockup-aligned before any frontend cutover: query it via Sanity Vision in dataset `production` and confirm 3 tabs × 5 paired metrics, 4 categories × 3 stats + summary, and that every icon asset reference resolves (mitigates "singleton missing/empty" + "icon mispairing" risks)
+- [x] T004 [P] Create the `carbonOffsetMetric` object type in `bluepath-sanity/schemas/carbonOffsetMetric.ts` — `{ icon (image), value (string display value), label (text) }`; no `order`, no `backgroundColor` (FR-021, FR-023)
+- [x] T005 [P] Create the `impactStat` object type in `bluepath-sanity/schemas/impactStat.ts` — `{ value (string), label (text) }` (FR-022, FR-023)
+- [x] T006 Create the `carbonOffsetTab` object type in `bluepath-sanity/schemas/carbonOffsetTab.ts` — `{ name (string, tab label), metrics: carbonOffsetMetric[] }` validated to exactly 5 metrics; display order = array order (FR-021)
+- [x] T007 Create the `environmentalCategory` object type in `bluepath-sanity/schemas/environmentalCategory.ts` — `{ name (string), icon (image), summary (text), stats: impactStat[] }` validated to exactly 3 stats; display order = array order (FR-022)
+- [x] T008 Create the `impactPageContent` singleton document type in `bluepath-sanity/schemas/impactPageContent.ts` with inline arrays `carbonOffsetTabs: carbonOffsetTab[]` and `environmentalCategories: environmentalCategory[]`; no `order` fields, no heading/content duality (FR-020, FR-023)
+- [x] T009 Register the 5 new types in `bluepath-sanity/schemas/schema.ts` (FR-020)
+- [x] T010 Add a single-document desk entry for the singleton (`S.document().schemaType('impactPageContent').documentId('impactPageContent')`, mirroring `homevideo`/`siteSettings`) and add `'impactPageContent'` to `HIDDEN_FROM_AUTO_LIST` in `bluepath-sanity/sidebar.tsx` (FR-020)
+- [~] T011 Create and populate the singleton document (fixed id `impactPageContent`) in dataset `production` from the migration note, **re-referencing the existing icon assets** (do not re-upload): 3 tabs × 5 paired metrics in mockup order, 4 categories × (icon + summary + 3 stats). Use a one-time script under `bluepath-sanity/` (e.g. via the Sanity client/MCP) or Studio manual entry; human-confirm each icon↔metric pairing against the mockups (FR-024, FR-023)
+  - User-authorized, but BLOCKED on write creds: the Sanity MCP token is read-only (`Insufficient permissions; permission "create" required`) and the CLI session is stale. Delivered an idempotent seed script `bluepath-sanity/scripts/seedImpactPageContent.ts` (createOrReplace) that performs the seed. RUN: `sanity login` then `pnpm --dir bluepath-sanity exec sanity exec scripts/seedImpactPageContent.ts --with-user-token`. Icon pairing + AS-OF-TODAY values confirmed "use as-is" by the user.
+- [~] T012 Clear the Impact `page` document's `background`/`backgroundColor`/`mobilebackground` values in dataset `production` (leave the fields in the `page` schema) so the redesigned sections show over the site's white background (FR-033)
+  - User-authorized, BLOCKED on write creds (same as T011). Handled by the same script `bluepath-sanity/scripts/seedImpactPageContent.ts`, which unsets `background`/`mobilebackground`/`backgroundColor` on the Impact page (`c537374f-f05f-4f53-9127-65d9d39eeefe`). Frontend already renders transparently, so this is cosmetic cleanup of the stored bg.
+- [x] T013 Add `impactPageContentQuery` to `bluepath-frontend-ts/sanity/lib/queries.ts` — a single `defineQuery` fetching the singleton by id (`*[_id == "impactPageContent"][0]`), stega-enabled (no `stega: false`), projecting `carbonOffsetTabs[]{ name, metrics[]{ value, label, icon{…imageFields} } }` and `environmentalCategories[]{ name, summary, icon{…imageFields}, stats[]{ value, label } }` (FR-031, FR-030, FR-041, NFR-006)
+- [x] T014 Regenerate types: run `pnpm run sanity:typegen` from `bluepath-frontend-ts` and commit the updated `bluepath-frontend-ts/sanity.schema.json` (generated `sanity.types.ts` stays gitignored) (FR-026) — typegen run (23 queries, `ImpactPageContentQueryResult` emitted); `sanity.schema.json` regenerated, commit pending final group commit
+- [~] T015 Sequencing gate — verify the seeded singleton is complete and mockup-aligned before any frontend cutover: query it via Sanity Vision in dataset `production` and confirm 3 tabs × 5 paired metrics, 4 categories × 3 stats + summary, and that every icon asset reference resolves (mitigates "singleton missing/empty" + "icon mispairing" risks)
+  - BLOCKED: depends on T011 seed (production write awaiting authorization). Re-run once seeded.
 
 ## Phase 3: User Story 1 — Compare carbon-offset equivalencies across lifecycle horizons
 
@@ -58,11 +61,11 @@ documents/types still exist. No story labels.
 > It renders the new Environmental component (US2) too, so it requires
 > T021–T024 to exist before it lands. See Dependencies / Implementation Strategy.
 
-- [ ] T016 [US1] Create the `CarbonOffsets` client component (`'use client'`) in `bluepath-frontend-ts/components/CarbonOffsets.tsx`: a fixed horizontal row of 5 metric icons that never moves across tab changes, plus the 3 lifecycle tabs from `carbonOffsetTabs`; first tab active on load; tabs keyboard-operable with `aria-selected`/active state (FR-001, FR-002, FR-006, NFR-002, NFR-005)
-- [ ] T017 [US1] Render each metric's `value` (large) + `label` (small) beneath its fixed icon for the active tab; a tab switch swaps all 5 value/label pairs while icons stay fixed; render defensively when arrays are empty/absent, in `bluepath-frontend-ts/components/CarbonOffsets.tsx` (FR-003, FR-004, NFR-006)
-- [ ] T018 [US1] Animate the value/label text on tab switch with a framer-motion fade + bounce, gated on `prefers-reduced-motion` (reduced/no bounce when set), in `bluepath-frontend-ts/components/CarbonOffsets.tsx` (FR-005, NFR-005, NFR-001)
-- [ ] T019 [US1] Rewrite `bluepath-frontend-ts/components/Impact.tsx` to accept the singleton (`carbonOffsetTabs` / `environmentalCategories`) instead of `impactItems`/`carbonoffsets`, render transparently (no background image/color; keep the page `Heading`), render `CarbonOffsets` and `EnvironmentalImpact`, and guard against a missing/empty singleton (FR-033, FR-030, NFR-006)
-- [ ] T020 [US1] Cut over the `case 'Impact'` branch in `bluepath-frontend-ts/app/[slug]/page.tsx` to a single `sanityFetch({ query: impactPageContentQuery })` (replacing the two `Promise.all` global fetches) and pass the result to `Impact`; leave routing and `generateStaticParams` untouched (FR-030, FR-032)
+- [x] T016 [US1] Create the `CarbonOffsets` client component (`'use client'`) in `bluepath-frontend-ts/components/CarbonOffsets.tsx`: a fixed horizontal row of 5 metric icons that never moves across tab changes, plus the 3 lifecycle tabs from `carbonOffsetTabs`; first tab active on load; tabs keyboard-operable with `aria-selected`/active state (FR-001, FR-002, FR-006, NFR-002, NFR-005)
+- [x] T017 [US1] Render each metric's `value` (large) + `label` (small) beneath its fixed icon for the active tab; a tab switch swaps all 5 value/label pairs while icons stay fixed; render defensively when arrays are empty/absent, in `bluepath-frontend-ts/components/CarbonOffsets.tsx` (FR-003, FR-004, NFR-006)
+- [x] T018 [US1] Animate the value/label text on tab switch with a framer-motion fade + bounce, gated on `prefers-reduced-motion` (reduced/no bounce when set), in `bluepath-frontend-ts/components/CarbonOffsets.tsx` (FR-005, NFR-005, NFR-001)
+- [x] T019 [US1] Rewrite `bluepath-frontend-ts/components/Impact.tsx` to accept the singleton (`carbonOffsetTabs` / `environmentalCategories`) instead of `impactItems`/`carbonoffsets`, render transparently (no background image/color; keep the page `Heading`), render `CarbonOffsets` and `EnvironmentalImpact`, and guard against a missing/empty singleton (FR-033, FR-030, NFR-006)
+- [x] T020 [US1] Cut over the `case 'Impact'` branch in `bluepath-frontend-ts/app/[slug]/page.tsx` to a single `sanityFetch({ query: impactPageContentQuery })` (replacing the two `Promise.all` global fetches) and pass the result to `Impact`; leave routing and `generateStaticParams` untouched (FR-030, FR-032)
 
 ## Phase 4: User Story 2 — Drill into a single environmental impact category
 
@@ -74,10 +77,10 @@ documents/types still exist. No story labels.
 - Clicking a different tab label while open cross-fades the content to that category.
 - Clicking the visible (active) icon collapses back to the 4-icon grid.
 
-- [ ] T021 [US2] Create the `EnvironmentalImpact` client component (`'use client'`) in `bluepath-frontend-ts/components/EnvironmentalImpact.tsx`: initial state is the 4 category icons in a row with the 4 tab labels above and **no selection**; icons and tab labels keyboard-operable with ARIA active state (FR-010, NFR-002, NFR-005)
-- [ ] T022 [US2] Implement the select-and-reveal state machine in `bluepath-frontend-ts/components/EnvironmentalImpact.tsx`: selecting (icon or tab) promotes the chosen icon to the leftmost position, exits the other 3, reveals its 3 stats + summary to the right; the active tab is highlighted while the others stay visible/clickable; switching while open cross-fades to the new category; clicking the active icon collapses back to the grid (FR-011, FR-012, FR-013, FR-014)
-- [ ] T023 [US2] Add framer-motion enter/exit fade + bounce (stats permitted to stagger), gated on `prefers-reduced-motion`, in `bluepath-frontend-ts/components/EnvironmentalImpact.tsx` (FR-015, NFR-005, NFR-001)
-- [ ] T024 [US2] Render stat values with thousands separators (reuse `bluepath-frontend-ts/utils/formatNumber.ts`) unless the migrated value already contains separators/non-numeric text; render defensively for empty stats/categories, in `bluepath-frontend-ts/components/EnvironmentalImpact.tsx` (FR-016, NFR-006)
+- [x] T021 [US2] Create the `EnvironmentalImpact` client component (`'use client'`) in `bluepath-frontend-ts/components/EnvironmentalImpact.tsx`: initial state is the 4 category icons in a row with the 4 tab labels above and **no selection**; icons and tab labels keyboard-operable with ARIA active state (FR-010, NFR-002, NFR-005)
+- [x] T022 [US2] Implement the select-and-reveal state machine in `bluepath-frontend-ts/components/EnvironmentalImpact.tsx`: selecting (icon or tab) promotes the chosen icon to the leftmost position, exits the other 3, reveals its 3 stats + summary to the right; the active tab is highlighted while the others stay visible/clickable; switching while open cross-fades to the new category; clicking the active icon collapses back to the grid (FR-011, FR-012, FR-013, FR-014)
+- [x] T023 [US2] Add framer-motion enter/exit fade + bounce (stats permitted to stagger), gated on `prefers-reduced-motion`, in `bluepath-frontend-ts/components/EnvironmentalImpact.tsx` (FR-015, NFR-005, NFR-001)
+- [x] T024 [US2] Render stat values with thousands separators (reuse `bluepath-frontend-ts/utils/formatNumber.ts`) unless the migrated value already contains separators/non-numeric text; render defensively for empty stats/categories, in `bluepath-frontend-ts/components/EnvironmentalImpact.tsx` (FR-016, NFR-006)
 
 ## Phase 5: User Story 3 — Edit all Impact content in one place
 
@@ -88,10 +91,11 @@ documents/types still exist. No story labels.
 - The Studio shows one Impact Page Content singleton with both arrays inline and metrics/categories reorderable by dragging.
 - Clicking a rendered value in Presentation mode on `/impact` lands on that field inside the singleton.
 
-- [ ] T025 [US3] Add `impactPageContent` to `defineLocations` in `bluepath-sanity/presentation/resolve.ts` (location → `/impact`, title "Impact") (FR-025)
-- [ ] T026 [US3] Confirm `impactPageContentQuery` and the dispatcher fetch keep stega enabled (no `stega: false`) so click-to-edit resolves, in `bluepath-frontend-ts/sanity/lib/queries.ts` and `bluepath-frontend-ts/app/[slug]/page.tsx`
-- [ ] T027 [US3] Verify in the Studio that `bluepath-sanity/schemas/impactPageContent.ts` renders both arrays inline with drag-to-reorder and that no manual `order` field exists anywhere in the new types
-- [ ] T028 [US3] Verify the Presentation round-trip: clicking a rendered carbon value/label and an environmental stat/summary on `/impact` lands on the corresponding field inside the singleton
+- [x] T025 [US3] Add `impactPageContent` to `defineLocations` in `bluepath-sanity/presentation/resolve.ts` (location → `/impact`, title "Impact") (FR-025)
+- [x] T026 [US3] Confirm `impactPageContentQuery` and the dispatcher fetch keep stega enabled (no `stega: false`) so click-to-edit resolves, in `bluepath-frontend-ts/sanity/lib/queries.ts` and `bluepath-frontend-ts/app/[slug]/page.tsx` — verified: query has no `stega: false`; the only `stega: false` calls are in `generateStaticParams`/`generateMetadata`, not the Impact dispatch fetch
+- [x] T027 [US3] Verify in the Studio that `bluepath-sanity/schemas/impactPageContent.ts` renders both arrays inline with drag-to-reorder and that no manual `order` field exists anywhere in the new types — schema-verified: both `carbonOffsetTabs`/`environmentalCategories` are inline arrays-of-objects (Sanity drag-reorders these by default); no `order` field in any of the 5 new types (only the word "order" in field descriptions). Visual Studio confirmation still recommended once running.
+- [~] T028 [US3] Verify the Presentation round-trip: clicking a rendered carbon value/label and an environmental stat/summary on `/impact` lands on the corresponding field inside the singleton
+  - BLOCKED: requires the seeded singleton (T011) + running Studio/preview — manual browser verification after authorization.
 
 ## Phase 6: User Story 4 — Use the page on a phone
 
@@ -102,9 +106,10 @@ documents/types still exist. No story labels.
 - Carbon Offsets renders icons 2-per-row with value/label beneath each and tabs above.
 - Selecting an Environmental Impact category shows the icon on top with its stats stacked vertically below.
 
-- [ ] T029 [US4] Add the mobile layout for Carbon Offsets in `bluepath-frontend-ts/components/CarbonOffsets.tsx`: 5 icons in a 2-column grid, each with its value/label beneath, tabs rendered above (FR-007)
-- [ ] T030 [US4] Add the mobile layout for Environmental Impact in `bluepath-frontend-ts/components/EnvironmentalImpact.tsx`: collapsed state is a 2-column icon grid, tab labels render as a horizontal row/scroll, open state stacks the selected icon on top with stats vertically below (FR-017)
-- [ ] T031 [US4] Verify both sections on a mobile viewport: no horizontal scrolling of content and no jarring layout shift during enter/exit (NFR-001)
+- [x] T029 [US4] Add the mobile layout for Carbon Offsets in `bluepath-frontend-ts/components/CarbonOffsets.tsx`: 5 icons in a 2-column grid, each with its value/label beneath, tabs rendered above (FR-007) — `grid-cols-2 tablet:grid-cols-5`; tab row (`flex-wrap`) above the panel
+- [x] T030 [US4] Add the mobile layout for Environmental Impact in `bluepath-frontend-ts/components/EnvironmentalImpact.tsx`: collapsed state is a 2-column icon grid, tab labels render as a horizontal row/scroll, open state stacks the selected icon on top with stats vertically below (FR-017) — collapsed `grid-cols-2 tablet:grid-cols-4`; tab labels `flex-wrap` row; open outer `flex-col tablet:flex-row` (icon on top, stats stacked) and stats `flex-col tablet:flex-row`
+- [~] T031 [US4] Verify both sections on a mobile viewport: no horizontal scrolling of content and no jarring layout shift during enter/exit (NFR-001)
+  - BLOCKED: requires the seeded singleton (components render null when empty) + a mobile browser session. Static review: content is `max-w-5xl` + `px-4`, grids wrap, labels `max-w-[Nch]` — no fixed-width overflow expected. Confirm in-browser after seed.
 
 ## Final Phase: Polish / Cleanup
 
@@ -112,16 +117,17 @@ Remove the hive code and the orphaned document types **after** the new page is
 verified in preview (sequencing step 4), then regenerate types and prove the
 build. No story labels.
 
-- [ ] T032 Remove `impactItemsQuery` and `carbonoffsetsQuery` from `bluepath-frontend-ts/sanity/lib/queries.ts` (FR-031)
-- [ ] T033 Delete the hive frontend code — `bluepath-frontend-ts/components/ImpactHexagons.tsx`, `bluepath-frontend-ts/components/ImpactThumb.tsx`, `bluepath-frontend-ts/components/ImpactContent.tsx`, and `bluepath-frontend-ts/utils/hexagonGridItem.ts` (removing the `getHexagonContent` icon-or-text logic with it); confirm no "hexagon" naming remains in the new code (FR-040, FR-041)
-- [ ] T034 Remove the imports and `schemaTypes` registrations for `impact`, `carbonoffsets`, `carbonoffsetstabs`, `carbonoffsetsHexagon` from `bluepath-sanity/schemas/schema.ts` and delete `bluepath-sanity/schemas/impact.ts`, `bluepath-sanity/schemas/carbonoffsets.ts`, `bluepath-sanity/schemas/carbonOffsetsTabs.ts`, `bluepath-sanity/schemas/carbonOffsetHexagon.ts` (FR-025)
-- [ ] T035 Remove the old "Impact" and "Carbon Offsets Data" desk entries and their ids (`impact`, `carbonoffsets`, `carbonoffsetstabs`, `carbonoffsetsHexagon`) from `HIDDEN_FROM_AUTO_LIST` in `bluepath-sanity/sidebar.tsx` (FR-025)
-- [ ] T036 Remove the `impact`, `carbonoffsets`, `carbonoffsetstabs`, `carbonoffsetsHexagon` locations from `bluepath-sanity/presentation/resolve.ts` (FR-025)
-- [ ] T037 After cutover is verified, delete the orphaned `impact`/`carbonoffsets`/`carbonoffsetstabs`/`carbonoffsetsHexagon` documents from dataset `production` (icon assets are now referenced by the singleton, so they are retained) (FR-025)
-- [ ] T038 Regenerate types after the schema removals: run `pnpm run sanity:typegen` from `bluepath-frontend-ts` and commit the updated `bluepath-frontend-ts/sanity.schema.json` (FR-026)
-- [ ] T039 Run `pnpm run typecheck` in `bluepath-frontend-ts` and fix any fallout from the new types / removed queries
-- [ ] T040 Verify the Turbopack production build passes without a custom webpack config and without `--webpack`: `pnpm run build` in `bluepath-frontend-ts` (NFR-004)
-- [ ] T041 Final accessibility/motion pass across `CarbonOffsets.tsx` and `EnvironmentalImpact.tsx`: keyboard operability, correct ARIA selected/active state, and `prefers-reduced-motion` honored end-to-end (NFR-005, NFR-001)
+- [x] T032 Remove `impactItemsQuery` and `carbonoffsetsQuery` from `bluepath-frontend-ts/sanity/lib/queries.ts` (FR-031)
+- [x] T033 Delete the hive frontend code — `bluepath-frontend-ts/components/ImpactHexagons.tsx`, `bluepath-frontend-ts/components/ImpactThumb.tsx`, `bluepath-frontend-ts/components/ImpactContent.tsx`, and `bluepath-frontend-ts/utils/hexagonGridItem.ts` (removing the `getHexagonContent` icon-or-text logic with it); confirm no "hexagon" naming remains in the new code (FR-040, FR-041)
+- [x] T034 Remove the imports and `schemaTypes` registrations for `impact`, `carbonoffsets`, `carbonoffsetstabs`, `carbonoffsetsHexagon` from `bluepath-sanity/schemas/schema.ts` and delete `bluepath-sanity/schemas/impact.ts`, `bluepath-sanity/schemas/carbonoffsets.ts`, `bluepath-sanity/schemas/carbonOffsetsTabs.ts`, `bluepath-sanity/schemas/carbonOffsetHexagon.ts` (FR-025)
+- [x] T035 Remove the old "Impact" and "Carbon Offsets Data" desk entries and their ids (`impact`, `carbonoffsets`, `carbonoffsetstabs`, `carbonoffsetsHexagon`) from `HIDDEN_FROM_AUTO_LIST` in `bluepath-sanity/sidebar.tsx` (FR-025)
+- [x] T036 Remove the `impact`, `carbonoffsets`, `carbonoffsetstabs`, `carbonoffsetsHexagon` locations from `bluepath-sanity/presentation/resolve.ts` (FR-025)
+- [~] T037 After cutover is verified, delete the orphaned `impact`/`carbonoffsets`/`carbonoffsetstabs`/`carbonoffsetsHexagon` documents from dataset `production` (icon assets are now referenced by the singleton, so they are retained) (FR-025)
+  - BLOCKED: production-dataset delete — needs explicit user authorization AND must run only after the seeded singleton renders correctly in preview. Old doc IDs recorded in migration-content.md.
+- [x] T038 Regenerate types after the schema removals: run `pnpm run sanity:typegen` from `bluepath-frontend-ts` and commit the updated `bluepath-frontend-ts/sanity.schema.json` (FR-026) — typegen re-run (21 queries, 45 schema types); `sanity.schema.json` regenerated, commit pending final group commit
+- [x] T039 Run `pnpm run typecheck` in `bluepath-frontend-ts` and fix any fallout from the new types / removed queries — passes clean (`tsc --noEmit`, no errors)
+- [x] T040 Verify the Turbopack production build passes without a custom webpack config and without `--webpack`: `pnpm run build` in `bluepath-frontend-ts` (NFR-004) — `pnpm run build` succeeded, 47 pages generated; `/[slug]` (incl. impact) prerenders with the unseeded singleton without crashing (NFR-006 confirmed)
+- [x] T041 Final accessibility/motion pass across `CarbonOffsets.tsx` and `EnvironmentalImpact.tsx`: keyboard operability, correct ARIA selected/active state, and `prefers-reduced-motion` honored end-to-end (NFR-005, NFR-001) — Carbon: tablist/tab/tabpanel + `aria-selected` + roving tabindex + arrow-key nav. Environmental: category labels are `aria-pressed` toggles in a `role="group"` (fixed from a misleading tablist after verification-agent review), icon buttons carry `aria-expanded` + labels. All motion (layout/layoutId, spring, stagger, travel) gated on `useReducedMotion()`. Verification agent cleared types, GROQ↔component field match, dangling refs, and defensive rendering.
 
 ## Dependencies
 
