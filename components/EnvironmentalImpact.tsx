@@ -32,7 +32,7 @@ function IconCircle({
   return (
     <span
       className={twMerge(
-        'flex h-[96px] w-[96px] items-center justify-center rounded-full border-2 bg-surface transition-colors tablet:h-[120px] tablet:w-[120px]',
+        'flex items-center justify-center transition-colors',
         active ? 'border-accent' : 'border-blue',
       )}
     >
@@ -41,7 +41,7 @@ function IconCircle({
           image={category.icon}
           alt={`${category.name ?? 'Category'} icon`}
           width={120}
-          className="h-auto w-[52px] object-contain tablet:w-[64px]"
+          className=""
         />
       )}
     </span>

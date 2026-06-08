@@ -89,17 +89,14 @@ function CarbonOffsets({ tabs }: { tabs: CarbonOffsetTab[] }) {
         className="mx-auto grid max-w-5xl grid-cols-2 gap-x-4 gap-y-10 px-4 tablet:grid-cols-5 tablet:gap-x-6 justify-center items-start"
       >
         {metrics.map((metric, i) => (
-          <div
-            key={metric._key}
-            className="flex flex-col items-center justify-start"
-          >
-            <div className="mb-4 flex h-[96px] w-[96px] items-center justify-center rounded-full border-2 border-blue bg-surface tablet:h-[120px] tablet:w-[120px]">
+          <div key={metric._key} className="flex flex-col items-center">
+            <div className="mb-4 flex items-center justify-center">
               {metric.icon?.asset?._id && (
                 <SanityImage
                   image={metric.icon}
                   alt={metric.label ?? 'Carbon offset icon'}
                   width={120}
-                  className="h-auto w-[44px] object-contain tablet:w-[56px]"
+                  className=""
                 />
               )}
             </div>
