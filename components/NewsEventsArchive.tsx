@@ -140,7 +140,9 @@ export default function NewsEventsArchive({
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-1  text-[0.8125rem] uppercase tracking-[0.1em]">
                   {item.date && (
-                    <span className="font-light text-black">{item.date}</span>
+                    <time className="text-black font-semibold">
+                      {item.date}
+                    </time>
                   )}
                   {item.label && (
                     <span className="text-black font-semibold">
