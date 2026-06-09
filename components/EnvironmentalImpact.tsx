@@ -46,7 +46,7 @@ function IconCircle({
     <span
       aria-hidden
       className={twMerge(
-        'flex items-center justify-center transition-colors [&_img]:size-[155px] [&_svg]:size-[155px] [&_*]:transition-[fill,stroke,stop-color] [&_*]:duration-300 [&_*]:ease-out',
+        'flex items-center justify-center transition-colors [&_img]:size-[120px] [&_svg]:size-[120px] min-[960px]:[&_img]:size-[155px] min-[960px]:[&_svg]:size-[155px] [&_*]:transition-[fill,stroke,stop-color] [&_*]:duration-300 [&_*]:ease-out',
         active ? 'text-accent' : 'text-icon-blue group-hover:text-accent',
       )}
       {...(iconMarkup

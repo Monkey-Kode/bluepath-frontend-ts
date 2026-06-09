@@ -125,7 +125,7 @@ function MetricColumn({
       <motion.div
         aria-hidden
         className={twMerge(
-          'mb-4 flex cursor-pointer items-center justify-center transition-colors will-change-transform [&_img]:size-[155px] [&_svg]:size-[155px] [&_*]:transition-[fill,stroke,stop-color] [&_*]:duration-300 [&_*]:ease-out',
+          'mb-4 flex cursor-pointer items-center justify-center transition-colors will-change-transform [&_img]:size-[120px] [&_svg]:size-[120px] min-[960px]:[&_img]:size-[155px] min-[960px]:[&_svg]:size-[155px] [&_*]:transition-[fill,stroke,stop-color] [&_*]:duration-300 [&_*]:ease-out',
           iconHovered ? 'text-accent' : 'text-icon-blue',
         )}
         onMouseEnter={() => {
