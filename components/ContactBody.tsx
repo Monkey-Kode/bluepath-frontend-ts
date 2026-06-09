@@ -47,7 +47,7 @@ export const ContactBody = ({
   return (
     <main className="header-offset bg-white text-blue px-5 pb-40 min-h-[80vh]">
       <div className="mx-auto max-w-7xl px-5">
-        <h1 className="font-sans font-bold text-blue text-h1 mt-8 mb-8 tracking-[-0.01em]">
+        <h1 className="font-sans font-extrabold text-blue text-h1 mt-8 mb-8 tracking-[-0.01em]">
           {name || Heading}
         </h1>
 
@@ -63,7 +63,7 @@ export const ContactBody = ({
         <div className="grid max-w-[900px] grid-cols-2 gap-x-12 gap-y-10 max-tablet:grid-cols-1">
           {offices.map((office) => (
             <div key={office._id}>
-              <h2 className="font-sans font-bold text-blue text-h3 m-0 mb-2">
+              <h2 className="font-sans font-semibold text-blue text-h3 m-0 mb-2">
                 {office.address}
               </h2>
               <address className="text-blue not-italic [&_p]:m-0 [&_p]:leading-relaxed">
