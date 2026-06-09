@@ -117,7 +117,7 @@ function EnvironmentalImpact({
       <div
         role="group"
         aria-label="Environmental impact categories"
-        className="mb-10 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs font-bold uppercase tracking-[0.12em] tablet:text-sm"
+        className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs font-bold uppercase tracking-[0.12em] tablet:text-sm"
       >
         {categories.map((category, i) => {
           const isActive = i === selectedIndex;
@@ -134,9 +134,7 @@ function EnvironmentalImpact({
                 onClick={() => setSelectedIndex(isActive ? null : i)}
                 className={twMerge(
                   'cursor-pointer appearance-none border-none bg-transparent px-1 py-1 uppercase transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent',
-                  isActive
-                    ? 'text-accent'
-                    : 'text-gray-1 hover:text-accent',
+                  isActive ? 'text-accent' : 'text-gray-1 hover:text-accent',
                 )}
               >
                 {category.name}
@@ -153,7 +151,7 @@ function EnvironmentalImpact({
         collapse always lands — that combo previously left the lead icon's hit
         target overlaid/offset, which is why you couldn't get back to the grid.
       */}
-      <div className="mx-auto flex min-h-[200px] max-w-5xl flex-col items-center justify-center px-4 tablet:min-h-[240px]">
+      <div className="mx-auto flex max-w-5xl flex-col items-center justify-center px-4 tablet:min-h-[240px]">
         <AnimatePresence mode="wait" initial={false}>
           {selectedIndex === null || !selected ? (
             <motion.div
