@@ -104,6 +104,7 @@ function MetricColumn({
 }) {
   const reduceMotion = useReducedMotion();
   const [hoverNonce, setHoverNonce] = useState(0);
+  const [iconHovered, setIconHovered] = useState(false);
   // -1 sentinel so the first paint counts as a "tab change" (staggered intro).
   const prevTab = useRef(-1);
   const isTabChange = prevTab.current !== tabIndex;
@@ -118,7 +119,11 @@ function MetricColumn({
     <div className="flex flex-col items-center">
       <motion.div
         className="mb-4 flex cursor-pointer items-center justify-center"
-        onMouseEnter={() => setHoverNonce((n) => n + 1)}
+        onMouseEnter={() => {
+          setHoverNonce((n) => n + 1);
+          setIconHovered(true);
+        }}
+        onMouseLeave={() => setIconHovered(false)}
         whileHover={reduceMotion ? undefined : ICON_HOVER}
       >
         {metric.icon?.asset?._id && (
@@ -138,10 +143,20 @@ function MetricColumn({
         transition={{ duration: 0.4, delay, ease: 'easeOut' }}
         className="flex flex-col items-center"
       >
-        <span className="text-blue text-lg font-extrabold leading-tight tablet:text-2xl">
+        <span
+          className={twMerge(
+            'text-blue text-lg font-extrabold leading-tight transition-colors tablet:text-2xl',
+            iconHovered && 'text-accent',
+          )}
+        >
           <CountUpValue value={metric.value} delay={delay} />
         </span>
-        <span className="text-gray-1 mt-1 max-w-[18ch] text-[0.7rem] leading-snug tablet:text-xs">
+        <span
+          className={twMerge(
+            'text-gray-1 mt-1 max-w-[18ch] text-[0.7rem] leading-snug transition-colors tablet:text-xs',
+            iconHovered && 'text-accent',
+          )}
+        >
           {metric.label}
         </span>
       </motion.div>
@@ -162,7 +177,7 @@ function CarbonOffsets({ tabs }: { tabs: CarbonOffsetTab[] }) {
   return (
     <section
       aria-label="Carbon Offset Equivalencies"
-      className="w-full pt-12 text-center tablet:pt-20 flex-col justify-center place-content-center"
+      className="w-full text-center flex-col justify-center place-content-center"
     >
       <h2 className="text-blue mb-4 px-4 text-[7vw] font-extrabold leading-tight tablet:mb-8 tablet:text-[3rem]">
         Carbon Offset Equivalencies

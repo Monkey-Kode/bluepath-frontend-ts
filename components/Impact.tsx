@@ -26,7 +26,13 @@ function Impact({
   const categories = content?.environmentalCategories ?? [];
 
   return (
-    <div id={page.id ?? undefined} className="header-offset w-full bg-transparent">
+    <div
+      id={page.id ?? undefined}
+      className="header-offset w-full bg-transparent mx-auto max-w-7xl px-5"
+    >
+      <h1 className="font-sans font-extrabold text-blue text-h2 leading-[1.05] tracking-[-0.01em] mx-0 mt-8 mb-12">
+        Impact
+      </h1>
       <CarbonOffsets tabs={tabs} />
       <EnvironmentalImpact categories={categories} heading={page.Heading} />
     </div>
