@@ -33,25 +33,36 @@ function displayStat(value: string | null | undefined) {
 function IconCircle({
   category,
   active = false,
+  iconMarkup,
 }: {
   category: EnvironmentalCategory;
   active?: boolean;
+  iconMarkup?: string;
 }) {
+  // Inlined SVG line-art is currentColor: `color` drives it — accent when this
+  // category is selected, accent on hover (via the button's `group`), else the
+  // brand icon-blue. `transition-[fill,stroke]` animates the swap.
   return (
     <span
+      aria-hidden
       className={twMerge(
-        'flex items-center justify-center transition-colors',
-        active ? 'border-accent' : 'border-blue',
+        'flex items-center justify-center transition-colors [&_img]:size-[155px] [&_svg]:size-[155px] [&_*]:transition-[fill,stroke,stop-color] [&_*]:duration-300 [&_*]:ease-out',
+        active ? 'text-accent' : 'text-icon-blue group-hover:text-accent',
       )}
+      {...(iconMarkup
+        ? { dangerouslySetInnerHTML: { __html: iconMarkup } }
+        : {})}
     >
-      {category.icon?.asset?._id && (
-        <SanityImage
-          image={category.icon}
-          alt={`${category.name ?? 'Category'} icon`}
-          width={120}
-          className=""
-        />
-      )}
+      {iconMarkup
+        ? null
+        : category.icon?.asset?._id && (
+            <SanityImage
+              image={category.icon}
+              alt={`${category.name ?? 'Category'} icon`}
+              width={155}
+              className=""
+            />
+          )}
     </span>
   );
 }
@@ -59,9 +70,11 @@ function IconCircle({
 function EnvironmentalImpact({
   categories,
   heading,
+  icons,
 }: {
   categories: EnvironmentalCategory[];
   heading?: string | null;
+  icons: Record<string, string>;
 }) {
   const reduceMotion = useReducedMotion();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -181,9 +194,16 @@ function EnvironmentalImpact({
                   whileTap={reduceMotion ? undefined : ICON_TAP}
                   onClick={() => setSelectedIndex(i)}
                   aria-label={`Show ${category.name ?? 'category'} stats`}
-                  className="cursor-pointer appearance-none border-none bg-transparent p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                  className="group cursor-pointer appearance-none border-none bg-transparent p-0 will-change-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
                 >
-                  <IconCircle category={category} />
+                  <IconCircle
+                    category={category}
+                    iconMarkup={
+                      category.icon?.asset?._id
+                        ? icons[category.icon.asset._id]
+                        : undefined
+                    }
+                  />
                 </motion.button>
               ))}
             </motion.div>
@@ -194,7 +214,7 @@ function EnvironmentalImpact({
               animate={fadeUp.animate}
               exit={fadeUp.exit}
               transition={spring}
-              className="flex w-full flex-col items-center justify-center gap-8 tablet:flex-row tablet:items-center tablet:gap-12"
+              className="flex w-full flex-col items-center justify-center gap-8 will-change-[transform,opacity] tablet:flex-row tablet:items-center tablet:gap-12"
             >
               <motion.button
                 type="button"
@@ -203,9 +223,17 @@ function EnvironmentalImpact({
                 onClick={() => setSelectedIndex(null)}
                 aria-label={`Collapse ${selected.name ?? 'category'}`}
                 aria-expanded
-                className="shrink-0 cursor-pointer appearance-none border-none bg-transparent p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                className="shrink-0 cursor-pointer appearance-none border-none bg-transparent p-0 will-change-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
               >
-                <IconCircle category={selected} active />
+                <IconCircle
+                  category={selected}
+                  active
+                  iconMarkup={
+                    selected.icon?.asset?._id
+                      ? icons[selected.icon.asset._id]
+                      : undefined
+                  }
+                />
               </motion.button>
 
               <motion.div
@@ -228,7 +256,7 @@ function EnvironmentalImpact({
                         visible: fadeUp.animate,
                       }}
                       transition={spring}
-                      className="flex max-w-[16ch] flex-col items-center text-center"
+                      className="flex max-w-[16ch] flex-col items-center text-center will-change-[transform,opacity]"
                     >
                       <span className="text-blue text-2xl font-extrabold leading-tight tablet:text-3xl">
                         {displayStat(stat.value)}

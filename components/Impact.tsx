@@ -2,6 +2,7 @@ import type {
   PageBySlugQueryResult,
   ImpactPageContentQueryResult,
 } from '@/sanity.types';
+import { loadInlineIcons } from '@/lib/inlineSvgIcon';
 import CarbonOffsets from './CarbonOffsets';
 import EnvironmentalImpact from './EnvironmentalImpact';
 
@@ -15,7 +16,7 @@ import EnvironmentalImpact from './EnvironmentalImpact';
  * The two child sections are normal-flow (each carries an `aria-label`, which
  * also names them as landmarks); `header-offset` here clears the fixed header.
  */
-function Impact({
+async function Impact({
   page,
   content,
 }: {
@@ -25,6 +26,15 @@ function Impact({
   const tabs = content?.carbonOffsetTabs ?? [];
   const categories = content?.environmentalCategories ?? [];
 
+  // Inline every icon SVG once (deduped by asset id) so the components can
+  // recolor the line-art via CSS. Both sections share the same id→markup map.
+  const icons = await loadInlineIcons([
+    ...tabs
+      .flatMap((tab) => tab.metrics ?? [])
+      .map((metric) => metric.icon?.asset),
+    ...categories.map((category) => category.icon?.asset),
+  ]);
+
   return (
     <div
       id={page.id ?? undefined}
@@ -33,8 +43,12 @@ function Impact({
       <h1 className="font-sans font-extrabold text-blue text-h2 leading-[1.05] tracking-[-0.01em] mx-0 mt-8 mb-12">
         Impact
       </h1>
-      <CarbonOffsets tabs={tabs} />
-      <EnvironmentalImpact categories={categories} heading={page.Heading} />
+      <CarbonOffsets tabs={tabs} icons={icons} />
+      <EnvironmentalImpact
+        categories={categories}
+        heading={page.Heading}
+        icons={icons}
+      />
     </div>
   );
 }

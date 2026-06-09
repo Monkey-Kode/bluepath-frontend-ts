@@ -44,6 +44,10 @@
     --color-blue: #004181;
     --color-blue-soft: rgba(0, 65, 129, 0.85);
     --color-accent: #168fcb;
+    /* The blue baked into the CMS line-art icons (#0f497d in the SVG source).
+     * Inlined icons swap that hex for currentColor; this token is the default
+     * (un-hovered) color the consuming element sets. See lib/inlineSvgIcon.ts. */
+    --color-icon-blue: #0f497d;
     --color-gray-1: #6e7c85;
     --color-gray-2: #616567;
     --color-gray-3: #595959;

@@ -97,10 +97,12 @@ function MetricColumn({
   metric,
   index,
   tabIndex,
+  iconMarkup,
 }: {
   metric: CarbonMetric;
   index: number;
   tabIndex: number;
+  iconMarkup?: string;
 }) {
   const reduceMotion = useReducedMotion();
   const [hoverNonce, setHoverNonce] = useState(0);
@@ -117,23 +119,35 @@ function MetricColumn({
 
   return (
     <div className="flex flex-col items-center">
+      {/* Inlined SVG: its brand-blue line-art is currentColor, so `color` here
+          drives it — blue at rest, accent on hover (matching the value/label).
+          `transition-[fill,stroke]` on descendants makes the swap animate. */}
       <motion.div
-        className="mb-4 flex cursor-pointer items-center justify-center"
+        aria-hidden
+        className={twMerge(
+          'mb-4 flex cursor-pointer items-center justify-center transition-colors will-change-transform [&_img]:size-[155px] [&_svg]:size-[155px] [&_*]:transition-[fill,stroke,stop-color] [&_*]:duration-300 [&_*]:ease-out',
+          iconHovered ? 'text-accent' : 'text-icon-blue',
+        )}
         onMouseEnter={() => {
           setHoverNonce((n) => n + 1);
           setIconHovered(true);
         }}
         onMouseLeave={() => setIconHovered(false)}
         whileHover={reduceMotion ? undefined : ICON_HOVER}
+        {...(iconMarkup
+          ? { dangerouslySetInnerHTML: { __html: iconMarkup } }
+          : {})}
       >
-        {metric.icon?.asset?._id && (
-          <SanityImage
-            image={metric.icon}
-            alt={metric.label ?? 'Carbon offset icon'}
-            width={120}
-            className=""
-          />
-        )}
+        {iconMarkup
+          ? null
+          : metric.icon?.asset?._id && (
+              <SanityImage
+                image={metric.icon}
+                alt={metric.label ?? 'Carbon offset icon'}
+                width={155}
+                className=""
+              />
+            )}
       </motion.div>
 
       <motion.div
@@ -141,7 +155,7 @@ function MetricColumn({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay, ease: 'easeOut' }}
-        className="flex flex-col items-center"
+        className="flex flex-col items-center will-change-[opacity]"
       >
         <span
           className={twMerge(
@@ -164,7 +178,13 @@ function MetricColumn({
   );
 }
 
-function CarbonOffsets({ tabs }: { tabs: CarbonOffsetTab[] }) {
+function CarbonOffsets({
+  tabs,
+  icons,
+}: {
+  tabs: CarbonOffsetTab[];
+  icons: Record<string, string>;
+}) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   // Defensive: nothing to render without tabs (NFR-006).
@@ -240,6 +260,9 @@ function CarbonOffsets({ tabs }: { tabs: CarbonOffsetTab[] }) {
             metric={metric}
             index={i}
             tabIndex={safeIndex}
+            iconMarkup={
+              metric.icon?.asset?._id ? icons[metric.icon.asset._id] : undefined
+            }
           />
         ))}
       </div>
