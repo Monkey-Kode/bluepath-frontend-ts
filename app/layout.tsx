@@ -12,7 +12,7 @@ import { getSiteUrl } from '@/lib/siteUrl';
 import { SanityLive } from '@/sanity/lib/live';
 
 const urbanist = Urbanist({
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['300', '400', '500', '600', '700', '900'],
   subsets: ['latin'],
   variable: '--font-urbanist',
   display: 'swap',
