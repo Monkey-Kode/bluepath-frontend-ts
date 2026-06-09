@@ -199,7 +199,7 @@ function CarbonOffsets({
       aria-label="Carbon Offset Equivalencies"
       className="w-full text-center flex-col justify-center place-content-center"
     >
-      <h2 className="text-blue mb-4 px-4 text-[7vw] font-extrabold leading-tight tablet:mb-8 tablet:text-[3rem]">
+      <h2 className="text-blue mb-4 px-4 text-[7vw] font-semibold leading-tight tablet:mb-8 tablet:text-[3rem]">
         Carbon Offset Equivalencies
       </h2>
 

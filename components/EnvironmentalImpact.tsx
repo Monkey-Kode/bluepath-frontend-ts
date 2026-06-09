@@ -113,7 +113,7 @@ function EnvironmentalImpact({
       <h2
         onClick={selectedIndex !== null ? collapse : undefined}
         className={twMerge(
-          'text-blue mb-4 px-4 text-[7vw] font-extrabold leading-tight tablet:mb-8 tablet:text-[3rem]',
+          'text-blue mb-4 px-4 text-[7vw] font-semibold leading-tight tablet:mb-8 tablet:text-[3rem]',
           selectedIndex !== null && 'cursor-pointer',
         )}
       >
