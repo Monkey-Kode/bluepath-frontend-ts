@@ -135,8 +135,7 @@
     --leading-normal: 1.4;
     --leading-relaxed: 1.5;
 
-    /* Letter-spacing scale (Axios). Generates tracking-tight…tracking-wider. */
-    --tracking-tight: -0.025em;
+    /* Letter-spacing scale (Axios). Generates tracking-normal…tracking-wider. */
     --tracking-normal: 0em;
     --tracking-wide: 0.025em;
     --tracking-wider: 0.05em;

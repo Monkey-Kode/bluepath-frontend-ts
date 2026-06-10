@@ -45,7 +45,7 @@ export default function TeamMemberBio({ member }: { member: Member }) {
             ))}
 
           <div>
-            <h1 className="font-sans font-bold text-blue text-h1 tracking-[-0.01em] m-0">
+            <h1 className="font-sans font-bold text-blue text-h1 m-0">
               {member.name}
             </h1>
             {(member.role || member.roleSubtitle) && (

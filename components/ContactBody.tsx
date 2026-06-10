@@ -47,7 +47,7 @@ export const ContactBody = ({
   return (
     <main className="header-offset bg-white text-blue px-5 pb-40 min-h-[80vh]">
       <div className="mx-auto max-w-7xl px-5">
-        <h1 className="font-sans font-extrabold text-blue text-h2 leading-[1.05] tracking-[-0.01em] mx-0 mt-8 mb-12">
+        <h1 className="font-sans font-extrabold text-blue text-h2 leading-[1.05] mx-0 mt-8 mb-12">
           {name || Heading}
         </h1>
 
