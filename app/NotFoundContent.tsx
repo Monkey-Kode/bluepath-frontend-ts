@@ -13,7 +13,7 @@ export default function NotFoundContent() {
           aria-hidden="true"
           className="w-16 h-px bg-accent border-0 mx-auto my-6"
         />
-        <h1 className="font-sans font-bold text-blue tracking-[0.04em] text-[clamp(1.25rem,_2vw,_1.75rem)]  m-0 mb-4">
+        <h1 className="font-sans font-bold text-blue text-[clamp(1.25rem,_2vw,_1.75rem)]  m-0 mb-4">
           Page Not Found
         </h1>
         <p className="font-sans text-black text-base m-0 mb-8">
@@ -23,7 +23,7 @@ export default function NotFoundContent() {
         </p>
         <Link
           href="/"
-          className="inline-block bg-blue text-white font-sans uppercase tracking-[0.12em] text-[0.8125rem] font-normal no-underline px-3 py-2 rounded-md transition-colors duration-200 hover:bg-accent hover:text-white"
+          className="inline-block bg-blue text-white font-sans uppercase text-[0.8125rem] font-normal no-underline px-3 py-2 rounded-md transition-colors duration-200 hover:bg-accent hover:text-white"
         >
           BACK TO HOME
         </Link>
