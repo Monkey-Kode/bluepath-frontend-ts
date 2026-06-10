@@ -135,7 +135,7 @@ function EnvironmentalImpact({
       <div
         role="group"
         aria-label="Environmental impact categories"
-        className="mb-6 flex flex-col items-center gap-y-2 text-xs font-bold uppercase tracking-[0.12em] tablet:mb-0 tablet:flex-row tablet:flex-wrap tablet:justify-center tablet:gap-x-3 tablet:gap-y-1 tablet:text-sm"
+        className="hidden text-xs font-bold uppercase tracking-[0.12em] tablet:flex tablet:flex-wrap tablet:items-center tablet:justify-center tablet:gap-x-3 tablet:gap-y-1 tablet:text-sm"
       >
         {categories.map((category, i) => {
           const isActive = i === selectedIndex;
@@ -207,8 +207,14 @@ function EnvironmentalImpact({
                   onMouseEnter={() => setHoveredIndex(i)}
                   onMouseLeave={() => setHoveredIndex(null)}
                   aria-label={`Show ${category.name ?? 'category'} stats`}
-                  className="cursor-pointer appearance-none border-none bg-transparent p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                  className="flex flex-col items-center cursor-pointer appearance-none border-none bg-transparent p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
                 >
+                  {/* Mobile only: the title sits above its icon (the tab strip is
+                      hidden < tablet). Icons map 1:1 to categories here, so the
+                      label belongs on the icon. */}
+                  <span className="mb-2 text-center text-xs font-bold uppercase tracking-[0.12em] text-gray-1 tablet:hidden">
+                    {category.name}
+                  </span>
                   {/* Bounce is driven by hoveredIndex (not whileHover) so hovering
                       the matching category label triggers it too. */}
                   <motion.span
@@ -250,8 +256,12 @@ function EnvironmentalImpact({
                 onClick={() => setSelectedIndex(null)}
                 aria-label={`Collapse ${selected.name ?? 'category'}`}
                 aria-expanded
-                className="shrink-0 cursor-pointer appearance-none border-none bg-transparent p-0 will-change-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                className="flex shrink-0 flex-col items-center cursor-pointer appearance-none border-none bg-transparent p-0 will-change-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
               >
+                {/* Mobile only: name the open category (tab strip hidden < tablet). */}
+                <span className="mb-2 text-center text-xs font-bold uppercase tracking-[0.12em] text-accent tablet:hidden">
+                  {selected.name}
+                </span>
                 <IconCircle
                   category={selected}
                   active
