@@ -135,14 +135,17 @@ function EnvironmentalImpact({
       <div
         role="group"
         aria-label="Environmental impact categories"
-        className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs font-bold uppercase tracking-[0.12em] tablet:text-sm"
+        className="mb-6 flex flex-col items-center gap-y-2 text-xs font-bold uppercase tracking-[0.12em] tablet:mb-0 tablet:flex-row tablet:flex-wrap tablet:justify-center tablet:gap-x-3 tablet:gap-y-1 tablet:text-sm"
       >
         {categories.map((category, i) => {
           const isActive = i === selectedIndex;
           return (
             <div key={category._key} className="flex items-center gap-x-3">
               {i > 0 && (
-                <span aria-hidden className="text-gray-1/50">
+                <span
+                  aria-hidden
+                  className="hidden tablet:inline text-gray-1/50"
+                >
                   |
                 </span>
               )}

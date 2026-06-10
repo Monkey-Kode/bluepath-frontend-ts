@@ -207,12 +207,12 @@ function CarbonOffsets({
         role="tablist"
         aria-label="Carbon offset lifecycle"
         id={TABLIST_ID}
-        className="mb-10 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs font-bold uppercase tracking-[0.12em] tablet:text-sm"
+        className="mb-4 lg:mb-10 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs font-bold uppercase tracking-[0.12em] max-[389px]:flex-col max-[389px]:gap-y-2 tablet:text-sm"
       >
         {tabs.map((tab, i) => (
           <div key={tab._key} className="flex items-center gap-x-3">
             {i > 0 && (
-              <span aria-hidden className="text-gray-1/50">
+              <span aria-hidden className="max-[389px]:hidden text-gray-1/50">
                 |
               </span>
             )}
