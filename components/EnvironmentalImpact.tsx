@@ -33,21 +33,24 @@ function displayStat(value: string | null | undefined) {
 function IconCircle({
   category,
   active = false,
+  highlighted = false,
   iconMarkup,
 }: {
   category: EnvironmentalCategory;
   active?: boolean;
+  highlighted?: boolean;
   iconMarkup?: string;
 }) {
   // Inlined SVG line-art is currentColor: `color` drives it — accent when this
-  // category is selected, accent on hover (via the button's `group`), else the
-  // brand icon-blue. `transition-[fill,stroke]` animates the swap.
+  // category is selected OR hover-linked (hovering this icon or its matching
+  // category label, via the shared hoveredIndex), else the brand icon-blue.
+  // `transition-[fill,stroke]` animates the swap.
   return (
     <span
       aria-hidden
       className={twMerge(
         'flex items-center justify-center transition-colors [&_img]:size-[120px] [&_svg]:size-[120px] min-[960px]:[&_img]:size-[155px] min-[960px]:[&_svg]:size-[155px] [&_*]:transition-[fill,stroke,stop-color] [&_*]:duration-300 [&_*]:ease-out',
-        active ? 'text-accent' : 'text-icon-blue group-hover:text-accent',
+        active || highlighted ? 'text-accent' : 'text-icon-blue',
       )}
       {...(iconMarkup
         ? { dangerouslySetInnerHTML: { __html: iconMarkup } }
@@ -78,6 +81,8 @@ function EnvironmentalImpact({
 }) {
   const reduceMotion = useReducedMotion();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  // Shared so hovering a category label lights its matching icon and vice versa.
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
 
   // Collapse back to the 4-icon grid. Triggered by the lead icon, the active
@@ -145,9 +150,13 @@ function EnvironmentalImpact({
                 type="button"
                 aria-pressed={isActive}
                 onClick={() => setSelectedIndex(isActive ? null : i)}
+                onMouseEnter={() => setHoveredIndex(i)}
+                onMouseLeave={() => setHoveredIndex(null)}
                 className={twMerge(
                   'cursor-pointer appearance-none border-none bg-transparent px-1 py-1 uppercase transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent',
-                  isActive ? 'text-accent' : 'text-gray-1 hover:text-accent',
+                  isActive || hoveredIndex === i
+                    ? 'text-accent'
+                    : 'text-gray-1',
                 )}
               >
                 {category.name}
@@ -190,20 +199,35 @@ function EnvironmentalImpact({
                   type="button"
                   variants={{ hidden: fadeUp.initial, visible: fadeUp.animate }}
                   transition={spring}
-                  whileHover={reduceMotion ? undefined : ICON_HOVER}
                   whileTap={reduceMotion ? undefined : ICON_TAP}
                   onClick={() => setSelectedIndex(i)}
+                  onMouseEnter={() => setHoveredIndex(i)}
+                  onMouseLeave={() => setHoveredIndex(null)}
                   aria-label={`Show ${category.name ?? 'category'} stats`}
-                  className="group cursor-pointer appearance-none border-none bg-transparent p-0 will-change-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                  className="cursor-pointer appearance-none border-none bg-transparent p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
                 >
-                  <IconCircle
-                    category={category}
-                    iconMarkup={
-                      category.icon?.asset?._id
-                        ? icons[category.icon.asset._id]
-                        : undefined
+                  {/* Bounce is driven by hoveredIndex (not whileHover) so hovering
+                      the matching category label triggers it too. */}
+                  <motion.span
+                    initial={false}
+                    animate={{
+                      scale: !reduceMotion && hoveredIndex === i ? 1.08 : 1,
+                    }}
+                    transition={
+                      reduceMotion ? { duration: 0 } : ICON_HOVER.transition
                     }
-                  />
+                    className="block will-change-transform"
+                  >
+                    <IconCircle
+                      category={category}
+                      highlighted={hoveredIndex === i}
+                      iconMarkup={
+                        category.icon?.asset?._id
+                          ? icons[category.icon.asset._id]
+                          : undefined
+                      }
+                    />
+                  </motion.span>
                 </motion.button>
               ))}
             </motion.div>
