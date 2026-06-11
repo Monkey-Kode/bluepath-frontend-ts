@@ -98,11 +98,13 @@ function MetricColumn({
   index,
   tabIndex,
   iconMarkup,
+  className,
 }: {
   metric: CarbonMetric;
   index: number;
   tabIndex: number;
   iconMarkup?: string;
+  className?: string;
 }) {
   const reduceMotion = useReducedMotion();
   const [hoverNonce, setHoverNonce] = useState(0);
@@ -118,7 +120,7 @@ function MetricColumn({
   const delay = reduceMotion ? 0 : isTabChange ? index * STAGGER : 0;
 
   return (
-    <div className="flex flex-col items-center">
+    <div className={twMerge('flex flex-col items-center', className)}>
       {/* Inlined SVG: its brand-blue line-art is currentColor, so `color` here
           drives it — blue at rest, accent on hover (matching the value/label).
           `transition-[fill,stroke]` on descendants makes the swap animate. */}
@@ -252,19 +254,28 @@ function CarbonOffsets({
         aria-labelledby={`carbon-tab-${safeIndex}`}
         className="mx-auto grid max-w-5xl grid-cols-2 gap-x-4 gap-y-4 px-4 tablet:grid-cols-5 tablet:gap-x-6 justify-center items-start"
       >
-        {metrics.map((metric, i) => (
-          // Keyed by position, not `_key`: every tab carries its own metric
-          // objects (distinct `_key`s); position is the fixed column identity.
-          <MetricColumn
-            key={i}
-            metric={metric}
-            index={i}
-            tabIndex={safeIndex}
-            iconMarkup={
-              metric.icon?.asset?._id ? icons[metric.icon.asset._id] : undefined
-            }
-          />
-        ))}
+        {metrics.map((metric, i) => {
+          // On the 2-col mobile grid an odd metric count leaves the last item
+          // orphaned in column 1; span it across both columns so its centered
+          // content sits mid-row. The tablet 5-col grid is unaffected.
+          const isOrphan = metrics.length % 2 === 1 && i === metrics.length - 1;
+          return (
+            // Keyed by position, not `_key`: every tab carries its own metric
+            // objects (distinct `_key`s); position is the fixed column identity.
+            <MetricColumn
+              key={i}
+              metric={metric}
+              index={i}
+              tabIndex={safeIndex}
+              className={isOrphan ? 'max-tablet:col-span-2' : undefined}
+              iconMarkup={
+                metric.icon?.asset?._id
+                  ? icons[metric.icon.asset._id]
+                  : undefined
+              }
+            />
+          );
+        })}
       </div>
     </section>
   );
