@@ -50,30 +50,25 @@ function Menu({
     >
       <ul className="m-0 flex flex-wrap tablet:justify-end max-tablet:flex-col max-tablet:justify-center">
         {navItems.map(
-          ({
-            name: title,
-            page,
-            jumpLinkId,
-            linkType,
-            _id,
-            header,
-            footer,
-            url,
-          }) => {
+          ({ name: title, page, jumpLinkId, _id, header, footer, url }) => {
             if (!header && isHeader) return null;
             if (!footer && !isHeader) return null;
 
+            // Resolve the href. Priority: explicit Direct Link > page
+            // reference > legacy jump link. Page references are NOT gated on
+            // the `linkType` boolean any more — a referenced page always links
+            // to its slug, so items left with a blank toggle (e.g. Impact)
+            // route correctly instead of collapsing to `/`.
             let pageLink = '';
-            if (page !== null && linkType === false && !!page.slug) {
-              pageLink = page.slug ?? '';
-            } else if (pathname !== '/') {
-              pageLink = `/${jumpLinkId}`;
-            } else {
-              pageLink = jumpLinkId ?? '';
-            }
             if (url) {
-              const link = new URL(url);
-              pageLink = link.pathname.slice(1);
+              // Direct Link is stored as a full URL; keep only the path so
+              // internal links route client-side instead of reloading.
+              pageLink = new URL(url).pathname.slice(1);
+            } else if (page?.slug) {
+              pageLink = page.slug;
+            } else if (jumpLinkId) {
+              // Legacy on-page anchor (homepage only).
+              pageLink = pathname === '/' ? jumpLinkId : `/${jumpLinkId}`;
             }
 
             return (
