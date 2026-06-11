@@ -15,6 +15,7 @@ export default function EventView({
   slug: string;
 }) {
   const richText = content.content ?? null;
+  const hasImage = !!content.image?.asset?._id;
   const mediaVt = mediaTransitionName('event', slug);
   const titleVt = titleTransitionName('event', slug);
   const eventDate = content.eventAt
@@ -30,9 +31,15 @@ export default function EventView({
 
   return (
     <main className="bg-white text-black pt-[calc(var(--header-height,100px)+4rem)] pb-20">
-      <div className="mx-auto grid max-w-7xl px-5 grid-cols-[360px_1fr] items-start gap-14 max-[900px]:grid-cols-1 max-[900px]:gap-8">
-        <div>
-          {content.image?.asset?._id && (
+      <div
+        className={`mx-auto grid max-w-7xl px-5 items-start gap-14 max-[900px]:gap-8 ${
+          hasImage
+            ? 'grid-cols-[360px_1fr] max-[900px]:grid-cols-1'
+            : 'grid-cols-1'
+        }`}
+      >
+        {hasImage && (
+          <div>
             <ViewTransition name={mediaVt} share="morph-media">
               {/* SanityImage briefly renders a preview <img> alongside the
                * main <img>; React's <ViewTransition> applies
@@ -49,8 +56,8 @@ export default function EventView({
                 />
               </figure>
             </ViewTransition>
-          )}
-        </div>
+          </div>
+        )}
         <div>
           <div className="mb-4 flex flex-col gap-1 font-sans">
             {eventDate && (
