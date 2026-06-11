@@ -45,7 +45,7 @@ function CardBody({ member }: { member: Member }) {
         ) : (
           photo
         ))}
-      <h2 className="font-sans font-bold text-blue text-h3 leading-[1.2] mt-[1.35rem] mb-0 transition-colors duration-[250ms] group-hover:text-accent">
+      <h2 className="font-sans font-semibold text-blue text-h3 leading-[1.2] mt-[1.35rem] mb-0 transition-colors duration-[250ms] group-hover:text-accent">
         {member.name}
       </h2>
       {(member.role || member.roleSubtitle) && (
@@ -73,7 +73,7 @@ export default function TeamView({ team }: { team: TeamQueryResult }) {
   return (
     <main className="header-offset bg-white text-blue pb-24 px-5">
       <div className="mx-auto max-w-7xl px-5 team-inner min-h-[70vh]">
-        <h1 className="font-sans font-bold text-blue text-h2 leading-[1.05] tracking-[-0.01em] mx-0 mt-8 mb-12">
+        <h1 className="font-sans font-extrabold text-blue text-h2 leading-[1.05] mx-0 mt-8 mb-12">
           Leadership
         </h1>
 

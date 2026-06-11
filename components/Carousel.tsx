@@ -12,9 +12,11 @@ import type {
 function Carousel({
   content,
   slides,
+  fullHeight = false,
 }: {
   content: HomesectionsQueryResult[number];
   slides: CarouselQueryResult;
+  fullHeight?: boolean;
 }) {
   const sortedSlides = sortObject(slides) as CarouselQueryResult;
 
@@ -29,7 +31,8 @@ function Carousel({
               key={`${content._id}_carousel`}
               image={content.image}
               width={2000}
-              className="h-full !bg-fixed [&:nth-child(odd)]:justify-start [&:nth-child(even)]:justify-end max-tablet:[&_[id*=_carousel]]:p-4"
+              fullHeight={fullHeight}
+              className="!bg-fixed [&:nth-child(odd)]:justify-start [&:nth-child(even)]:justify-end max-tablet:[&_[id*=_carousel]]:p-4"
             >
               <div className={boxAlign}>
                 <CarouselSlide allContent={content} />

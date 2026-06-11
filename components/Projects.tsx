@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from 'react';
 import { renderToString } from 'react-dom/server';
+import { twMerge } from 'tailwind-merge';
 
 import InfoWindow from './InfoWindow';
 import { loader } from '@/lib/mapsLoader';
@@ -16,9 +17,11 @@ const mapMarker = '/marker.png';
 function Projects({
   page,
   casestudies,
+  fullHeight = false,
 }: {
   page: NonNullable<PageBySlugQueryResult>;
   casestudies: CasestudiesQueryResult;
+  fullHeight?: boolean;
 }) {
   const { id } = page;
   const projects = casestudies;
@@ -151,7 +154,14 @@ function Projects({
     <section
       id={id ?? undefined}
       ref={ref}
-      className="w-full h-screen max-tablet:[--mobile-header-height:0px] max-tablet:h-[calc(100vh-var(--mobile-header-height))] max-tablet:min-h-[400px] max-tablet:mt-[var(--mobile-header-height)]"
+      className={twMerge(
+        'w-full h-screen max-tablet:[--mobile-header-height:0px] max-tablet:h-[calc(100vh-var(--mobile-header-height))] max-tablet:min-h-[400px] max-tablet:mt-[var(--mobile-header-height)]',
+        // Off-home (/projects): inset the map below the fixed header on desktop,
+        // replacing the removed global `.page section` padding. Mobile keeps its
+        // own clearance trick above. As a home box, no offset is needed.
+        !fullHeight &&
+          'tablet:p-[5%] tablet:pt-[calc(var(--mobile-header-height)+2rem)]',
+      )}
     />
   );
 }

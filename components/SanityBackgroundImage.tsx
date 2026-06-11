@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 
 import { urlForImage } from '@/sanity/lib/utils';
 
@@ -19,6 +20,8 @@ type Props = Omit<React.ComponentPropsWithoutRef<'div'>, 'children'> & {
   as?: React.ElementType;
   /** Background render width requested from the Sanity CDN. */
   width?: number;
+  /** Fill the viewport height (`h-screen`). Used for full-bleed home sections; off elsewhere. */
+  fullHeight?: boolean;
 };
 
 /**
@@ -33,6 +36,7 @@ export default function SanityBackgroundImage({
   children,
   style,
   width = 2000,
+  fullHeight = false,
   as: Tag = 'div',
   ...rest
 }: Props) {
@@ -62,10 +66,11 @@ export default function SanityBackgroundImage({
   return (
     <Tag
       {...rest}
-      className={
-        'relative flex items-center bg-cover bg-fixed bg-center bg-no-repeat [&>*:not([aria-hidden=true])]:relative [&>*:not([aria-hidden=true])]:z-[1]' +
-        (className ? ` ${className}` : '')
-      }
+      className={twMerge(
+        'relative flex items-center bg-cover bg-fixed bg-center bg-no-repeat [&>*:not([aria-hidden=true])]:relative [&>*:not([aria-hidden=true])]:z-[1]',
+        fullHeight && 'h-screen',
+        className,
+      )}
       style={{
         ...style,
         ...(lqip ? { backgroundImage: `url(${lqip})` } : {}),

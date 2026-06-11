@@ -1,6 +1,7 @@
 'use client';
 
 import { useInView } from 'react-intersection-observer';
+import { twMerge } from 'tailwind-merge';
 
 import ContentBox from '@/components/ContentBox';
 import SanityBackgroundImage from '@/components/SanityBackgroundImage';
@@ -11,7 +12,22 @@ import type { HomesectionsQueryResult } from '@/sanity.types';
 
 type Section = HomesectionsQueryResult[number];
 
-function Plain({ content }: { content: Section }) {
+/**
+ * Full-bleed home-box layout — the former global `section:not([aria-label])`
+ * rule, now passed in only to home sections (via `fullHeight`). Off-home these
+ * sections are normal-flow. (SanityBackgroundImage already supplies the flex +
+ * `h-screen`; this adds the full-viewport width, padding, and child sizing.)
+ */
+const BOX_SECTION =
+  'flex w-screen items-center justify-start p-[2vw] [&>div]:w-full max-tablet:block max-tablet:p-0';
+
+function Plain({
+  content,
+  fullHeight = false,
+}: {
+  content: Section;
+  fullHeight?: boolean;
+}) {
   const {
     id,
     anchorId,
@@ -46,10 +62,14 @@ function Plain({ content }: { content: Section }) {
       <SanityBackgroundImage
         as="section"
         id={anchorId ?? undefined}
-        className={`plain ${name ?? ''} max-tablet:bg-blue max-tablet:p-0 max-tablet:before:!bg-none max-tablet:after:!bg-none`}
+        className={twMerge(
+          `plain ${name ?? ''} max-tablet:bg-blue max-tablet:p-0 max-tablet:before:!bg-none max-tablet:after:!bg-none`,
+          fullHeight && BOX_SECTION,
+        )}
         image={background}
         style={{ backgroundColor: bgColor }}
         width={2000}
+        fullHeight={fullHeight}
       >
         <div className={`${boxAlign} ${name ?? ''}`}>
           <ContentBox
@@ -66,7 +86,7 @@ function Plain({ content }: { content: Section }) {
     </div>
   ) : (
     <section
-      className={name ?? 'section'}
+      className={twMerge(name ?? 'section', fullHeight && BOX_SECTION)}
       ref={ref}
       id={anchorId ?? `section-${id}`}
       style={{ backgroundColor: String(bgColor) }}

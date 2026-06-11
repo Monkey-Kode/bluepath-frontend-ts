@@ -1,7 +1,7 @@
 import './globals.css';
 
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Urbanist } from 'next/font/google';
 import { draftMode } from 'next/headers';
 import { VisualEditing } from 'next-sanity/visual-editing';
 import { Toaster } from 'sonner';
@@ -11,10 +11,10 @@ import DraftModeToast from '@/components/DraftModeToast';
 import { getSiteUrl } from '@/lib/siteUrl';
 import { SanityLive } from '@/sanity/lib/live';
 
-const inter = Inter({
-  weight: ['300', '400', '500', '600', '700'],
+const urbanist = Urbanist({
+  weight: ['300', '400', '500', '600', '700', '900'],
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-urbanist',
   display: 'swap',
 });
 
@@ -45,7 +45,7 @@ export default async function RootLayout({
   const { isEnabled: isDraftMode } = await draftMode();
 
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={urbanist.variable}>
       <body>
         {children}
         <Toaster />

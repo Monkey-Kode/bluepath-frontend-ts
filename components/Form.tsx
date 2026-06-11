@@ -194,6 +194,7 @@ const Form = ({ page }: { page: Page }) => {
         image={background}
         style={{ backgroundColor: bgColor }}
         width={2000}
+        className="header-offset tablet:px-[5%] tablet:pb-[5%]"
       >
         <div>
           <FormBody name={name} sectionHeading={Heading} />
@@ -202,7 +203,10 @@ const Form = ({ page }: { page: Page }) => {
     </div>
   ) : (
     <div className={boxAlign}>
-      <section id={id ?? undefined}>
+      <section
+        id={id ?? undefined}
+        className="header-offset tablet:px-[5%] tablet:pb-[5%]"
+      >
         <div>
           <FormBody name={name} sectionHeading={Heading} />
         </div>

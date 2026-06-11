@@ -31,7 +31,7 @@ export default function TeamMemberBio({ member }: { member: Member }) {
           href="/leadership/"
           className="inline-block font-sans font-semibold text-sm text-blue no-underline mb-10 transition-colors duration-[250ms] hover:text-accent"
         >
-          ← Back to Leadership
+          ← Back
         </Link>
 
         <div className="grid grid-cols-[minmax(280px,420px)_1fr] gap-14 items-start max-[860px]:grid-cols-1 max-[860px]:gap-8">
@@ -45,7 +45,7 @@ export default function TeamMemberBio({ member }: { member: Member }) {
             ))}
 
           <div>
-            <h1 className="font-sans font-bold text-blue text-h1 tracking-[-0.01em] m-0">
+            <h1 className="font-sans font-bold text-blue text-h1 m-0">
               {member.name}
             </h1>
             {(member.role || member.roleSubtitle) && (

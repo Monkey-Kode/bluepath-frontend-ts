@@ -36,16 +36,21 @@ function PageContent({
 }) {
   const contentType = content?.contentType?.name;
 
+  // Home sections render full-bleed (viewport height); the same box components
+  // render at natural height when used on other pages via the [slug] dispatcher.
   if (contentType === 'Video') {
     return <Video key={content.id} content={content} videos={videos} />;
   } else if (contentType === 'Carousel') {
-    return <Carousel key={content.id} content={content} slides={slides} />;
+    return (
+      <Carousel key={content.id} content={content} slides={slides} fullHeight />
+    );
   } else if (contentType === 'Projects') {
     return (
       <Projects
         key={content.id}
         page={content as unknown as NonNullable<PageBySlugQueryResult>}
         casestudies={caseStudies}
+        fullHeight
       />
     );
   } else if (contentType === 'Team') {
@@ -54,6 +59,7 @@ function PageContent({
         key={content.id}
         page={content as unknown as NonNullable<PageBySlugQueryResult>}
         team={team}
+        fullHeight
       />
     );
   } else if (contentType === 'TOF') {
@@ -65,7 +71,7 @@ function PageContent({
       />
     ) : null;
   } else {
-    return <Plain key={content.id} content={content} />;
+    return <Plain key={content.id} content={content} fullHeight />;
   }
 }
 

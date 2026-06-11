@@ -96,7 +96,7 @@ function ContentBox({
             {!hidetitle && (
               <motion.h2
                 className={twMerge(
-                  'm-0 max-w-full border-none pb-2 pt-6 text-7xl max-tablet:text-center max-tablet:text-[1.75rem] leading-none',
+                  'm-0 max-w-full border-none pb-2 pt-6 font-extrabold text-7xl max-tablet:text-center max-tablet:text-[1.75rem] leading-none',
                   sectionHeadingPosition && 'hide-for-desktop',
                 )}
                 initial={isMobile ? 'visible' : 'hidden'}
@@ -110,7 +110,7 @@ function ContentBox({
             {!hidetitle && (
               <motion.h3
                 className={twMerge(
-                  'm-0 pb-6 text-center lowercase text-[calc(1.875rem+0.5vw)] max-tablet:text-[1.5rem] leading-none',
+                  'm-0 pb-6 text-center lowercase text-[calc(var(--text-7xl)*3/5)] max-tablet:text-[1.05rem] leading-none font-medium',
                   sectionHeadingPosition && 'hide-for-desktop',
                 )}
                 initial={isMobile ? 'visible' : 'hidden'}

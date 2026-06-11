@@ -13,9 +13,8 @@ import { sanityFetch } from '@/sanity/lib/live';
 import {
   addressesQuery,
   allPageSlugsQuery,
-  carbonoffsetsQuery,
   casestudiesQuery,
-  impactItemsQuery,
+  impactPageContentQuery,
   pageBySlugQuery,
   teamQuery,
 } from '@/sanity/lib/queries';
@@ -82,18 +81,10 @@ export default async function DynamicPage({
       break;
     }
     case 'Impact': {
-      const [{ data: impactItems }, { data: carbonoffsets }] =
-        await Promise.all([
-          sanityFetch({ query: impactItemsQuery }),
-          sanityFetch({ query: carbonoffsetsQuery }),
-        ]);
-      inner = (
-        <Impact
-          page={page}
-          impactItems={impactItems}
-          carbonoffsets={carbonoffsets}
-        />
-      );
+      const { data: impactContent } = await sanityFetch({
+        query: impactPageContentQuery,
+      });
+      inner = <Impact page={page} content={impactContent} />;
       break;
     }
     case 'Projects': {
