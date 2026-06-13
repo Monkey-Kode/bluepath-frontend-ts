@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
-import SanityImage from '@/components/SanityImage';
-import ViewTransition from '@/components/ViewTransition';
-import { mediaTransitionName, titleTransitionName } from '@/lib/newsEvents';
-import type { AllEventsQueryResult, AllNewsQueryResult } from '@/sanity.types';
+import SanityImage from "@/components/SanityImage";
+import ViewTransition from "@/components/ViewTransition";
+import { mediaTransitionName, titleTransitionName } from "@/lib/newsEvents";
+import type { AllEventsQueryResult, AllNewsQueryResult } from "@/sanity.types";
 
 const PAGE_SIZE = 10;
 
 type ArchiveImage =
-    | AllNewsQueryResult[number]['heroImage']
-    | AllEventsQueryResult[number]['image'];
+    | AllNewsQueryResult[number]["heroImage"]
+    | AllEventsQueryResult[number]["image"];
 
 type ArchiveItem = {
-    kind: 'news' | 'event';
+    kind: "news" | "event";
     id: string;
     slug: string;
     title: string;
@@ -28,13 +28,13 @@ type ArchiveItem = {
 };
 
 const formatDate = (iso: string | null | undefined) => {
-    if (!iso) return '';
+    if (!iso) return "";
     const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return '';
-    return d.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
     });
 };
 
@@ -42,7 +42,7 @@ const eventDateToISO = (eventAt: string | null | undefined) =>
     eventAt ? `${eventAt}T00:00:00` : null;
 
 const CTA_CLASS =
-    'group inline-flex items-center gap-2 bg-blue text-white uppercase tracking-[0.12em] text-[0.8125rem] font-normal no-underline px-3 py-2 rounded-md transition-all duration-200 hover:bg-accent hover:text-white hover:-translate-y-0.5 hover:shadow-md';
+    "group inline-flex items-center gap-2 bg-blue text-white uppercase tracking-[0.12em] text-[0.8125rem] font-normal no-underline px-3 py-2 rounded-md transition-all duration-200 hover:bg-accent hover:text-white hover:-translate-y-0.5 hover:shadow-md";
 
 export default function NewsEventsArchive({
     news,
@@ -55,10 +55,10 @@ export default function NewsEventsArchive({
         const newsItems: ArchiveItem[] = news
             .filter((n) => n.slug && n.publishedAt)
             .map((n) => ({
-                kind: 'news',
+                kind: "news",
                 id: n._id,
                 slug: n.slug as string,
-                title: n.title ?? 'Untitled',
+                title: n.title ?? "Untitled",
                 subhead: n.subhead ?? null,
                 label: n.publication ?? null,
                 excerpt: n.excerpt ?? null,
@@ -66,16 +66,16 @@ export default function NewsEventsArchive({
                 sortKey: new Date(n.publishedAt as string).getTime(),
                 image: n.featuredImage?.asset?._id
                     ? n.featuredImage
-                    : (n.heroImage ?? null),
+                    : n.heroImage ?? null,
             }));
 
         const eventItems: ArchiveItem[] = events
             .filter((e) => e.slug && e.eventAt)
             .map((e) => ({
-                kind: 'event',
+                kind: "event",
                 id: e._id,
                 slug: e.slug as string,
-                title: e.name ?? 'Untitled event',
+                title: e.name ?? "Untitled event",
                 subhead: null,
                 label: e.publication ?? null,
                 excerpt: e.description ?? null,
@@ -103,11 +103,11 @@ export default function NewsEventsArchive({
                 </h1>
                 {shown.map((item) => {
                     const href =
-                        item.kind === 'news'
+                        item.kind === "news"
                             ? `/news/${item.slug}`
                             : `/events/${item.slug}`;
                     const ctaLabel =
-                        item.kind === 'news' ? 'CONTINUE READING' : 'VIEW EVENT DETAILS';
+                        item.kind === "news" ? "CONTINUE READING" : "VIEW EVENT DETAILS";
                     const mediaVt = mediaTransitionName(item.kind, item.slug);
                     const titleVt = titleTransitionName(item.kind, item.slug);
 
@@ -140,14 +140,10 @@ export default function NewsEventsArchive({
                             <div className="flex flex-col gap-3">
                                 <div className="flex flex-col gap-1  text-[0.8125rem] uppercase tracking-[0.1em]">
                                     {item.date && (
-                                        <time className="text-black font-light">
-                                            {item.date}
-                                        </time>
+                                        <time className="text-black font-light">{item.date}</time>
                                     )}
                                     {item.label && (
-                                        <span className="text-black font-semibold">
-                                            {item.label}
-                                        </span>
+                                        <span className="text-black font-light">{item.label}</span>
                                     )}
                                 </div>
                                 <ViewTransition name={titleVt} share="morph">
