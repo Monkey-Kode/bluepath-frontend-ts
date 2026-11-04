@@ -59,7 +59,9 @@ export function isShown(project: MapProject) {
 }
 
 /** A marker needs a shown project with a latitude, a longitude, and a category (AC-2.1). */
-export function isPlotted(project: MapProject) {
+export function isPlotted<T extends MapProject>(
+  project: T,
+): project is T & { location: google.maps.LatLngLiteral } {
   const { location } = project;
   return (
     isShown(project) &&
