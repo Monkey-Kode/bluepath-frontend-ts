@@ -52,6 +52,10 @@
     --color-gray-2: #616567;
     --color-gray-3: #595959;
     --color-surface: #f6f7f9;
+    /* Map legend text. The design's #6879A1 measures 4.34:1 on white, so both
+     * slates are darker. Faded entries still pass AA (D-20). */
+    --color-legend: #44547a;
+    --color-legend-faded: #62729a;
 
     /* ── Type scale: Axios sizes converted into our fluid (Utopia) method ──
      * Each step's DESKTOP ceiling (@1240px) equals the matching Axios token
