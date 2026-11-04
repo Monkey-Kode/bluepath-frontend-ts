@@ -15,14 +15,16 @@ interface MapPanelProps {
 /**
  * The panel under the legend (FR-004, FR-006). It keeps one live region and one fixed height
  * through every switch, so screen readers hear each change and the content below never moves
- * (AC-2.7, AC-2.8). The height fits the longest project today. It scrolls past that.
+ * (AC-2.7, AC-2.8). The height fits a project with every field at today's longest value.
+ * At 320 px, that project needs 340 of the 384 px. A longer project scrolls.
  */
 export default function MapPanel({ view, project, copy }: MapPanelProps) {
   return (
     <div
       aria-live="polite"
       aria-atomic="true"
-      className="h-96 overflow-y-auto text-base text-gray-3 tablet:h-56"
+      data-map-panel
+      className="mx-auto h-96 max-w-3xl overflow-y-auto text-center text-base text-gray-3 tablet:h-56"
     >
       <PanelContent view={view} project={project} copy={copy} />
     </div>
@@ -49,13 +51,12 @@ function ProjectDetails({ project }: { project: MapProject }) {
     <>
       <p className="font-semibold text-blue text-h4">{name}</p>
       {projectName && <p className="text-fine">{projectName}</p>}
-      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 tablet:grid-cols-3 lg:grid-cols-4">
+      {/* The fields wrap and center, one "Label: value" pair at a time, as in the design. */}
+      <dl className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-1 text-fine">
         {fields.map(({ label, value }) => (
-          <div key={label}>
-            <dt className="text-legend text-micro uppercase tracking-wide">
-              {label}
-            </dt>
-            <dd className="text-black text-fine">{value}</dd>
+          <div key={label} className="flex gap-1">
+            <dt className="text-legend after:content-[':']">{label}</dt>
+            <dd className="text-black">{value}</dd>
           </div>
         ))}
       </dl>
@@ -73,7 +74,7 @@ function CategoryDetails({
   const text = description?.trim();
   return (
     <>
-      <p className="flex items-center gap-2 font-semibold text-blue text-h4">
+      <p className="flex items-center justify-center gap-2 font-semibold text-blue text-h4">
         <Swatch category={category} />
         {CATEGORY_BY_KEY[category].label}
       </p>

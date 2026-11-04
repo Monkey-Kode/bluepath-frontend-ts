@@ -2,6 +2,7 @@
 
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
+import MapKey from '@/components/projectMap/MapKey';
 import MapLegend from '@/components/projectMap/MapLegend';
 import MapPanel from '@/components/projectMap/MapPanel';
 import { createMapLayer, type MapLayer } from '@/lib/mapProjects/mapLayer';
@@ -90,16 +91,22 @@ function Projects({
     <section
       id={page.id}
       className={twMerge(
-        'w-full',
-        // Off-home (/projects): inset the map below the fixed header on desktop,
-        // replacing the removed global `.page section` padding. As a home box,
-        // no offset is needed.
-        !fullHeight &&
-          'tablet:p-[5%] tablet:pt-[calc(var(--mobile-header-height)+2rem)]',
+        'w-full px-5',
+        // Off home (/projects), the section clears the fixed header. A home box needs no offset.
+        !fullHeight && 'header-offset mx-auto max-w-7xl pb-16',
       )}
     >
-      <div ref={mapRef} className="h-[70vh] min-h-100 w-full" />
-      <div className="mt-6 space-y-4 px-4 tablet:px-0">
+      {/*
+       * The frame keeps the lower 48's shape, about 9:5 in Google's projection. Its width follows
+       * the screen's height, so the map, legend, and panel fit on one 1440×900 screen (AC-2.9).
+       * 21rem covers the header gap, the legend and its gaps, the panel's 14rem, and a margin.
+       * It never gets narrower than 40rem, or the screen width when that is less.
+       */}
+      <div className="relative mx-auto w-full min-w-[min(100%,40rem)] max-w-[calc((100svh-var(--header-height,100px)-21rem)*9/5)]">
+        <div ref={mapRef} data-map-root className="aspect-[9/5] w-full" />
+        <MapKey />
+      </div>
+      <div className="mt-6 space-y-4">
         <MapLegend
           selection={selection}
           onPick={(category) => dispatch({ type: 'pickLegend', category })}

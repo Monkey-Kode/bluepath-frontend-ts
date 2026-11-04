@@ -15,9 +15,11 @@ interface MapLegendProps {
  */
 export default function MapLegend({ selection, onPick }: MapLegendProps) {
   return (
+    // Below 800 px, the entries wrap into two rows of two. From 800 px, they share one row (AC-2.3).
     <ul
       aria-label="Filter the map by category"
-      className="grid grid-cols-2 justify-items-start gap-x-6 gap-y-2 tablet:flex tablet:flex-wrap tablet:justify-center tablet:gap-x-8"
+      data-map-legend
+      className="mx-auto grid w-fit grid-cols-2 justify-items-start gap-x-6 gap-y-2 tablet:flex tablet:flex-wrap tablet:justify-center tablet:gap-x-8"
     >
       {CATEGORIES.map(({ key, label }) => {
         const look = legendLook(selection, key);
