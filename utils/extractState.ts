@@ -1,4 +1,4 @@
-const STATE_ABBREVIATIONS: Record<string, string> = {
+export const STATE_ABBREVIATIONS: Record<string, string> = {
   AL: 'Alabama',
   AK: 'Alaska',
   AZ: 'Arizona',
