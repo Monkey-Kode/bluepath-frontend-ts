@@ -370,7 +370,7 @@
 .home .header-overlay header .burger-menu > span {
     background-color: white;
 }
-.home .header-overlay header nav ul li a {
+.home .header-overlay header nav > ul > li > :is(a, button) {
     color: #fff;
 }
 .home .header-overlay header.show {
@@ -387,7 +387,7 @@
     background-color: var(--color-blue);
 }
 @media (min-width: 800px) {
-    .home .header-overlay header.show nav ul li a {
+    .home .header-overlay header.show nav > ul > li > :is(a, button) {
         color: var(--color-blue);
         font-weight: 400;
     }
