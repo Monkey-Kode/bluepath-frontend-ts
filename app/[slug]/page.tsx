@@ -16,6 +16,7 @@ import {
   casestudiesQuery,
   impactPageContentQuery,
   pageBySlugQuery,
+  projectMapQuery,
   teamQuery,
 } from '@/sanity/lib/queries';
 
@@ -88,10 +89,17 @@ export default async function DynamicPage({
       break;
     }
     case 'Projects': {
-      const { data: casestudies } = await sanityFetch({
-        query: casestudiesQuery,
-      });
-      inner = <Projects page={page} casestudies={casestudies} />;
+      const [{ data: casestudies }, { data: projectMap }] = await Promise.all([
+        sanityFetch({ query: casestudiesQuery }),
+        sanityFetch({ query: projectMapQuery }),
+      ]);
+      inner = (
+        <Projects
+          page={page}
+          casestudies={casestudies}
+          projectMap={projectMap}
+        />
+      );
       break;
     }
     case 'Team': {

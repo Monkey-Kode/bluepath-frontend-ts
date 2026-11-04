@@ -10,6 +10,7 @@ import { loader } from '@/lib/mapsLoader';
 import type {
   CasestudiesQueryResult,
   PageBySlugQueryResult,
+  ProjectMapQueryResult,
 } from '@/sanity.types';
 
 const mapMarker = '/marker.png';
@@ -21,6 +22,8 @@ function Projects({
 }: {
   page: NonNullable<PageBySlugQueryResult>;
   casestudies: CasestudiesQueryResult;
+  /** The category descriptions and the resting prompt. A home section passes none. */
+  projectMap?: ProjectMapQueryResult;
   fullHeight?: boolean;
 }) {
   const { id } = page;

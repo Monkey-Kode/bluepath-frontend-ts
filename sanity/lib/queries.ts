@@ -212,20 +212,36 @@ export const teamMemberBySlugQuery = defineQuery(`
   }
 `);
 
+// Returns hidden and inactive projects too. `isShown` and `isPlotted` in
+// `lib/mapProjects/display.ts` decide what the map and the ticker show.
 export const casestudiesQuery = defineQuery(`
   *[_type == "casestudies"]{
     _id,
     "id": _id,
     title,
+    plantName,
+    projectName,
+    projectType,
+    projectStatus,
+    active,
+    hiddenAt,
     entity,
     financing,
     size,
     technologies,
     content,
     address,
+    city,
     state,
     location,
     image{ ${imageFields} }
+  }
+`);
+
+export const projectMapQuery = defineQuery(`
+  *[_type == "projectMap" && _id == "projectMap"][0]{
+    restingPrompt,
+    categoryDescriptions{ energyEfficiency, solar, solarBess, bess }
   }
 `);
 
