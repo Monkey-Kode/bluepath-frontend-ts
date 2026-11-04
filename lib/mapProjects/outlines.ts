@@ -70,3 +70,13 @@ export function stateAt(
   );
   return feature?.properties.name ?? null;
 }
+
+/** Fetches the outlines file. It throws when the file is missing or unreadable. */
+export async function loadStateOutlines(): Promise<StateOutlines> {
+  const response = await fetch(STATE_OUTLINES_URL);
+  if (!response.ok)
+    throw new Error(
+      `${STATE_OUTLINES_URL} answered with status ${response.status}.`,
+    );
+  return (await response.json()) as StateOutlines;
+}
