@@ -1,4 +1,4 @@
-"""Tests for build_starter_workbook.py (AC-8.1, AC-8.2, AC-8.3, AC-8.6).
+"""Tests for build_starter_workbook.py (AC-8.1 to AC-8.6).
 
 Run from bluepath-frontend-ts:
     uv run --no-project --with openpyxl --with pytest python -I -B -m pytest -p no:cacheprovider scripts/starter-workbook
@@ -239,6 +239,123 @@ class TestInputErrors:
             build(docs=docs)
 
 
+def review_of(result):
+    return [(r["Check"], r["Plant ID"], r["Website ID"]) for r in result.review]
+
+
+def item_for(result, check):
+    found = [r for r in result.review if r["Check"] == check]
+    assert len(found) == 1, found
+    return found[0]
+
+
+class TestReviewTab:
+    """AC-8.4: the Review tab lists each item for BluePath to check, grouped by check."""
+
+    def test_lists_the_fixture_items_in_check_order(self):
+        assert review_of(build()) == [
+            ("Shares a plant", 2001, "web-river-a"),
+            ("Shares a plant", 2001, "web-river-b"),
+            ("Weak match", 1077, "web-fort-smith"),
+            ("No coordinates", None, "web-lakeside"),
+            ("Address and State field differ", None, "web-manhattan"),
+        ]
+
+    def test_every_item_leaves_the_answer_blank(self):
+        result = build()
+        assert all(list(r) == starter.REVIEW_HEADERS for r in result.review)
+        assert all(r["BluePath's Answer"] is None for r in result.review)
+
+    def test_a_shared_plant_names_both_projects_and_what_happens_at_the_load(self):
+        item = build().review[0]
+        assert item["Plant Name"] == "Riverside Solar"
+        assert item["Website Project Name"] == "Riverside School"
+        assert "Riverside College" in item["Details"] and "hide" in item["Details"]
+
+    def test_a_weak_match_repeats_the_reconciliation_flag(self):
+        item = item_for(build(), "Weak match")
+        assert "Weak project match, confirm" in item["Details"]
+
+    def test_a_merged_state_that_differs_from_blueiq(self):
+        docs = [DOCS[0], dict(DOCS[1], address="Fort Smith, OK")] + DOCS[2:]
+        item = item_for(build(docs=docs), "State differs from BlueIQ")
+        assert (item["Plant ID"], item["Website ID"]) == (1077, "web-fort-smith")
+        assert "OK" in item["Details"] and "AR" in item["Details"]
+
+    def test_a_merged_row_without_any_website_state(self):
+        docs = [DOCS[0], dict(DOCS[1], address="", state=None)] + DOCS[2:]
+        item = item_for(build(docs=docs), "State differs from BlueIQ")
+        assert item["Plant ID"] == 1077
+
+    def test_a_merged_row_without_a_city(self):
+        docs = [dict(DOCS[0], address="111 Wells Ave\n")] + DOCS[1:]
+        item = item_for(build(docs=docs), "No city")
+        assert (item["Plant ID"], item["Website ID"]) == (1032, "web-wells")
+        assert "111 Wells Ave" in item["Details"]
+
+    def test_a_plant_without_coordinates(self):
+        plants = PLANTS[:3] + [dict(ALONE, Latitude=None)]
+        assert ("No coordinates", 2002, None) in review_of(build(plants=plants))
+
+    def test_a_merged_plant_without_coordinates_says_it_leaves_the_map(self):
+        plants = [dict(WELLS, Longitude="")] + PLANTS[1:]
+        result = build(plants=plants)
+        [item] = [r for r in result.review if r["Plant ID"] == 1032]
+        assert (item["Check"], item["Website ID"]) == ("No coordinates", "web-wells")
+        assert "BlueIQ's pin" in item["Details"]
+        assert row_for(result, **{"Plant ID": 1032})["Longitude"] == ""
+
+    def test_a_plant_without_a_project_type(self):
+        plants = PLANTS[:3] + [dict(ALONE, **{"Project Type": "  "})]
+        assert ("No Project Type", 2002, None) in review_of(build(plants=plants))
+
+    def test_website_only_rows_never_need_a_project_type(self):
+        assert not any(r["Check"] == "No Project Type" for r in build().review)
+
+    def test_an_address_state_that_differs_from_the_state_field(self):
+        item = item_for(build(), "Address and State field differ")
+        assert "MO" in item["Details"] and "KS" in item["Details"]
+
+
+class TestHowToTab:
+    """AC-8.4: the How-to tab explains every column and the one-time load."""
+
+    def test_explains_every_projects_column(self):
+        columns = [row[0] for row in starter.how_to_rows([]) if row[0] in starter.PROJECT_HEADERS]
+        assert columns == starter.PROJECT_HEADERS
+
+    def test_names_the_input_files(self):
+        text = " ".join(str(v) for row in starter.how_to_rows(["blueiq.xlsx"]) for v in row)
+        assert "blueiq.xlsx" in text and "Feed & imports" in text
+
+
+class TestCountCheck:
+    """AC-8.5: the counts reconcile, or the script writes nothing."""
+
+    def test_the_fixture_counts_reconcile(self):
+        counts = starter.check_counts(build(), PLANTS, starter.index_website(DOCS), WEBSITE_ONLY)
+        assert counts == {
+            "rows": 6, "plants": 4, "website_only": 2, "website": 6, "merged": 2, "shared": 2,
+        }
+
+    def test_a_website_project_that_the_reconciliation_lacks(self):
+        docs = DOCS + [{"_id": "web-hilltop", "title": "Hilltop Library"}]
+        with pytest.raises(starter.InputError, match="Hilltop Library"):
+            starter.check_counts(build(docs=docs), PLANTS, starter.index_website(docs), WEBSITE_ONLY)
+
+    def test_a_lost_plant_row(self):
+        result = build()
+        result.rows.pop(0)
+        with pytest.raises(starter.InputError, match="rows"):
+            starter.check_counts(result, PLANTS, starter.index_website(DOCS), WEBSITE_ONLY)
+
+    def test_a_website_project_on_two_rows(self):
+        result = build()
+        result.rows[-2] = dict(result.rows[-1])
+        with pytest.raises(starter.InputError, match="Lakeside School.*Manhattan Condominiums|Manhattan Condominiums.*Lakeside School"):
+            starter.check_counts(result, PLANTS, starter.index_website(DOCS), WEBSITE_ONLY)
+
+
 def write_xlsx(path, tabs):
     wb = openpyxl.Workbook()
     wb.remove(wb.active)
@@ -288,3 +405,20 @@ class TestCommandLine:
         inputs["out"] = inputs["blueiq"]
         assert starter.main(self.args(inputs)) == 1
         assert "input" in capsys.readouterr().err
+
+    def test_writes_the_review_and_how_to_tabs(self, inputs):
+        assert starter.main(self.args(inputs)) == 0
+        wb = openpyxl.load_workbook(inputs["out"])
+        assert wb.sheetnames == ["Projects", "Review", "How-to"]
+        review = list(wb["Review"].iter_rows(values_only=True))
+        assert list(review[0]) == starter.REVIEW_HEADERS
+        assert [row[0] for row in review[1:]] == [r[0] for r in review_of(build())]
+        how_to = " ".join(str(v) for row in wb["How-to"].iter_rows(values_only=True) for v in row)
+        assert "blueiq.xlsx" in how_to
+
+    def test_counts_that_do_not_reconcile_write_nothing(self, inputs, capsys):
+        docs = DOCS + [{"_id": "web-hilltop", "title": "Hilltop Library"}]
+        inputs["website"].write_text(json.dumps(docs))
+        assert starter.main(self.args(inputs)) == 1
+        assert "Hilltop Library" in capsys.readouterr().err
+        assert not inputs["out"].exists()
