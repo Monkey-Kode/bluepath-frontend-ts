@@ -5,8 +5,8 @@ import { usePathname } from 'next/navigation';
 import { twMerge } from 'tailwind-merge';
 import { Dispatch, SetStateAction } from 'react';
 
+import { footerList, headerTree } from '@/lib/navTree';
 import scrollTo from '@/lib/scrollTo';
-import sortObject from '@/utils/sortObject';
 import type { NavigationQueryResult } from '@/sanity.types';
 
 function Menu({
@@ -23,9 +23,11 @@ function Menu({
   className?: string;
 }) {
   const pathname = usePathname();
-  const navItems = sortObject(navigation);
-
   const isHeader = siteLocation === 'header';
+  // The header row shows top-level items only. The footer lists sub-items after their parent.
+  const navItems = isHeader
+    ? headerTree(navigation).map(({ item }) => item)
+    : footerList(navigation);
 
   const linkClass = twMerge(
     'cursor-pointer font-normal text-blue no-underline',
@@ -49,53 +51,48 @@ function Menu({
       )}
     >
       <ul className="m-0 flex flex-wrap tablet:justify-end max-tablet:flex-col max-tablet:justify-center">
-        {navItems.map(
-          ({ name: title, page, jumpLinkId, _id, header, footer, url }) => {
-            if (!header && isHeader) return null;
-            if (!footer && !isHeader) return null;
+        {navItems.map(({ name: title, page, jumpLinkId, _id, url }) => {
+          // Resolve the href. Priority: explicit Direct Link > page
+          // reference > legacy jump link. Page references are NOT gated on
+          // the `linkType` boolean any more — a referenced page always links
+          // to its slug, so items left with a blank toggle (e.g. Impact)
+          // route correctly instead of collapsing to `/`.
+          let pageLink = '';
+          if (url) {
+            // Direct Link is stored as a full URL; keep only the path so
+            // internal links route client-side instead of reloading.
+            pageLink = new URL(url).pathname.slice(1);
+          } else if (page?.slug) {
+            pageLink = page.slug;
+          } else if (jumpLinkId) {
+            // Legacy on-page anchor (homepage only).
+            pageLink = pathname === '/' ? jumpLinkId : `/${jumpLinkId}`;
+          }
 
-            // Resolve the href. Priority: explicit Direct Link > page
-            // reference > legacy jump link. Page references are NOT gated on
-            // the `linkType` boolean any more — a referenced page always links
-            // to its slug, so items left with a blank toggle (e.g. Impact)
-            // route correctly instead of collapsing to `/`.
-            let pageLink = '';
-            if (url) {
-              // Direct Link is stored as a full URL; keep only the path so
-              // internal links route client-side instead of reloading.
-              pageLink = new URL(url).pathname.slice(1);
-            } else if (page?.slug) {
-              pageLink = page.slug;
-            } else if (jumpLinkId) {
-              // Legacy on-page anchor (homepage only).
-              pageLink = pathname === '/' ? jumpLinkId : `/${jumpLinkId}`;
-            }
-
-            return (
-              <li key={_id} className="list-none tablet:px-4">
-                {!jumpLinkId ? (
-                  <Link href={`/${pageLink}`} className={linkClass}>
-                    {title}
-                  </Link>
-                ) : (
-                  <a
-                    href={`${pageLink}`}
-                    className={linkClass}
-                    onClick={(e) => {
-                      if (pathname === '/') {
-                        e.preventDefault();
-                        if (setOpen) setOpen(false);
-                        scrollTo(pageLink);
-                      }
-                    }}
-                  >
-                    {title}
-                  </a>
-                )}
-              </li>
-            );
-          },
-        )}
+          return (
+            <li key={_id} className="list-none tablet:px-4">
+              {!jumpLinkId ? (
+                <Link href={`/${pageLink}`} className={linkClass}>
+                  {title}
+                </Link>
+              ) : (
+                <a
+                  href={`${pageLink}`}
+                  className={linkClass}
+                  onClick={(e) => {
+                    if (pathname === '/') {
+                      e.preventDefault();
+                      if (setOpen) setOpen(false);
+                      scrollTo(pageLink);
+                    }
+                  }}
+                >
+                  {title}
+                </a>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </nav>
   );
