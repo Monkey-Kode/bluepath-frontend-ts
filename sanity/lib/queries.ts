@@ -30,6 +30,7 @@ export const settingsQuery = defineQuery(`
   }
 `);
 
+// `parent` is the parent item's _id. A sub-item shows only in its parent's dropdown (FR-001).
 export const navigationQuery = defineQuery(`
   *[_type == "navigation"] | order(order asc){
     _id,
@@ -40,7 +41,8 @@ export const navigationQuery = defineQuery(`
     header,
     footer,
     order,
-    "page": page->{ _type, "slug": slug.current }
+    "page": page->{ _type, "slug": slug.current },
+    "parent": parent._ref
   }
 `);
 
