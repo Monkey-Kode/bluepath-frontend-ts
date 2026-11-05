@@ -71,7 +71,6 @@ export function stateAt(
   return feature?.properties.name ?? null;
 }
 
-/** Fetches the outlines file. It throws when the file is missing or unreadable. */
 /**
  * The box around a state's outline, for State search (AC-9.4). Alaska's Aleutians pass the 180th
  * meridian, so an east longitude counts as its west equivalent. The box then has west greater
@@ -101,6 +100,7 @@ export function boundsOf(
   return { west: west < -180 ? west + 360 : west, south, east, north };
 }
 
+/** Fetches the outlines file. It throws when the file is missing or unreadable. */
 export async function loadStateOutlines(): Promise<StateOutlines> {
   const response = await fetch(STATE_OUTLINES_URL);
   if (!response.ok)

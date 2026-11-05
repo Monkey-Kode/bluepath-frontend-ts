@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { StateOutlines } from './outlines';
 import {
   isZip,
   matchProjects,
@@ -6,6 +7,7 @@ import {
   nearestProjects,
   projectsInState,
   type SearchProject,
+  stateByOutlines,
 } from './search';
 
 const project = (
@@ -196,5 +198,62 @@ describe('ZIP search (AC-9.5)', () => {
       project(`p${i}`, { location: { lat: 40 + i, lng: -100 } }),
     );
     expect(nearestProjects(many, { lat: 40, lng: -100 })).toHaveLength(10);
+  });
+});
+
+describe("a project's state for State search (AC-9.4, AC-2.2)", () => {
+  const square = (west: number, south: number, east: number, north: number) => [
+    [
+      [west, south],
+      [east, south],
+      [east, north],
+      [west, north],
+      [west, south],
+    ],
+  ];
+  const outlines: StateOutlines = {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        properties: { name: 'Arkansas' },
+        geometry: { type: 'Polygon', coordinates: square(-95, 33, -89, 37) },
+      },
+    ],
+  };
+  // The State field says Alaska, but the pin sits in Arkansas, as with one legacy address.
+  const typo = project('typo', {
+    plantName: 'Little Rock Solar',
+    state: 'Alaska',
+    location: { lat: 34.75, lng: -92.29 },
+  });
+  const offshore = project('offshore', {
+    plantName: 'Offshore Solar',
+    state: 'Arkansas',
+    location: { lat: 20, lng: -60 },
+  });
+
+  it("follows the pin's state, as the shading does", () => {
+    const stateOf = stateByOutlines(outlines);
+    expect(matchStates([typo], 'ark', stateOf)).toEqual([
+      { code: 'AR', name: 'Arkansas', count: 1 },
+    ]);
+    expect(matchStates([typo], 'alaska', stateOf)).toEqual([
+      { code: 'AK', name: 'Alaska', count: 0 },
+    ]);
+    expect(ids(projectsInState([typo], 'Arkansas', stateOf))).toEqual(['typo']);
+  });
+
+  it('falls back to the State field outside every outline', () => {
+    const stateOf = stateByOutlines(outlines);
+    expect(ids(projectsInState([offshore], 'Arkansas', stateOf))).toEqual([
+      'offshore',
+    ]);
+  });
+
+  it('uses the State field when the outlines failed to load', () => {
+    expect(
+      ids(projectsInState([typo], 'Alaska', stateByOutlines(null))),
+    ).toEqual(['typo']);
   });
 });

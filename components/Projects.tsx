@@ -11,7 +11,10 @@ import {
   type FocusTarget,
   type MapLayer,
 } from '@/lib/mapProjects/mapLayer';
-import { loadStateOutlines } from '@/lib/mapProjects/outlines';
+import {
+  loadStateOutlines,
+  type StateOutlines,
+} from '@/lib/mapProjects/outlines';
 import type { ProjectResult } from '@/lib/mapProjects/search';
 import { idle, panelView, select } from '@/lib/mapProjects/selection';
 import { loadMaps } from '@/lib/mapsLoader';
@@ -41,6 +44,7 @@ function Projects({
 }: ProjectsProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [layer, setLayer] = useState<MapLayer | null>(null);
+  const [outlines, setOutlines] = useState<StateOutlines | null>(null);
   const [selection, dispatch] = useReducer(select, idle);
 
   useEffect(() => {
@@ -52,6 +56,10 @@ function Projects({
     const outlines = loadStateOutlines().catch((error: unknown) => {
       console.error('The state outlines failed to load:', error);
       return null;
+    });
+    // State search uses them even when Google Maps fails.
+    outlines.then((loaded) => {
+      if (!cancelled) setOutlines(loaded);
     });
     Promise.all([loadMaps(), outlines])
       .then(([libraries, stateOutlines]) => {
@@ -130,6 +138,7 @@ function Projects({
         <MapSearch
           projects={casestudies}
           onPickProject={pickResult}
+          outlines={outlines}
           onFocus={focus}
           className="mb-3 tablet:ml-auto tablet:w-fit"
         />

@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { twMerge } from 'tailwind-merge';
 import type { FocusTarget } from '@/lib/mapProjects/mapLayer';
+import type { StateOutlines } from '@/lib/mapProjects/outlines';
 import {
   isZip,
   MIN_QUERY_LENGTH,
@@ -19,7 +20,9 @@ import {
   type ProjectResult,
   projectsInState,
   type SearchProject,
+  type StateOf,
   type StateResult,
+  stateByOutlines,
 } from '@/lib/mapProjects/search';
 import {
   lookupZip as siteLookupZip,
@@ -87,15 +90,16 @@ function stateView(
   text: string,
   chosen: StateResult | null,
   projects: readonly SearchProject[],
+  stateOf: StateOf,
 ): View {
   if (chosen) {
-    const inState = projectsInState(projects, chosen.name);
+    const inState = projectsInState(projects, chosen.name, stateOf);
     return inState.length
       ? { options: projectOptions(inState), message: null }
       : { options: [], message: `No projects in ${chosen.name} yet.` };
   }
   if (text.trim().length < MIN_QUERY_LENGTH) return CLOSED;
-  const states = matchStates(projects, text);
+  const states = matchStates(projects, text, stateOf);
   return states.length
     ? {
         options: states.map((state) => ({ kind: 'state', state })),
@@ -121,6 +125,8 @@ interface MapSearchProps {
   onPickProject: (result: ProjectResult) => void;
   /** A picked state or a found ZIP moves the map. */
   onFocus: (target: FocusTarget) => void;
+  /** The map's state outlines, once loaded. State search then places a project by its pin. */
+  outlines?: StateOutlines | null;
   /** Tests pass a fake. The site uses its one shared lookup. */
   lookupZip?: (zip: string) => Promise<ZipLookup>;
   className?: string;
@@ -134,6 +140,7 @@ export default function MapSearch({
   projects,
   onPickProject,
   onFocus,
+  outlines = null,
   lookupZip = siteLookupZip,
   className,
 }: MapSearchProps) {
@@ -168,9 +175,10 @@ export default function MapSearch({
 
   const view = useMemo(() => {
     if (mode === 'zip') return zipView(text, zip, projects);
-    if (mode === 'state') return stateView(text, chosenState, projects);
+    if (mode === 'state')
+      return stateView(text, chosenState, projects, stateByOutlines(outlines));
     return plainView(text, projects);
-  }, [mode, text, zip, chosenState, projects]);
+  }, [mode, text, zip, chosenState, projects, outlines]);
 
   const shown = open && (view.options.length > 0 || view.message !== null);
   const optionId = (index: number) => `${id}-option-${index}`;

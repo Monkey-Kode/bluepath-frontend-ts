@@ -12,6 +12,7 @@ import {
   locationOf,
   type MapProject,
 } from './display';
+import { type StateOutlines, stateAt } from './outlines';
 
 /** Plain and State search start at two characters (D-43). */
 export const MIN_QUERY_LENGTH = 2;
@@ -41,10 +42,26 @@ export interface StateResult {
   count: number;
 }
 
-/** The 50 states and DC. The source map also holds old abbreviations such as "Mass". */
-const US_STATES = Object.entries(STATE_ABBREVIATIONS).filter(([code]) =>
-  /^[A-Z]{2}$/.test(code),
-);
+/** The 50 states and DC, by two-letter code. */
+const US_STATES = Object.entries(STATE_ABBREVIATIONS);
+
+/** Gives the full name of the state that a plotted project belongs to, or null. */
+export type StateOf = (
+  project: SearchProject,
+  location: google.maps.LatLngLiteral,
+) => string | null;
+
+/**
+ * State search places a project by its pin, as the shading does (AC-2.2). So a picked state's
+ * count and list match the map. A pin outside every outline, or a failed outlines load, falls back
+ * to the State field.
+ */
+export function stateByOutlines(outlines: StateOutlines | null): StateOf {
+  return (project, location) =>
+    (outlines && stateAt(outlines, location)) || stateName(project.state);
+}
+
+const byField = stateByOutlines(null);
 
 const normalize = (text: string | null | undefined) =>
   clean(text).toLowerCase();
@@ -116,12 +133,13 @@ export function matchProjects(
 export function matchStates(
   projects: readonly SearchProject[],
   text: string,
+  stateOf: StateOf = byField,
 ): StateResult[] {
   const query = normalize(text);
   if (query.length < MIN_QUERY_LENGTH) return [];
   const counts = new Map<string, number>();
-  for (const { project } of plotted(projects)) {
-    const name = stateName(project.state);
+  for (const { project, location } of plotted(projects)) {
+    const name = stateOf(project, location);
     if (name) counts.set(name, (counts.get(name) ?? 0) + 1);
   }
   return US_STATES.filter(([code, name]) => {
@@ -146,9 +164,10 @@ export function matchStates(
 export function projectsInState(
   projects: readonly SearchProject[],
   name: string,
+  stateOf: StateOf = byField,
 ): ProjectResult[] {
   return plotted(projects)
-    .filter(({ project }) => stateName(project.state) === name)
+    .filter(({ project, location }) => stateOf(project, location) === name)
     .map(resultOf)
     .sort(byName);
 }

@@ -276,6 +276,41 @@ describe('Projects map search (AC-9.3, AC-9.9)', () => {
     expect(within(panel()).getByText('Sun Farm')).toBeVisible();
   });
 
+  it('counts a project under the state its pin falls in, as the shading does', async () => {
+    fetchMock.mockImplementation(async () =>
+      Response.json({
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: { name: 'Kansas' },
+            geometry: {
+              type: 'Polygon',
+              coordinates: [
+                [
+                  [-92, 33],
+                  [-88, 33],
+                  [-88, 37],
+                  [-92, 37],
+                  [-92, 33],
+                ],
+              ],
+            },
+          },
+        ],
+      } satisfies StateOutlines),
+    );
+    await show();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'State' }));
+    await searchFor('kansas');
+
+    // Cell Bank has no State field. Its pin at 35, -90 sits inside the Kansas outline.
+    expect(screen.getByRole('option', { name: /Kansas/ })).toHaveTextContent(
+      '1 project',
+    );
+  });
+
   it('sends no request to Sanity, only the outlines file', async () => {
     await show();
     const user = await searchFor('farm');
