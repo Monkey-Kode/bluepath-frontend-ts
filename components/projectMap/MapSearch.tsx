@@ -233,38 +233,105 @@ export default function MapSearch({
   return (
     <div
       data-map-search
-      className={twMerge('relative text-sm text-legend', className)}
+      className={twMerge(
+        'text-sm text-legend tablet:flex tablet:items-end tablet:gap-4',
+        className,
+      )}
     >
-      <label
-        htmlFor={`${id}-input`}
-        className="block text-xs uppercase tracking-wide"
-      >
-        Search
-      </label>
-      <input
-        id={`${id}-input`}
-        type="search"
-        role="combobox"
-        autoComplete="off"
-        inputMode={mode === 'zip' ? 'numeric' : undefined}
-        aria-autocomplete="list"
-        aria-expanded={shown}
-        aria-controls={listId}
-        aria-activedescendant={
-          shown && active >= 0 ? optionId(active) : undefined
-        }
-        placeholder={PLACEHOLDERS[mode]}
-        value={text}
-        onChange={(event) => changeText(event.target.value)}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
-        onKeyDown={onKeyDown}
-        className="mt-1 block min-h-10 w-full rounded-sm border border-legend/40 bg-white px-3 text-base text-black placeholder:text-legend-faded focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-      />
+      {/* The list hangs under the box, over the map. */}
+      <div className="relative tablet:w-72">
+        <label
+          htmlFor={`${id}-input`}
+          className="block text-xs uppercase tracking-wide"
+        >
+          Search
+        </label>
+        <input
+          id={`${id}-input`}
+          type="search"
+          role="combobox"
+          autoComplete="off"
+          inputMode={mode === 'zip' ? 'numeric' : undefined}
+          aria-autocomplete="list"
+          aria-expanded={shown}
+          aria-controls={listId}
+          aria-activedescendant={
+            shown && active >= 0 ? optionId(active) : undefined
+          }
+          placeholder={PLACEHOLDERS[mode]}
+          value={text}
+          onChange={(event) => changeText(event.target.value)}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setOpen(false)}
+          onKeyDown={onKeyDown}
+          className="mt-1 block min-h-10 w-full rounded-sm border border-legend/40 bg-white px-3 text-base text-black placeholder:text-legend-faded focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+        />
+        {shown && (
+          <ul
+            id={listId}
+            role="listbox"
+            aria-label="Search results"
+            // Keeps focus in the box, so a click or tap on a row isn't lost to the blur.
+            onMouseDown={(event) => event.preventDefault()}
+            className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-sm border border-legend/30 bg-white shadow-lg"
+          >
+            {view.message !== null ? (
+              <li className="px-3 py-2 text-gray-2">{view.message}</li>
+            ) : (
+              view.options.map((option, index) => (
+                <li
+                  key={
+                    option.kind === 'state'
+                      ? `state-${option.state.code}`
+                      : option.result.id
+                  }
+                  id={optionId(index)}
+                  role="option"
+                  aria-selected={index === active}
+                  onClick={() => pick(option)}
+                  className="flex min-h-11 cursor-pointer items-center gap-2 px-3 py-2 aria-selected:bg-surface hover:bg-surface"
+                >
+                  {option.kind === 'state' ? (
+                    <>
+                      <span className="font-semibold text-blue">
+                        {option.state.name}
+                      </span>
+                      <span className="ml-auto text-xs">
+                        {option.state.count
+                          ? countText(option.state.count, 'project', 'projects')
+                          : 'No projects'}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Swatch category={option.result.category} />
+                      <span className="min-w-0">
+                        <span className="block font-semibold text-blue">
+                          {option.result.name}
+                        </span>
+                        {option.result.place && (
+                          <span className="block text-xs">
+                            {option.result.place}
+                          </span>
+                        )}
+                      </span>
+                      {option.result.miles !== undefined && (
+                        <span className="ml-auto shrink-0 text-xs">
+                          {Math.round(option.result.miles)} mi
+                        </span>
+                      )}
+                    </>
+                  )}
+                </li>
+              ))
+            )}
+          </ul>
+        )}
+      </div>
       <div
         role="group"
         aria-labelledby={`${id}-category`}
-        className="mt-2 flex flex-wrap items-center gap-2"
+        className="mt-2 flex flex-wrap items-center gap-2 tablet:mt-0 tablet:min-h-10"
       >
         <span id={`${id}-category`} className="text-xs uppercase tracking-wide">
           Category
@@ -281,67 +348,6 @@ export default function MapSearch({
           </button>
         ))}
       </div>
-      {shown && (
-        <ul
-          id={listId}
-          role="listbox"
-          aria-label="Search results"
-          // Keeps focus in the box, so a click or tap on a row isn't lost to the blur.
-          onMouseDown={(event) => event.preventDefault()}
-          className="absolute inset-x-0 z-20 mt-1 max-h-72 overflow-y-auto rounded-sm border border-legend/30 bg-white shadow-lg"
-        >
-          {view.message !== null ? (
-            <li className="px-3 py-2 text-gray-2">{view.message}</li>
-          ) : (
-            view.options.map((option, index) => (
-              <li
-                key={
-                  option.kind === 'state'
-                    ? `state-${option.state.code}`
-                    : option.result.id
-                }
-                id={optionId(index)}
-                role="option"
-                aria-selected={index === active}
-                onClick={() => pick(option)}
-                className="flex min-h-11 cursor-pointer items-center gap-2 px-3 py-2 aria-selected:bg-surface hover:bg-surface"
-              >
-                {option.kind === 'state' ? (
-                  <>
-                    <span className="font-semibold text-blue">
-                      {option.state.name}
-                    </span>
-                    <span className="ml-auto text-xs">
-                      {option.state.count
-                        ? countText(option.state.count, 'project', 'projects')
-                        : 'No projects'}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <Swatch category={option.result.category} />
-                    <span className="min-w-0">
-                      <span className="block font-semibold text-blue">
-                        {option.result.name}
-                      </span>
-                      {option.result.place && (
-                        <span className="block text-xs">
-                          {option.result.place}
-                        </span>
-                      )}
-                    </span>
-                    {option.result.miles !== undefined && (
-                      <span className="ml-auto shrink-0 text-xs">
-                        {Math.round(option.result.miles)} mi
-                      </span>
-                    )}
-                  </>
-                )}
-              </li>
-            ))
-          )}
-        </ul>
-      )}
       <p role="status" className="sr-only">
         {announcement}
       </p>

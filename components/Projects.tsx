@@ -118,16 +118,20 @@ function Projects({
       {/*
        * The frame keeps the lower 48's shape, about 9:5 in Google's projection. Its width follows
        * the screen's height, so the map, legend, and panel fit on one 1440×900 screen (AC-2.9).
-       * 21rem covers the header gap, the legend and its gaps, the panel's 14rem, and a margin.
+       * 25.5rem covers the header gap, the search row, the legend and its gaps, the panel's 14rem,
+       * and a margin.
        * It never gets narrower than 40rem, or the screen width when that is less.
        */}
-      <div className="relative mx-auto w-full min-w-[min(100%,40rem)] max-w-[calc((100svh-var(--header-height,100px)-21rem)*9/5)]">
-        {/* Below 800 px, the search sits above the map. From 800 px, it sits at the map's top right (AC-9.1). */}
+      <div className="relative mx-auto w-full min-w-[min(100%,40rem)] max-w-[calc((100svh-var(--header-height,100px)-25.5rem)*9/5)]">
+        {/*
+         * The search sits above the map: full width below 800 px, and in one row over the map's
+         * top-right corner from 800 px (AC-9.1). Over the map, it would cover the Northeast's markers.
+         */}
         <MapSearch
           projects={casestudies}
           onPickProject={pickResult}
           onFocus={focus}
-          className="mb-3 tablet:absolute tablet:top-3 tablet:right-3 tablet:z-10 tablet:mb-0 tablet:w-72 tablet:rounded-sm tablet:bg-white/90 tablet:p-3 tablet:shadow"
+          className="mb-3 tablet:ml-auto tablet:w-fit"
         />
         <div ref={mapRef} data-map-root className="aspect-[9/5] w-full" />
         <MapKey />
