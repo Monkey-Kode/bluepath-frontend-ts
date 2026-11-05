@@ -9,7 +9,7 @@
 import { CATEGORY_BY_KEY, categoryOf } from '@/lib/categories';
 import { MAP_ID, type MapsLibraries } from '@/lib/mapsLoader';
 import { displayName, isPlotted, type MapProject } from './display';
-import type { StateOutlines } from './outlines';
+import { boundsOf, type StateOutlines } from './outlines';
 import { markerLook, type PickedProject, type Selection } from './selection';
 import { countByState, shadeFor } from './shading';
 
@@ -27,10 +27,24 @@ export interface MapLayerOptions {
   onClickMap: () => void;
 }
 
+/** Where a search pick moves the map (AC-9.3 to AC-9.5). */
+export type FocusTarget =
+  | { readonly kind: 'project'; readonly id: string }
+  | { readonly kind: 'state'; readonly name: string }
+  | { readonly kind: 'point'; readonly point: google.maps.LatLngLiteral };
+
 export interface MapLayer {
   show(selection: Selection): void;
+  /** Jumps without animation, so it suits reduced motion (NFR-002). */
+  focus(target: FocusTarget): void;
   destroy(): void;
 }
+
+/** About city level, for a picked project (D-43). */
+export const CITY_ZOOM = 11;
+
+/** A searched ZIP with the towns around it (AC-9.5). */
+export const ZIP_ZOOM = 9;
 
 /** The first view (AC-2.10). */
 const LOWER_48: google.maps.LatLngBoundsLiteral = {
@@ -99,7 +113,7 @@ export function createMapLayer(
     });
     const picked = { id: project.id, category };
     marker.addEventListener('gmp-click', () => onPickMarker(picked));
-    return [{ marker, dot, picked }];
+    return [{ marker, dot, picked, position: project.location }];
   });
 
   const clicks = map.addListener(
@@ -125,6 +139,20 @@ export function createMapLayer(
         const shownOn = look === 'hidden' ? null : map;
         if (marker.map !== shownOn) marker.map = shownOn;
       }
+    },
+    focus(target) {
+      if (target.kind === 'state') {
+        const bounds = outlines && boundsOf(outlines, target.name);
+        if (bounds) map.fitBounds(bounds);
+        return;
+      }
+      const center =
+        target.kind === 'point'
+          ? target.point
+          : markers.find(({ picked }) => picked.id === target.id)?.position;
+      if (!center) return;
+      map.setCenter(center);
+      map.setZoom(target.kind === 'point' ? ZIP_ZOOM : CITY_ZOOM);
     },
     destroy() {
       clicks.remove();

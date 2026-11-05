@@ -72,6 +72,35 @@ export function stateAt(
 }
 
 /** Fetches the outlines file. It throws when the file is missing or unreadable. */
+/**
+ * The box around a state's outline, for State search (AC-9.4). Alaska's Aleutians pass the 180th
+ * meridian, so an east longitude counts as its west equivalent. The box then has west greater
+ * than east, which Google reads as crossing the meridian.
+ */
+export function boundsOf(
+  outlines: StateOutlines,
+  name: string,
+): google.maps.LatLngBoundsLiteral | null {
+  const feature = outlines.features.find((f) => f.properties.name === name);
+  if (!feature) return null;
+  const polygons =
+    feature.geometry.type === 'Polygon'
+      ? [feature.geometry.coordinates]
+      : feature.geometry.coordinates;
+  let west = Infinity;
+  let east = -Infinity;
+  let south = Infinity;
+  let north = -Infinity;
+  for (const [x, y] of polygons.flat(2)) {
+    const lng = x > 0 ? x - 360 : x;
+    west = Math.min(west, lng);
+    east = Math.max(east, lng);
+    south = Math.min(south, y);
+    north = Math.max(north, y);
+  }
+  return { west: west < -180 ? west + 360 : west, south, east, north };
+}
+
 export async function loadStateOutlines(): Promise<StateOutlines> {
   const response = await fetch(STATE_OUTLINES_URL);
   if (!response.ok)

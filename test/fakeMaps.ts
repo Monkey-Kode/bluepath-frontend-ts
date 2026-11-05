@@ -35,6 +35,8 @@ export class FakeMap {
   readonly options: google.maps.MapOptions;
   readonly data = new FakeData();
   bounds: google.maps.LatLngBoundsLiteral | null = null;
+  center: google.maps.LatLngLiteral | null = null;
+  zoom: number | null = null;
   private readonly handlers = new Map<string, Set<Handler>>();
 
   constructor(element: HTMLElement, options: google.maps.MapOptions) {
@@ -50,6 +52,14 @@ export class FakeMap {
 
   fitBounds(bounds: google.maps.LatLngBoundsLiteral) {
     this.bounds = bounds;
+  }
+
+  setCenter(center: google.maps.LatLngLiteral) {
+    this.center = center;
+  }
+
+  setZoom(zoom: number) {
+    this.zoom = zoom;
   }
 
   /** Fires a map event, as Google does for a click, a drag, or a zoom. */

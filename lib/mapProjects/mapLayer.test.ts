@@ -2,7 +2,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CATEGORY_BY_KEY } from '@/lib/categories';
 import { MAP_ID } from '@/lib/mapsLoader';
 import { fakeMaps } from '@/test/fakeMaps';
-import { createMapLayer, type LayerProject } from './mapLayer';
+import {
+  CITY_ZOOM,
+  createMapLayer,
+  type LayerProject,
+  ZIP_ZOOM,
+} from './mapLayer';
 import type { StateOutlines } from './outlines';
 import { idle } from './selection';
 import { shadeFor } from './shading';
@@ -353,6 +358,58 @@ describe('destroy', () => {
       expect(marker.map).toBeNull();
     }
     fake.map().trigger('click', { domEvent: { target: element } });
+    expect(onClickMap).not.toHaveBeenCalled();
+  });
+});
+
+describe('the camera for a search pick (AC-9.3 to AC-9.5)', () => {
+  it("centers on a project's marker at about city level", () => {
+    const layer = create();
+    layer.focus({ kind: 'project', id: 'cell' });
+    expect(fake.map().center).toEqual({ lat: 35, lng: -90 });
+    expect(fake.map().zoom).toBe(CITY_ZOOM);
+  });
+
+  it('leaves the camera alone for a project without a marker', () => {
+    const layer = create();
+    const before = fake.map().bounds;
+    layer.focus({ kind: 'project', id: 'hidden' });
+    expect(fake.map().center).toBeNull();
+    expect(fake.map().zoom).toBeNull();
+    expect(fake.map().bounds).toBe(before);
+  });
+
+  it("fits a state's outline", () => {
+    const layer = create();
+    layer.focus({ kind: 'state', name: 'Westland' });
+    expect(fake.map().bounds).toEqual({
+      west: -105,
+      south: 35,
+      east: -95,
+      north: 45,
+    });
+  });
+
+  it('leaves the camera alone for a state when the outlines failed to load', () => {
+    const layer = create(undefined, null);
+    const before = fake.map().bounds;
+    layer.focus({ kind: 'state', name: 'Westland' });
+    expect(fake.map().bounds).toBe(before);
+  });
+
+  it('centers on a ZIP with its nearby towns in view', () => {
+    const layer = create();
+    layer.focus({ kind: 'point', point: { lat: 33.45, lng: -112.07 } });
+    expect(fake.map().center).toEqual({ lat: 33.45, lng: -112.07 });
+    expect(fake.map().zoom).toBe(ZIP_ZOOM);
+    expect(ZIP_ZOOM).toBeLessThan(CITY_ZOOM);
+  });
+
+  it('moves the camera without touching the selection', () => {
+    const layer = create();
+    layer.focus({ kind: 'project', id: 'sun' });
+    layer.focus({ kind: 'point', point: { lat: 40, lng: -100 } });
+    expect(onPickMarker).not.toHaveBeenCalled();
     expect(onClickMap).not.toHaveBeenCalled();
   });
 });
