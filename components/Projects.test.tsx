@@ -162,6 +162,16 @@ describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
     expect(legendEntry('Solar')).toHaveAttribute('data-look', 'faded');
   });
 
+  it('shows a picked project in the panel, never in a Google popup (AC-0.2)', async () => {
+    const InfoWindow = vi.fn();
+    vi.stubGlobal('google', { maps: { InfoWindow } });
+    await show();
+    act(() => fake.marker('Sun Farm').pick());
+
+    expect(within(panel()).getByText('Sun Farm')).toBeVisible();
+    expect(InfoWindow).not.toHaveBeenCalled();
+  });
+
   it('filters by a legend category and shows its description', async () => {
     const user = userEvent.setup();
     await show();
