@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import Link from 'next/link';
 
 import type { TickerEntry } from '@/lib/mapProjects/ticker';
@@ -34,6 +34,8 @@ function NationalProjects({ entries }: NationalProjectsProps) {
     chunkEntries(entries, 4),
   );
   const [currentIndices, setCurrentIndices] = useState([0, 0, 0, 0]);
+  // A visitor who prefers reduced motion sees each entry swap without the fade and slide (NFR-002).
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -79,7 +81,11 @@ function NationalProjects({ entries }: NationalProjectsProps) {
                       animate="visible"
                       exit="exit"
                       variants={animationVariants}
-                      transition={{ duration: 1, delay: columnIndex * 0.5 }}
+                      transition={
+                        reduceMotion
+                          ? { duration: 0 }
+                          : { duration: 1, delay: columnIndex * 0.5 }
+                      }
                       style={{
                         position: 'absolute',
                         top: 0,

@@ -1,4 +1,5 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { transitionNames } from '@/test/stubs/ViewTransition';
@@ -102,5 +103,41 @@ describe('ArticleArchive for case studies', () => {
     );
     expect(screen.getAllByRole('article')).toHaveLength(1);
     expect(screen.queryByText('No case studies yet.')).not.toBeInTheDocument();
+  });
+});
+
+describe('ArticleArchive LOAD MORE', () => {
+  /** Case studies "Story 1" to "Story N", newest first. */
+  const stories = (count: number): ArchiveItem[] =>
+    Array.from({ length: count }, (_, i) => ({
+      ...caseStudy,
+      id: `cs-${i + 1}`,
+      slug: `story-${i + 1}`,
+      title: `Story ${i + 1}`,
+      date: new Date(Date.UTC(2026, 0, 31 - i)).toISOString(),
+    }));
+  const titleLink = (title: string) =>
+    within(screen.getByRole('heading', { level: 2, name: title })).getByRole(
+      'link',
+    );
+
+  it("moves focus to the first new card's title, also when the button goes (WCAG 2.4.3)", async () => {
+    const user = userEvent.setup();
+    render(<ArticleArchive heading="Case Studies" items={stories(21)} />);
+    expect(screen.getAllByRole('article')).toHaveLength(10);
+
+    await user.click(screen.getByRole('button', { name: 'LOAD MORE' }));
+    expect(screen.getAllByRole('article')).toHaveLength(20);
+    expect(titleLink('Story 11')).toHaveFocus();
+
+    await user.click(screen.getByRole('button', { name: 'LOAD MORE' }));
+    expect(screen.getAllByRole('article')).toHaveLength(21);
+    expect(screen.queryByRole('button', { name: 'LOAD MORE' })).toBeNull();
+    expect(titleLink('Story 21')).toHaveFocus();
+  });
+
+  it('leaves focus alone on the first render', () => {
+    render(<ArticleArchive heading="Case Studies" items={stories(11)} />);
+    expect(document.body).toHaveFocus();
   });
 });

@@ -6,6 +6,7 @@ import {
   type MouseEvent,
   type PointerEvent,
   type ReactNode,
+  useEffect,
   useId,
   useRef,
   useState,
@@ -55,6 +56,20 @@ function NavDropdown({
     setExpanded(false);
   };
   useOnClickOutside(item, close);
+
+  // WCAG 1.4.13: Escape dismisses a dropdown that a hover opened, even with focus elsewhere. With
+  // focus inside, `onKeyDown` handles Escape and returns focus to the toggle.
+  useEffect(() => {
+    if (!expanded) return;
+    const onEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (item.current?.contains(document.activeElement)) return;
+      openedByHover.current = false;
+      setExpanded(false);
+    };
+    document.addEventListener('keydown', onEscape);
+    return () => document.removeEventListener('keydown', onEscape);
+  }, [expanded]);
 
   const links = () => Array.from(list.current?.querySelectorAll('a') ?? []);
 

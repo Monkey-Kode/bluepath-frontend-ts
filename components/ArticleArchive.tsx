@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { type ComponentProps, useEffect, useState } from 'react';
+import { type ComponentProps, useEffect, useRef, useState } from 'react';
 
 import SanityImage from '@/components/SanityImage';
 import ViewTransition from '@/components/ViewTransition';
@@ -54,10 +54,17 @@ export default function ArticleArchive({
   const [visible, setVisible] = useState(PAGE_SIZE);
   const shown = sorted.slice(0, visible);
   const hasMore = visible < sorted.length;
+  // After LOAD MORE, focus moves to the first new card's title. Otherwise focus would fall to the
+  // page when the last LOAD MORE goes away (WCAG 2.4.3).
+  const firstNewTitle = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  useEffect(() => {
+    if (visible > PAGE_SIZE) firstNewTitle.current?.focus();
+  }, [visible]);
 
   return (
     <main className="header-offset bg-white text-blue pb-20">
@@ -70,7 +77,7 @@ export default function ArticleArchive({
             {emptyMessage}
           </p>
         )}
-        {shown.map((item) => {
+        {shown.map((item, index) => {
           const href = `${ARTICLE_PATHS[item.kind]}${item.slug}`;
           const date = formatArticleDate(item.date);
           const mediaVt = mediaTransitionName(item.kind, item.slug);
@@ -115,6 +122,11 @@ export default function ArticleArchive({
                   <h2 className="font-sans font-semibold text-blue text-h2 m-0 text-balance">
                     <Link
                       href={href}
+                      ref={
+                        index === visible - PAGE_SIZE
+                          ? firstNewTitle
+                          : undefined
+                      }
                       className="text-blue no-underline font-inherit p-0 inline transition-colors duration-300 ease-in-out hover:text-accent"
                     >
                       {item.title}

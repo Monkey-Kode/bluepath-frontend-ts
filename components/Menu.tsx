@@ -85,10 +85,12 @@ function Menu({
     ? headerTree(navigation)
     : footerList(navigation).map((item) => ({ item, children: [] }));
 
+  // In the drawer, hover underlines the white text. A darker hover color would fail contrast on
+  // the blue drawer (WCAG 1.4.3).
   const linkClass = twMerge(
     'cursor-pointer font-normal text-blue no-underline',
     isHeader &&
-      'max-tablet:block max-tablet:py-4 max-tablet:text-[2rem] max-tablet:font-bold max-tablet:uppercase max-tablet:text-white max-tablet:no-underline max-tablet:transition-colors max-tablet:duration-300 max-tablet:hover:text-[#343078] max-[576px]:!p-0 max-[576px]:text-center max-[576px]:text-[1.5rem]',
+      'max-tablet:block max-tablet:py-4 max-tablet:text-[2rem] max-tablet:font-bold max-tablet:uppercase max-tablet:text-white max-tablet:no-underline max-tablet:transition-colors max-tablet:duration-300 max-tablet:hover:underline max-[576px]:!p-0 max-[576px]:text-center max-[576px]:text-[1.5rem]',
   );
   // The toggle matches the row's links. Its padding makes it at least 24 px tall (NFR-001), and
   // the negative margin keeps its text on the same line as the links. In the drawer it spans the
@@ -104,7 +106,7 @@ function Menu({
     'm-0 tablet:absolute tablet:top-full tablet:left-0 tablet:z-10 tablet:min-w-48 tablet:bg-white tablet:py-2 tablet:shadow-[0_4px_12px_rgba(0,0,0,0.12)] max-tablet:pb-2 min-[576px]:max-tablet:pl-6';
   // The item under the pointer or focus shows white text on blue (AC-1.1).
   const subLinkClass =
-    'block min-h-6 whitespace-nowrap px-4 py-2 font-normal text-blue no-underline hover:bg-blue hover:text-white focus-visible:bg-blue focus-visible:text-white max-tablet:px-0 max-tablet:py-2 max-tablet:text-[1.5rem] max-tablet:font-bold max-tablet:uppercase max-tablet:text-white max-tablet:transition-colors max-tablet:duration-300 max-tablet:hover:bg-transparent max-tablet:hover:text-[#343078] max-tablet:focus-visible:bg-transparent max-[576px]:text-center';
+    'block min-h-6 whitespace-nowrap px-4 py-2 font-normal text-blue no-underline hover:bg-blue hover:text-white focus-visible:bg-blue focus-visible:text-white max-tablet:px-0 max-tablet:py-2 max-tablet:text-[1.5rem] max-tablet:font-bold max-tablet:uppercase max-tablet:text-white max-tablet:transition-colors max-tablet:duration-300 max-tablet:hover:bg-transparent max-tablet:hover:underline max-tablet:focus-visible:bg-transparent max-[576px]:text-center';
 
   return (
     <nav

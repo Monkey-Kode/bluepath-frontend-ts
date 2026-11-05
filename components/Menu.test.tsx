@@ -226,6 +226,18 @@ describe('Projects dropdown on desktop (AC-1.1)', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
   });
 
+  it('closes on Escape after a hover opened it, with focus outside it (WCAG 1.4.13)', async () => {
+    viewport('desktop');
+    const { user, toggle } = header();
+    screen.getByRole('button', { name: 'Outside' }).focus();
+    await user.hover(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+
+    await user.keyboard('{Escape}');
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('button', { name: 'Outside' })).toHaveFocus();
+  });
+
   it('closes once both pointer and focus have left it', async () => {
     viewport('desktop');
     const { user, toggle } = header();

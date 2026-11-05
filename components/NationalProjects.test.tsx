@@ -6,6 +6,13 @@ import type { CasestudiesQueryResult } from '@/sanity.types';
 import NationalProjects from './NationalProjects';
 import StickyNationalProjects from './StickyNationalProjects';
 
+/** The visitor's reduced-motion setting. framer-motion reads the media query once per module. */
+const motionSetting = vi.hoisted(() => ({ reduce: false }));
+vi.mock('framer-motion', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('framer-motion')>()),
+  useReducedMotion: () => motionSetting.reduce,
+}));
+
 const entry = (fields: Partial<TickerEntry>): TickerEntry => ({
   key: 'project:P-1',
   ids: ['plant-1'],
@@ -21,6 +28,7 @@ const columns = () => screen.getAllByRole('link');
 
 afterEach(() => {
   vi.useRealTimers();
+  motionSetting.reduce = false;
 });
 
 describe('NationalProjects ticker (AC-4.7, AC-0.2)', () => {
@@ -89,6 +97,32 @@ describe('NationalProjects ticker (AC-4.7, AC-0.2)', () => {
     expect(
       within(first).getByRole('heading', { name: 'State E' }),
     ).toBeInTheDocument();
+  });
+
+  it.each([
+    { reduce: false, fading: 'still fades out' },
+    { reduce: true, fading: 'is gone at once (NFR-002)' },
+  ])('after a swap the old entry $fading when reduced motion is $reduce', async ({
+    reduce,
+  }) => {
+    motionSetting.reduce = reduce;
+    vi.useFakeTimers();
+    render(
+      <NationalProjects
+        entries={['A', 'B', 'C', 'D', 'E'].map((state) =>
+          entry({ key: `project:${state}`, heading: `State ${state}` }),
+        )}
+      />,
+    );
+    const [first] = columns();
+
+    act(() => vi.advanceTimersByTime(5000));
+    // A few frames, far less than the one-second fade. framer-motion ends an exit in a promise.
+    await act(() => vi.advanceTimersByTimeAsync(100));
+
+    const old = within(first).queryByRole('heading', { name: 'State A' });
+    if (reduce) expect(old).toBeNull();
+    else expect(old).toBeInTheDocument();
   });
 });
 

@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import type { MapProject } from '@/lib/mapProjects/display';
 import type { PanelView } from '@/lib/mapProjects/selection';
@@ -150,5 +151,16 @@ describe('MapPanel switching (AC-2.7, AC-2.8)', () => {
     rerender(<MapPanel view={resting} copy={copy} />);
     expect(liveRegion()).toBe(region);
     expect(region).toHaveTextContent(copy.restingPrompt);
+  });
+});
+
+describe('MapPanel from the keyboard', () => {
+  it('takes focus, so a keyboard user can scroll a long project (WCAG 2.1.1)', async () => {
+    const user = userEvent.setup();
+    render(<MapPanel view={picked} project={newton} copy={copy} />);
+
+    await user.tab();
+    expect(screen.getByRole('region', { name: 'Map details' })).toHaveFocus();
+    expect(liveRegion()).toHaveFocus();
   });
 });

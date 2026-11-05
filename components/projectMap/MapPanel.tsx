@@ -16,11 +16,15 @@ interface MapPanelProps {
  * The panel under the legend (FR-004, FR-006). It keeps one live region and one fixed height
  * through every switch, so screen readers hear each change and the content below never moves
  * (AC-2.7, AC-2.8). The height fits a project with every field at today's longest value.
- * At 320 px, that project needs 340 of the 384 px. A longer project scrolls.
+ * At 320 px, that project needs 340 of the 384 px. A longer project scrolls. The panel takes
+ * focus, so a keyboard user can scroll it too (WCAG 2.1.1).
  */
 export default function MapPanel({ view, project, copy }: MapPanelProps) {
   return (
     <div
+      role="region"
+      aria-label="Map details"
+      tabIndex={0}
       aria-live="polite"
       aria-atomic="true"
       data-map-panel
