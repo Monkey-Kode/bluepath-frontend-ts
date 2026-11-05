@@ -1,7 +1,7 @@
 # Build the state outlines
 
 `public/maps/us-states.geojson` holds the outline of each state and DC, plus one mask feature
-that covers the world outside the US. The projects map shades the states and greys out the mask
+that covers the world outside the US. The projects map shades the states and paints the mask white
 (FR-003, D-2). `lib/mapProjects/outlines.test.ts` checks the file.
 
 Rebuild it only when the Census Bureau publishes a new year or the map needs different detail.
