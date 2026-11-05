@@ -26,3 +26,9 @@ export async function loadMaps(): Promise<MapsLibraries> {
   ]);
   return { Map, AdvancedMarkerElement };
 }
+
+/** Loads Google's geocoder for ZIP Code search. Only a ZIP search loads it (AC-9.5). */
+export async function loadGeocoder(): Promise<typeof google.maps.Geocoder> {
+  const { Geocoder } = await loader.importLibrary('geocoding');
+  return Geocoder;
+}
