@@ -29,7 +29,7 @@ export type ParseCsvResult =
   | { ok: false; error: ParseCsvError; message: string };
 
 export interface ParseCsvOptions {
-  /** The one-time starter load also reads the Website ID column. */
+  /** The one-time starter load also needs and reads the Website ID column. */
   starter?: boolean;
 }
 
@@ -94,8 +94,12 @@ export function parseCsv(
     else indexes.set(key, index);
   });
 
+  // The starter load matches rows to website projects by Website ID, so it needs that column.
+  const needed = (key: ColumnKey) =>
+    COLUMNS[key].presence === 'required' ||
+    (starter && COLUMNS[key].presence === 'starter');
   const missing = COLUMN_KEYS.filter(
-    (key) => COLUMNS[key].presence === 'required' && !indexes.has(key),
+    (key) => needed(key) && !indexes.has(key),
   ).map((key) => COLUMNS[key].header);
   if (missing.length > 0) {
     return fail(

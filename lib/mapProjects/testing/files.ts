@@ -7,14 +7,19 @@ const FILE_KEYS = COLUMN_KEYS.filter(
   (key) => COLUMNS[key].presence !== 'starter',
 );
 
-/** A CSV file with every column that BlueIQ sends, and the given rows from row 2 on. */
-export function csv(...rows: Cells[]) {
+function fileOf(keys: readonly ColumnKey[], rows: Cells[]) {
   const quote = (cell: string) => `"${cell.replaceAll('"', '""')}"`;
   const lines = [
-    FILE_KEYS.map((key) => COLUMNS[key].header),
-    ...rows.map((cells) => FILE_KEYS.map((key) => cells[key] ?? '')),
+    keys.map((key) => COLUMNS[key].header),
+    ...rows.map((cells) => keys.map((key) => cells[key] ?? '')),
   ];
   return new TextEncoder().encode(
     lines.map((cells) => cells.map(quote).join(',')).join('\r\n'),
   );
 }
+
+/** A CSV file with every column that BlueIQ sends, and the given rows from row 2 on. */
+export const csv = (...rows: Cells[]) => fileOf(FILE_KEYS, rows);
+
+/** The starter workbook's Projects tab as CSV. It adds the Website ID column. */
+export const starterCsv = (...rows: Cells[]) => fileOf(COLUMN_KEYS, rows);

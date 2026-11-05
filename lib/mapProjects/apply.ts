@@ -7,10 +7,11 @@ import { releaseLock, takeLock } from './lock';
 import { type ParseCsvError, parseCsv } from './parseCsv';
 import {
   type CurrentProject,
-  type FieldValues,
   type ImportPlan,
   type PlanOptions,
   planImport,
+  planStarterLoad,
+  type StarterValues,
 } from './plan';
 import {
   COMMIT_LIMITS,
@@ -19,7 +20,7 @@ import {
   type MapProjectsClient,
   readProjects,
 } from './store';
-import { validateRows } from './validate';
+import { validateRows, validateStarterRows } from './validate';
 
 export interface ChangeContext {
   /** What the backup names as the change (AC-7.1). */
@@ -60,11 +61,13 @@ export type ChangeResult<T> =
 export class ChangeFailure extends Error {
   readonly stage: 'backup' | 'write';
 
-  constructor(stage: 'backup' | 'write', cause: unknown) {
+  /** A change that a rerun can't finish passes its own message for a failed write. */
+  constructor(stage: 'backup' | 'write', cause: unknown, message?: string) {
     super(
-      stage === 'backup'
-        ? 'The backup failed, so nothing changed.'
-        : 'A write failed partway. Running the same change again finishes it.',
+      message ??
+        (stage === 'backup'
+          ? 'The backup failed, so nothing changed.'
+          : 'A write failed partway. Running the same change again finishes it.'),
       { cause },
     );
     this.name = 'ChangeFailure';
@@ -145,7 +148,7 @@ export async function runChange<T>(
 }
 
 /** Splits a row's fields into Sanity's set and unset. Null clears a field. */
-export function writable(fields: Partial<FieldValues>) {
+export function writable(fields: Partial<StarterValues>) {
   const set: Record<string, unknown> = {};
   const unset: string[] = [];
   for (const [field, value] of Object.entries(fields)) {
@@ -203,54 +206,116 @@ export interface PreviewRequest {
   options: PlanOptions;
 }
 
-export type PreviewResult =
-  | { status: 'not-ready' }
+/** A file's checks after the mode's own first check. */
+type FileCheck =
   | { status: 'unreadable'; error: ParseCsvError; message: string }
   | { status: 'rejected'; plan: ImportPlan }
+  | { status: 'stale'; plan: ImportPlan }
   | { status: 'ready'; plan: ImportPlan };
+
+type PreviewCheck = Exclude<FileCheck, { status: 'stale' }>;
+
+export type PreviewResult = { status: 'not-ready' } | PreviewCheck;
 
 export interface ImportRequest extends PreviewRequest, ChangeContext {
   /** The token of the preview that an editor confirmed. The feed sends none. */
   token?: string;
 }
 
-export type ImportResult =
-  | Exclude<PreviewResult, { status: 'ready' }>
-  | { status: 'stale'; plan: ImportPlan }
-  | { status: 'busy' }
-  | {
-      status: 'applied';
-      plan: ImportPlan;
-      backupId: string | null;
-      problems: ChangeProblem[];
-    };
-
-function readFile(file: Uint8Array) {
-  const parsed = parseCsv(file);
-  return parsed.ok
-    ? { ok: true as const, rows: validateRows(parsed.rows) }
-    : parsed;
+interface Applied {
+  status: 'applied';
+  plan: ImportPlan;
+  backupId: string | null;
+  problems: ChangeProblem[];
 }
+
+type ApplyCheck = Exclude<FileCheck, { status: 'ready' }> | { status: 'busy' };
+
+export type ImportResult = { status: 'not-ready' } | ApplyCheck | Applied;
+
+export interface StarterPreviewRequest {
+  file: Uint8Array;
+}
+
+/** The load replies `loaded` once it has run, and never `not-ready`. */
+export type StarterPreviewResult = { status: 'loaded' } | PreviewCheck;
+
+export interface StarterLoadRequest
+  extends StarterPreviewRequest,
+    ChangeContext {
+  /** The token of the preview that an editor confirmed. */
+  token: string;
+}
+
+export type StarterLoadResult = { status: 'loaded' } | ApplyCheck | Applied;
 
 /** The starter load counts as done once any map project has a Plant ID (AC-4.12). */
 export const starterLoadDone = (
   projects: readonly Pick<CurrentProject, 'plantId'>[],
 ) => projects.some(({ plantId }) => Boolean(plantId));
 
+type Gate = { status: 'not-ready' } | { status: 'loaded' };
+
+interface Mode<G extends Gate> {
+  /** The mode's reply before any file check, or null when the mode is open. */
+  gate: (projects: readonly CurrentProject[]) => G | null;
+  /** The file's parse error, or a plan for the projects of the moment. */
+  read:
+    | { ok: true; plan: (projects: readonly CurrentProject[]) => ImportPlan }
+    | { ok: false; error: ParseCsvError; message: string };
+}
+
+const NOT_READY = { status: 'not-ready' } as const;
+const LOADED = { status: 'loaded' } as const;
+
+/** Imports open once the starter load has run (AC-4.12). */
+function importMode(
+  file: Uint8Array,
+  options: PlanOptions,
+): Mode<typeof NOT_READY> {
+  const parsed = parseCsv(file);
+  const rows = parsed.ok ? validateRows(parsed.rows) : [];
+  return {
+    gate: (projects) => (starterLoadDone(projects) ? null : NOT_READY),
+    read: parsed.ok
+      ? {
+          ok: true,
+          plan: (projects) => planImport({ projects, file, rows, options }),
+        }
+      : parsed,
+  };
+}
+
+/** The starter load runs only while no map project has a Plant ID (AC-8.7). */
+function starterMode(file: Uint8Array): Mode<typeof LOADED> {
+  const parsed = parseCsv(file, { starter: true });
+  const rows = parsed.ok ? validateStarterRows(parsed.rows) : [];
+  return {
+    gate: (projects) => (starterLoadDone(projects) ? LOADED : null),
+    read: parsed.ok
+      ? {
+          ok: true,
+          plan: (projects) => planStarterLoad({ projects, file, rows }),
+        }
+      : parsed,
+  };
+}
+
 /**
- * Checks a file against the current projects in the routes' reply order: not ready (503), then
- * unreadable or rejected (422), then stale when a preview token no longer matches.
+ * Checks a file against the current projects in the routes' reply order: the mode's gate (503 or
+ * 409), then unreadable or rejected (422), then stale when a preview token no longer matches.
  */
-function check(
+function check<G extends Gate>(
   projects: readonly CurrentProject[],
-  { file, options, token }: PreviewRequest & { token?: string },
-  read: ReturnType<typeof readFile>,
-): PreviewResult | { status: 'stale'; plan: ImportPlan } {
-  if (!starterLoadDone(projects)) return { status: 'not-ready' };
+  { gate, read }: Mode<G>,
+  token?: string,
+): G | FileCheck {
+  const closed = gate(projects);
+  if (closed) return closed;
   if (!read.ok) {
     return { status: 'unreadable', error: read.error, message: read.message };
   }
-  const plan = planImport({ projects, file, rows: read.rows, options });
+  const plan = read.plan(projects);
   if (plan.rejection) return { status: 'rejected', plan };
   if (token !== undefined && token !== plan.token) {
     return { status: 'stale', plan };
@@ -258,37 +323,32 @@ function check(
   return { status: 'ready', plan };
 }
 
-/** Plans a manual import without writing. Its token lets `applyImport` apply exactly this plan. */
-export async function previewImport(
+async function preview<G extends Gate>(
   client: MapProjectsClient,
-  request: PreviewRequest,
-): Promise<PreviewResult> {
-  const result = check(
-    await readProjects(client),
-    { file: request.file, options: request.options },
-    readFile(request.file),
-  );
+  mode: Mode<G>,
+): Promise<G | PreviewCheck> {
+  const result = check(await readProjects(client), mode);
   if (result.status === 'stale') throw new Error('A preview has no token.');
   return result;
 }
 
 /**
- * Applies a feed file or a confirmed manual import (FR-007, AC-4.4). The checks run once before
- * the lock, so a file that isn't ready or is rejected gets that reply even while another change
- * runs. They run again under the lock on a fresh read, which the writes then follow.
+ * The checks run once before the lock, so a file that the mode refuses or that is rejected gets
+ * that reply even while another change runs. They run again under the lock on a fresh read, which
+ * the writes then follow.
  */
-export async function applyImport(
+async function apply<G extends Gate>(
   client: MapProjectsClient,
-  request: ImportRequest,
-): Promise<ImportResult> {
+  mode: Mode<G>,
+  request: ChangeContext & { token?: string },
+): Promise<G | ApplyCheck | Applied> {
   const now = request.now ?? new Date();
-  const read = readFile(request.file);
 
-  const first = check(await readProjects(client), request, read);
+  const first = check(await readProjects(client), mode, request.token);
   if (first.status !== 'ready') return first;
 
   const change = await runChange(client, { ...request, now }, (projects) => {
-    const result = check(projects, request, read);
+    const result = check(projects, mode, request.token);
     return {
       mutations:
         result.status === 'ready'
@@ -301,4 +361,50 @@ export async function applyImport(
   const { value, backupId, problems } = change;
   if (value.status !== 'ready') return value;
   return { status: 'applied', plan: value.plan, backupId, problems };
+}
+
+/** Plans a manual import without writing. Its token lets `applyImport` apply exactly this plan. */
+export function previewImport(
+  client: MapProjectsClient,
+  { file, options }: PreviewRequest,
+): Promise<PreviewResult> {
+  return preview(client, importMode(file, options));
+}
+
+/** Applies a feed file or a confirmed manual import (FR-007, AC-4.4). */
+export function applyImport(
+  client: MapProjectsClient,
+  request: ImportRequest,
+): Promise<ImportResult> {
+  return apply(client, importMode(request.file, request.options), request);
+}
+
+/** Plans the starter load without writing (AC-8.7). */
+export function previewStarterLoad(
+  client: MapProjectsClient,
+  { file }: StarterPreviewRequest,
+): Promise<StarterPreviewResult> {
+  return preview(client, starterMode(file));
+}
+
+/**
+ * Applies the confirmed starter load (AC-8.7). Its first written Plant ID ends the load, so a
+ * rerun can't finish a partial write. Restoring the load's backup removes every Plant ID again.
+ */
+export async function applyStarterLoad(
+  client: MapProjectsClient,
+  request: StarterLoadRequest,
+): Promise<StarterLoadResult> {
+  try {
+    return await apply(client, starterMode(request.file), request);
+  } catch (error) {
+    if (!(error instanceof ChangeFailure) || error.stage !== 'write') {
+      throw error;
+    }
+    throw new ChangeFailure(
+      'write',
+      error.cause,
+      'A write failed partway, so the load is incomplete. Restore the backup that the load saved, then run the load again.',
+    );
+  }
 }

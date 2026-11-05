@@ -5,9 +5,11 @@ import { stateName } from '@/utils/extractState';
 import { displayName, type MapProject } from './display';
 import type {
   MapProjectFields,
-  RowErrorReason,
   RowIssue,
   RowWarningReason,
+  StarterErrorReason,
+  StarterFields,
+  StarterRow,
   ValidatedRow,
 } from './validate';
 
@@ -45,6 +47,13 @@ export type FieldValues = Pick<MapProjectFields, PlanField>;
 
 const PLAN_FIELDS = Object.keys(FIELD_OWNERS) as PlanField[];
 
+/** Every field that the starter load writes, in column order, including both IDs (AC-8.7). */
+const STARTER_FIELDS = ['plantId', ...PLAN_FIELDS, 'websiteId'] as const;
+
+type StarterField = (typeof STARTER_FIELDS)[number];
+
+export type StarterValues = Pick<StarterFields, StarterField>;
+
 /** A map project as the plan reads it. Hidden and website-only projects count too. */
 export interface CurrentProject extends MapProject {
   _id: string;
@@ -72,8 +81,14 @@ export interface PlanInput {
   options: PlanOptions;
 }
 
-/** A row the plan skips. A Plant ID that two projects share is a conflict in the data. */
-export type PlanErrorReason = RowErrorReason | 'plant-id-conflict';
+/**
+ * A row the plan skips. A Plant ID that two projects share is a conflict in the data. A starter
+ * row's Website ID must name a map project.
+ */
+export type PlanErrorReason =
+  | StarterErrorReason
+  | 'plant-id-conflict'
+  | 'unknown-website-id';
 
 type Warnings = RowIssue<RowWarningReason>[];
 
@@ -90,10 +105,11 @@ export type RowPlan =
   | {
       action: 'update';
       row: number;
-      plantId: string;
+      /** A starter row for a website-only project has none. */
+      plantId: string | null;
       id: string;
       /** Each changed field's new value, in column order. Null clears the field. */
-      changes: Partial<FieldValues>;
+      changes: Partial<StarterValues>;
       /** The project is hidden and shows again. */
       returns: boolean;
       warnings: Warnings;
@@ -101,7 +117,7 @@ export type RowPlan =
   | {
       action: 'unchanged';
       row: number;
-      plantId: string;
+      plantId: string | null;
       id: string;
       warnings: Warnings;
     }
@@ -114,7 +130,8 @@ export type RowPlan =
 
 export interface ProjectRef {
   id: string;
-  plantId: string;
+  /** A website project has none until the starter load. */
+  plantId: string | null;
   name: string;
 }
 
@@ -125,9 +142,9 @@ export type PlanRejection =
 export interface ImportPlan {
   /** One entry per file row, in file order. */
   rows: RowPlan[];
-  /** Shown plants that the file lacks. Empty while hiding is off. */
+  /** Shown projects that the file lacks. An import hides only plants, and none while hiding is off. */
   hides: ProjectRef[];
-  /** Hidden plants that the file lists again. Each one's row is an update. */
+  /** Hidden projects that the file lists again. Each one's row is an update. */
   returns: ProjectRef[];
   counts: {
     created: number;
@@ -141,12 +158,12 @@ export interface ImportPlan {
   writes: boolean;
   /** Why the plan must write nothing, or null when it may apply. */
   rejection: PlanRejection | null;
-  /** Changes when the file, the options, or any map project changes (AC-4.4). */
+  /** Changes when the file, the options, the kind of change, or any map project changes (AC-4.4). */
   token: string;
 }
 
 /** A stored value in the form that `validateRows` gives a file cell, so equal values compare equal. */
-function storedValue(project: CurrentProject, field: PlanField) {
+function storedValue(project: CurrentProject, field: StarterField) {
   switch (field) {
     case 'state':
       return stateName(project.state);
@@ -171,17 +188,31 @@ function storedValue(project: CurrentProject, field: PlanField) {
 const sameValue = (stored: unknown, next: unknown) =>
   JSON.stringify(stored) === JSON.stringify(next);
 
+/** Each given field whose value differs from the stored one. */
+function diff<Field extends StarterField>(
+  project: CurrentProject,
+  values: Pick<StarterValues, Field>,
+  fields: readonly Field[],
+) {
+  const changes: Partial<Pick<StarterValues, Field>> = {};
+  for (const field of fields) {
+    if (!sameValue(storedValue(project, field), values[field])) {
+      changes[field] = values[field];
+    }
+  }
+  return changes;
+}
+
+/** An import's changes, which follow each field's owner. */
 function changesFor(project: CurrentProject, fields: FieldValues) {
   const merged = Boolean(project.websiteId);
-  const changes: Partial<Record<PlanField, unknown>> = {};
-  for (const field of PLAN_FIELDS) {
+  const owned = PLAN_FIELDS.filter((field) => {
     const owner = FIELD_OWNERS[field];
-    const value = fields[field];
-    if (owner === 'address' && merged) continue;
-    if (owner === 'website' && value === null) continue;
-    if (!sameValue(storedValue(project, field), value)) changes[field] = value;
-  }
-  return changes as Partial<FieldValues>;
+    if (owner === 'address') return !merged;
+    if (owner === 'website') return fields[field] !== null;
+    return true;
+  });
+  return diff(project, fields, owned);
 }
 
 /**
@@ -202,15 +233,21 @@ export function linkChanges(project: CurrentProject, plant: CurrentProject) {
   return changesFor(project, fields);
 }
 
-function fieldValues(fields: MapProjectFields): FieldValues {
+function fieldValues(fields: FieldValues): FieldValues {
   return Object.fromEntries(
     PLAN_FIELDS.map((field) => [field, fields[field]]),
   ) as FieldValues;
 }
 
-const refOf = (project: CurrentProject & { plantId: string }): ProjectRef => ({
+function starterValues(fields: StarterFields): StarterValues {
+  return Object.fromEntries(
+    STARTER_FIELDS.map((field) => [field, fields[field]]),
+  ) as StarterValues;
+}
+
+const refOf = (project: CurrentProject): ProjectRef => ({
   id: project._id,
-  plantId: project.plantId,
+  plantId: project.plantId ?? null,
   name: displayName(project),
 });
 
@@ -227,10 +264,13 @@ function conflict(row: number, plantId: string, message: string): RowPlan {
   };
 }
 
-/** The token covers the file, the options, and each project's `_id` and `_rev`, in `_id` order. */
+/**
+ * The token covers the file, the settings, and each project's `_id` and `_rev`, in `_id` order.
+ * An import's settings are its options, and the starter load's mark it as the starter load.
+ */
 function previewToken(
   file: Uint8Array,
-  options: PlanOptions,
+  settings: PlanOptions | { starter: true },
   projects: readonly CurrentProject[],
 ) {
   const revisions = projects
@@ -239,12 +279,134 @@ function previewToken(
   const fileHash = createHash('sha256').update(file).digest();
   return createHash('sha256')
     .update(fileHash)
-    .update(JSON.stringify({ hideMissing: options.hideMissing, revisions }))
+    .update(JSON.stringify({ ...settings, revisions }))
     .digest('hex');
 }
 
 function halfRuleMessage(listed: number, current: number) {
   return `The file lists ${listed} of the site's ${current} BlueIQ plants. A file that hides missing plants must list at least half of them.`;
+}
+
+/** Each project with a Plant ID, by that ID. */
+function byPlantIdOf(projects: readonly CurrentProject[]) {
+  const byPlantId = new Map<string, CurrentProject[]>();
+  for (const project of projects.filter(hasPlantId)) {
+    byPlantId.set(project.plantId, [
+      ...(byPlantId.get(project.plantId) ?? []),
+      project,
+    ]);
+  }
+  return byPlantId;
+}
+
+type PlantTarget =
+  | { kind: 'project'; project: CurrentProject }
+  | { kind: 'new'; id: string }
+  | { kind: 'error'; plan: RowPlan };
+
+/** The project with a row's Plant ID, the document ID for a new one, or the conflict that stops the row. */
+function plantTarget(
+  row: number,
+  plantId: string,
+  byPlantId: Map<string, CurrentProject[]>,
+  takenIds: Set<string>,
+): PlantTarget {
+  const matches = byPlantId.get(plantId) ?? [];
+  if (matches.length > 1) {
+    return {
+      kind: 'error',
+      plan: conflict(
+        row,
+        plantId,
+        'More than one map project has this Plant ID, so the row updates none of them.',
+      ),
+    };
+  }
+  const [project] = matches;
+  if (project) return { kind: 'project', project };
+  const id = `plant-${plantId}`;
+  if (takenIds.has(id)) {
+    return {
+      kind: 'error',
+      plan: conflict(
+        row,
+        plantId,
+        "Another map project already uses this Plant ID's document ID.",
+      ),
+    };
+  }
+  return { kind: 'new', id };
+}
+
+const errorPlan = (
+  row: Extract<ValidatedRow | StarterRow, { ok: false }>,
+): RowPlan => ({
+  action: 'error',
+  row: row.row,
+  plantId: row.plantId,
+  errors: row.errors,
+});
+
+/** An update or unchanged row. A hidden project shows again, and joins `returns`. */
+function updatePlan(
+  row: number,
+  plantId: string | null,
+  project: CurrentProject,
+  changes: Partial<StarterValues>,
+  warnings: Warnings,
+  returns: ProjectRef[],
+): RowPlan {
+  const returning = Boolean(project.hiddenAt);
+  if (returning) returns.push(refOf({ ...project, plantId }));
+  if (!returning && Object.keys(changes).length === 0) {
+    return { action: 'unchanged', row, plantId, id: project._id, warnings };
+  }
+  return {
+    action: 'update',
+    row,
+    plantId,
+    id: project._id,
+    changes,
+    returns: returning,
+    warnings,
+  };
+}
+
+/** Counts the rows and rejects a file without a row free of errors (AC-4.9). */
+function planOf(
+  rows: RowPlan[],
+  hides: ProjectRef[],
+  returns: ProjectRef[],
+  token: string,
+  otherRejection: PlanRejection | null = null,
+): ImportPlan {
+  const count = (action: RowPlan['action']) =>
+    rows.filter((row) => row.action === action).length;
+  const counts = {
+    created: count('create'),
+    updated: count('update'),
+    unchanged: count('unchanged'),
+    skipped: count('error'),
+    hidden: hides.length,
+    returned: returns.length,
+  };
+  const rejection: PlanRejection | null =
+    counts.skipped === rows.length
+      ? {
+          reason: 'no-valid-rows',
+          message: 'Every row in the file has an error, so nothing changes.',
+        }
+      : otherRejection;
+
+  return {
+    rows,
+    hides,
+    returns,
+    counts,
+    writes: counts.created + counts.updated + counts.hidden > 0,
+    rejection,
+    token,
+  };
 }
 
 /**
@@ -258,78 +420,36 @@ export function planImport({
   rows,
   options,
 }: PlanInput): ImportPlan {
-  const byPlantId = new Map<string, CurrentProject[]>();
-  for (const project of projects.filter(hasPlantId)) {
-    byPlantId.set(project.plantId, [
-      ...(byPlantId.get(project.plantId) ?? []),
-      project,
-    ]);
-  }
+  const byPlantId = byPlantIdOf(projects);
   const takenIds = new Set(projects.map(({ _id }) => _id));
   const listed = new Set(rows.flatMap(({ plantId }) => plantId ?? []));
 
   const returns: ProjectRef[] = [];
   const planned = rows.map((row): RowPlan => {
-    if (!row.ok) {
-      return {
-        action: 'error',
-        row: row.row,
-        plantId: row.plantId,
-        errors: row.errors,
-      };
-    }
+    if (!row.ok) return errorPlan(row);
     const { plantId, warnings } = row;
+    const target = plantTarget(row.row, plantId, byPlantId, takenIds);
+    if (target.kind === 'error') return target.plan;
     const fields = fieldValues(row.fields);
-    const matches = byPlantId.get(plantId) ?? [];
-    if (matches.length > 1) {
-      return conflict(
-        row.row,
-        plantId,
-        'More than one map project has this Plant ID, so the row updates none of them.',
-      );
-    }
-
-    const [project] = matches;
-    if (!project) {
-      const id = `plant-${plantId}`;
-      if (takenIds.has(id)) {
-        return conflict(
-          row.row,
-          plantId,
-          "Another map project already uses this Plant ID's document ID.",
-        );
-      }
+    if (target.kind === 'new') {
       return {
         action: 'create',
         row: row.row,
         plantId,
-        id,
+        id: target.id,
         fields: { plantId, ...fields },
         warnings,
       };
     }
-
-    const changes = changesFor(project, fields);
-    const returning = Boolean(project.hiddenAt);
-    if (returning) returns.push(refOf({ ...project, plantId }));
-    if (!returning && Object.keys(changes).length === 0) {
-      return {
-        action: 'unchanged',
-        row: row.row,
-        plantId,
-        id: project._id,
-        warnings,
-      };
-    }
-    return {
-      action: 'update',
-      row: row.row,
+    const { project } = target;
+    return updatePlan(
+      row.row,
       plantId,
-      id: project._id,
-      changes,
-      returns: returning,
+      project,
+      changesFor(project, fields),
       warnings,
-    };
+      returns,
+    );
   });
 
   const shownPlants = projects
@@ -338,38 +458,108 @@ export function planImport({
   const missing = shownPlants.filter(({ plantId }) => !listed.has(plantId));
   const hides = options.hideMissing ? missing.map(refOf) : [];
 
-  const count = (action: RowPlan['action']) =>
-    planned.filter((row) => row.action === action).length;
-  const counts = {
-    created: count('create'),
-    updated: count('update'),
-    unchanged: count('unchanged'),
-    skipped: count('error'),
-    hidden: hides.length,
-    returned: returns.length,
-  };
-
   const listedCount = shownPlants.length - missing.length;
-  let rejection: PlanRejection | null = null;
-  if (counts.skipped === planned.length) {
-    rejection = {
-      reason: 'no-valid-rows',
-      message: 'Every row in the file has an error, so nothing changes.',
-    };
-  } else if (options.hideMissing && listedCount * 2 < shownPlants.length) {
-    rejection = {
-      reason: 'half-rule',
-      message: halfRuleMessage(listedCount, shownPlants.length),
-    };
-  }
+  const halfRule: PlanRejection | null =
+    options.hideMissing && listedCount * 2 < shownPlants.length
+      ? {
+          reason: 'half-rule',
+          message: halfRuleMessage(listedCount, shownPlants.length),
+        }
+      : null;
 
-  return {
-    rows: planned,
+  return planOf(
+    planned,
     hides,
     returns,
-    counts,
-    writes: counts.created + counts.updated + counts.hidden > 0,
-    rejection,
-    token: previewToken(file, options, projects),
-  };
+    previewToken(file, options, projects),
+    halfRule,
+  );
+}
+
+export interface StarterInput {
+  /** Every map project. */
+  projects: readonly CurrentProject[];
+  /** The workbook's Projects tab as it arrived, for the preview token. */
+  file: Uint8Array;
+  /** The tab's rows from `validateStarterRows`. */
+  rows: readonly StarterRow[];
+}
+
+/**
+ * Plans the one-time starter load, without writing (AC-8.7). A row with a Website ID updates that
+ * project, and a row without one updates or creates its plant. Unlike an import, the load writes
+ * every column, so a blank cell clears any field. Each shown project that no row names hides. The
+ * workbook replaces the whole list, so no half rule applies.
+ */
+export function planStarterLoad({
+  projects,
+  file,
+  rows,
+}: StarterInput): ImportPlan {
+  const byId = new Map(projects.map((project) => [project._id, project]));
+  const byPlantId = byPlantIdOf(projects);
+  const takenIds = new Set(byId.keys());
+
+  const returns: ProjectRef[] = [];
+  const planned = rows.map((row): RowPlan => {
+    if (!row.ok) return errorPlan(row);
+    let project: CurrentProject | undefined;
+    if (row.websiteId === null) {
+      const target = plantTarget(row.row, row.plantId, byPlantId, takenIds);
+      if (target.kind === 'error') return target.plan;
+      if (target.kind === 'new') {
+        return {
+          action: 'create',
+          row: row.row,
+          plantId: row.plantId,
+          id: target.id,
+          fields: { plantId: row.plantId, ...fieldValues(row.fields) },
+          warnings: row.warnings,
+        };
+      }
+      project = target.project;
+    } else {
+      project = byId.get(row.websiteId);
+      if (!project) {
+        return {
+          action: 'error',
+          row: row.row,
+          plantId: row.plantId,
+          errors: [
+            {
+              reason: 'unknown-website-id',
+              message: 'No map project has this Website ID.',
+            },
+          ],
+        };
+      }
+    }
+    return updatePlan(
+      row.row,
+      row.plantId,
+      project,
+      diff(project, starterValues(row.fields), STARTER_FIELDS),
+      row.warnings,
+      returns,
+    );
+  });
+
+  // An error row names its projects too, so they never hide.
+  const namedIds = new Set(rows.flatMap(({ websiteId }) => websiteId ?? []));
+  const namedPlants = new Set(rows.flatMap(({ plantId }) => plantId ?? []));
+  const hides = projects
+    .filter(
+      (project) =>
+        !project.hiddenAt &&
+        !namedIds.has(project._id) &&
+        !(project.plantId && namedPlants.has(project.plantId)),
+    )
+    .map(refOf);
+
+  return planOf(
+    planned,
+    hides,
+    returns,
+    previewToken(file, { starter: true }, projects),
+  );
 }

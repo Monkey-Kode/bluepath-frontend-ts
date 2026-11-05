@@ -171,10 +171,22 @@ describe('parseCsv headers (AC-4.2, D-35)', () => {
     expect(rowsOf(bytes, { starter: true })[0]?.cells.websiteId).toBe(
       'project-7',
     );
-    expect(
-      rowsOf(file(REQUIRED, fullRow(REQUIRED)), { starter: true })[0]?.cells
-        .websiteId,
-    ).toBe('');
+  });
+
+  // Without the column, the load would add every plant as a new project and hide every website
+  // project. That points to the wrong tab or an import file.
+  it('needs the Website ID column in the starter load (AC-8.3)', () => {
+    const result = errorOf(file(REQUIRED, fullRow(REQUIRED)), {
+      starter: true,
+    });
+
+    expect(result.error).toEqual({
+      reason: 'missing-columns',
+      headers: ['Website ID'],
+    });
+    expect(result.message).toBe(
+      'The file is missing these columns: Website ID.',
+    );
   });
 });
 

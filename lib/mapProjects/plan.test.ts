@@ -4,10 +4,11 @@ import {
   type CurrentProject,
   type ImportPlan,
   planImport,
+  planStarterLoad,
   type RowPlan,
 } from './plan';
-import { type Cells, csv } from './testing/files';
-import { validateRows } from './validate';
+import { type Cells, csv, starterCsv } from './testing/files';
+import { validateRows, validateStarterRows } from './validate';
 
 function planFor(
   projects: readonly CurrentProject[],
@@ -737,5 +738,254 @@ describe('planImport idempotence (AC-4.6)', () => {
     expect(second.hides).toEqual([]);
     expect(second.returns).toEqual([]);
     expect(second.writes).toBe(false);
+  });
+});
+
+function starterPlanFor(projects: readonly CurrentProject[], file: Uint8Array) {
+  const parsed = parseCsv(file, { starter: true });
+  if (!parsed.ok) throw new Error(parsed.message);
+  return planStarterLoad({
+    projects,
+    file,
+    rows: validateStarterRows(parsed.rows),
+  });
+}
+
+describe('planStarterLoad (AC-8.7)', () => {
+  /** Website projects before the load. None has a Plant ID or a Website ID yet. */
+  const WELLS: CurrentProject = {
+    _id: '0b5e-newton',
+    _rev: 'rev-newton',
+    title: '111 Wells',
+    projectName: '111 Wells',
+    location: { lat: 42.33, lng: -71.2 },
+    address: '111 Wells Ave',
+    city: 'Newton',
+    state: 'MA',
+    zip: '02459',
+    entity: ['Commercial'],
+    financing: ['PPA'],
+    technologies: ['Solar PV'],
+  };
+  const OLD_LIBRARY: CurrentProject = {
+    _id: '7c1d-library',
+    _rev: 'rev-library',
+    title: 'Old Library',
+    projectName: 'Old Library',
+    location: { lat: 41.2, lng: -95.9 },
+    entity: ['Municipal'],
+    technologies: ['LED Lighting'],
+  };
+  const GONE: CurrentProject = {
+    _id: '9f2a-gone',
+    _rev: 'rev-gone',
+    title: 'Gone Project',
+    location: { lat: 40, lng: -100 },
+  };
+
+  /** A merged row: BlueIQ's plant P-2 with the website's address and fields. */
+  const WELLS_ROW: Cells = {
+    ...NEWTON_ROW,
+    websiteId: '0b5e-newton',
+    address: '111 Wells Ave',
+    city: 'Newton',
+    zip: '02459',
+    entity: 'Commercial',
+    technologies: 'Solar PV; Battery Storage',
+  };
+  const LIBRARY_ROW: Cells = {
+    websiteId: '7c1d-library',
+    projectName: 'Old Library',
+    latitude: '41.2',
+    longitude: '-95.9',
+    entity: 'Municipal',
+    technologies: 'LED Lighting',
+  };
+  const PROJECTS = [WELLS, OLD_LIBRARY, GONE];
+  const WORKBOOK = starterCsv(WELLS_ROW, LIBRARY_ROW, plantRow(9));
+
+  it('updates a website project from its row and writes every column', () => {
+    expect(rowAt(starterPlanFor(PROJECTS, WORKBOOK), 2)).toEqual({
+      action: 'update',
+      row: 2,
+      plantId: 'P-2',
+      id: '0b5e-newton',
+      changes: {
+        plantId: 'P-2',
+        plantName: 'Wells Solar',
+        projectType: 'Solar + BESS',
+        // A blank cell clears a website field, unlike an import.
+        financing: null,
+        technologies: ['Solar PV', 'Battery Storage'],
+        websiteId: '0b5e-newton',
+      },
+      returns: false,
+      warnings: [],
+    });
+  });
+
+  it('writes the website address of a row over the stored one', () => {
+    const result = starterPlanFor(
+      PROJECTS,
+      starterCsv(
+        { ...WELLS_ROW, address: '9 Plant Rd', city: '' },
+        LIBRARY_ROW,
+      ),
+    );
+    expect(changesAt(result, 2)).toMatchObject({
+      address: '9 Plant Rd',
+      city: null,
+    });
+  });
+
+  it('gives a website-only project its Website ID and no Plant ID', () => {
+    expect(rowAt(starterPlanFor(PROJECTS, WORKBOOK), 3)).toEqual({
+      action: 'update',
+      row: 3,
+      plantId: null,
+      id: '7c1d-library',
+      changes: { websiteId: '7c1d-library' },
+      returns: false,
+      warnings: [],
+    });
+  });
+
+  it('creates a project for a row without a Website ID', () => {
+    expect(rowAt(starterPlanFor(PROJECTS, WORKBOOK), 4)).toMatchObject({
+      action: 'create',
+      plantId: 'P-9',
+      id: 'plant-P-9',
+      fields: { plantId: 'P-9', plantName: 'Plant 9', projectType: 'Solar' },
+    });
+  });
+
+  it('hides each shown website project that the workbook lacks (AC-4.5)', () => {
+    const hidden = { ...GONE, _id: 'aa11-hidden', hiddenAt: HIDDEN_AT };
+    const result = starterPlanFor([...PROJECTS, hidden], WORKBOOK);
+
+    expect(result.hides).toEqual([
+      { id: '9f2a-gone', plantId: null, name: 'Gone Project' },
+    ]);
+    expect(result.counts).toEqual({
+      created: 1,
+      updated: 2,
+      unchanged: 0,
+      skipped: 0,
+      hidden: 1,
+      returned: 0,
+    });
+    expect(result.rejection).toBeNull();
+    expect(result.writes).toBe(true);
+  });
+
+  it('applies no half rule, because the workbook replaces the website list', () => {
+    const many = [11, 12, 13, 14].map((n) => ({
+      ...GONE,
+      _id: `gone-${n}`,
+      title: `Gone ${n}`,
+    }));
+    const result = starterPlanFor([WELLS, ...many], starterCsv(WELLS_ROW));
+    expect(result.counts.hidden).toBe(4);
+    expect(result.rejection).toBeNull();
+  });
+
+  it('shows a hidden website project that the workbook lists', () => {
+    const result = starterPlanFor(
+      [{ ...OLD_LIBRARY, hiddenAt: HIDDEN_AT }],
+      starterCsv(LIBRARY_ROW),
+    );
+    expect(rowAt(result, 2)).toMatchObject({ action: 'update', returns: true });
+    expect(result.returns).toEqual([
+      { id: '7c1d-library', plantId: null, name: 'Old Library' },
+    ]);
+  });
+
+  it('skips a row whose Website ID matches no map project', () => {
+    const result = starterPlanFor(
+      PROJECTS,
+      starterCsv(WELLS_ROW, { ...LIBRARY_ROW, websiteId: 'nope' }),
+    );
+    expect(rowAt(result, 3)).toEqual({
+      action: 'error',
+      row: 3,
+      plantId: null,
+      errors: [
+        {
+          reason: 'unknown-website-id',
+          message: 'No map project has this Website ID.',
+        },
+      ],
+    });
+  });
+
+  it('never hides the project of an error row', () => {
+    const result = starterPlanFor(
+      PROJECTS,
+      starterCsv(WELLS_ROW, { ...LIBRARY_ROW, size: 'lots' }),
+    );
+    expect(rowAt(result, 3).action).toBe('error');
+    expect(result.hides.map(({ id }) => id)).toEqual(['9f2a-gone']);
+  });
+
+  it('skips a new plant whose document ID another project already uses', () => {
+    const squatter = { ...GONE, _id: 'plant-P-9' };
+    const result = starterPlanFor(
+      [WELLS, squatter],
+      starterCsv(WELLS_ROW, plantRow(9)),
+    );
+    expect(rowAt(result, 3)).toMatchObject({
+      action: 'error',
+      errors: [{ reason: 'plant-id-conflict' }],
+    });
+  });
+
+  it('rejects a workbook with no rows free of errors', () => {
+    const result = starterPlanFor(
+      PROJECTS,
+      starterCsv({ ...LIBRARY_ROW, websiteId: 'nope' }),
+    );
+    expect(result.rejection).toMatchObject({ reason: 'no-valid-rows' });
+  });
+
+  it('gives a token that no import of the same file can use', () => {
+    const plan = starterPlanFor(PROJECTS, WORKBOOK);
+    const imported = planImport({
+      projects: PROJECTS,
+      file: WORKBOOK,
+      rows: [],
+      options: { hideMissing: true },
+    });
+
+    expect(plan.token).toMatch(/^[0-9a-f]{64}$/);
+    expect(plan.token).not.toBe(imported.token);
+    expect(
+      starterPlanFor(
+        [WELLS, OLD_LIBRARY, { ...GONE, _rev: 'rev-gone+' }],
+        WORKBOOK,
+      ).token,
+    ).not.toBe(plan.token);
+  });
+
+  it('plans a second run of the same workbook as all unchanged', () => {
+    const first = starterPlanFor(PROJECTS, WORKBOOK);
+    const second = starterPlanFor(applyPlan(PROJECTS, first), WORKBOOK);
+
+    expect(second.rows.map(({ action }) => action)).toEqual([
+      'unchanged',
+      'unchanged',
+      'unchanged',
+    ]);
+    expect(second.hides).toEqual([]);
+    expect(second.writes).toBe(false);
+  });
+
+  it('leaves projects that a later import treats as merged and plants', () => {
+    const loaded = applyPlan(PROJECTS, starterPlanFor(PROJECTS, WORKBOOK));
+    const result = planFor(loaded, csv(NEWTON_ROW, plantRow(9)));
+
+    // BlueIQ's own address differs, and the merged project keeps the website's (AC-8.6).
+    expect(rowAt(result, 2)).toMatchObject({ action: 'unchanged' });
+    expect(rowAt(result, 3)).toMatchObject({ action: 'unchanged' });
+    expect(result.hides).toEqual([]);
   });
 });

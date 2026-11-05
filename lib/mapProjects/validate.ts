@@ -63,6 +63,35 @@ export type ValidatedRow =
       errors: RowIssue<RowErrorReason>[];
     };
 
+/** The starter load also checks that no two rows share a Website ID (AC-8.7). */
+export type StarterErrorReason = RowErrorReason | 'bad-website-id';
+
+/** A starter row's fields. A website project's row may lack a Plant ID. */
+export type StarterFields = Omit<MapProjectFields, 'plantId'> & {
+  plantId: string | null;
+};
+
+/** A starter row names a plant, a website project, or both. */
+type StarterIds =
+  | { plantId: string; websiteId: null }
+  | { plantId: string | null; websiteId: string };
+
+export type StarterRow =
+  | (StarterIds & {
+      ok: true;
+      row: number;
+      fields: StarterFields;
+      warnings: RowIssue<RowWarningReason>[];
+    })
+  | {
+      ok: false;
+      row: number;
+      /** Both trimmed IDs, so the plan never hides the project of an error row. */
+      plantId: string | null;
+      websiteId: string | null;
+      errors: RowIssue<StarterErrorReason>[];
+    };
+
 /** A new plant project's `_id` is `plant-<Plant ID>`, so the ID must be safe in a document ID. */
 const PLANT_ID = /^[A-Za-z0-9_-]{1,64}$/;
 const DECIMAL = /^[+-]?(\d+(\.\d*)?|\.\d+)$/;
@@ -81,10 +110,48 @@ function list(cell: string) {
 
 const rowList = new Intl.ListFormat('en', { type: 'conjunction' });
 
-function repeatMessage(otherRows: number[]) {
+type IdColumn = 'plantId' | 'websiteId';
+
+const ID_NAMES = { plantId: 'Plant ID', websiteId: 'Website ID' } as const;
+
+/** The rows that hold each trimmed ID in a column. */
+function rowsById(rows: readonly ParsedRow[], column: IdColumn) {
+  const byId = new Map<string, number[]>();
+  for (const { row, cells } of rows) {
+    const id = cells[column].trim();
+    if (id) byId.set(id, [...(byId.get(id) ?? []), row]);
+  }
+  return byId;
+}
+
+/** Names the other rows that hold the same ID, or gives null when no other row does. */
+function repeatMessage(
+  column: IdColumn,
+  id: string,
+  row: number,
+  byId: Map<string, number[]>,
+) {
+  const otherRows = (byId.get(id) ?? []).filter((other) => other !== row);
+  if (otherRows.length === 0) return null;
   return otherRows.length === 1
-    ? `Row ${otherRows[0]} has the same Plant ID.`
-    : `Rows ${rowList.format(otherRows.map(String))} have the same Plant ID.`;
+    ? `Row ${otherRows[0]} has the same ${ID_NAMES[column]}.`
+    : `Rows ${rowList.format(otherRows.map(String))} have the same ${ID_NAMES[column]}.`;
+}
+
+function plantIdError(
+  plantId: string,
+  row: number,
+  byPlantId: Map<string, number[]>,
+): RowIssue<RowErrorReason> | null {
+  if (!PLANT_ID.test(plantId)) {
+    return {
+      reason: 'bad-plant-id',
+      message:
+        'The Plant ID can hold only letters, digits, "_", and "-", up to 64 characters.',
+    };
+  }
+  const message = repeatMessage('plantId', plantId, row, byPlantId);
+  return message ? { reason: 'bad-plant-id', message } : null;
 }
 
 function readCoordinate(
@@ -155,7 +222,7 @@ function readActive(cell: string, errors: RowIssue<RowErrorReason>[]) {
   return null;
 }
 
-function warningsFor(fields: MapProjectFields) {
+function warningsFor(fields: Omit<MapProjectFields, 'plantId'>) {
   const warnings: RowIssue<RowWarningReason>[] = [];
   if (!fields.location) {
     warnings.push({
@@ -180,81 +247,108 @@ function warningsFor(fields: MapProjectFields) {
   return warnings;
 }
 
+/** Reads every cell but the Plant ID. A cell that can't be read adds an error. */
+function readCells(cells: ParsedRow['cells']) {
+  const errors: RowIssue<RowErrorReason>[] = [];
+  const plantName = text(cells.plantName);
+  const projectName = text(cells.projectName);
+  if (!plantName && !projectName) {
+    errors.push({
+      reason: 'no-name',
+      message: 'The row has no Plant Name or Project Name.',
+    });
+  }
+
+  // Errors follow column order: name, coordinates, size, then Active.
+  const location = readLocation(cells.latitude, cells.longitude, errors);
+  const size = readSize(cells.size, errors);
+  const active = readActive(cells.active, errors);
+
+  const fields: Omit<MapProjectFields, 'plantId'> = {
+    plantName,
+    projectName,
+    projectId: text(cells.projectId),
+    projectType: text(cells.projectType),
+    projectStatus: text(cells.projectStatus),
+    active,
+    location,
+    address: text(cells.address),
+    city: text(cells.city),
+    state: stateName(cells.state),
+    zip: text(cells.zip),
+    county: text(cells.county),
+    entity: list(cells.entity),
+    financing: list(cells.financing),
+    size,
+    technologies: list(cells.technologies),
+    websiteId: text(cells.websiteId),
+  };
+  return { fields, errors };
+}
+
 /**
  * Checks each parsed row and reads its cells into map project fields (AC-4.3). Lists split on
  * semicolons, and State becomes the full name. Every row gets a result, in file order.
  */
 export function validateRows(rows: readonly ParsedRow[]): ValidatedRow[] {
-  const rowsByPlantId = new Map<string, number[]>();
-  for (const { row, cells } of rows) {
-    const plantId = cells.plantId.trim();
-    if (plantId)
-      rowsByPlantId.set(plantId, [...(rowsByPlantId.get(plantId) ?? []), row]);
-  }
+  const byPlantId = rowsById(rows, 'plantId');
 
   return rows.map(({ row, cells }) => {
-    const errors: RowIssue<RowErrorReason>[] = [];
     const plantId = text(cells.plantId);
-    if (!plantId) {
-      errors.push({
-        reason: 'no-plant-id',
-        message: 'The row has no Plant ID.',
-      });
-    } else if (!PLANT_ID.test(plantId)) {
-      errors.push({
-        reason: 'bad-plant-id',
-        message:
-          'The Plant ID can hold only letters, digits, "_", and "-", up to 64 characters.',
-      });
-    } else {
-      const otherRows = (rowsByPlantId.get(plantId) ?? []).filter(
-        (other) => other !== row,
-      );
-      if (otherRows.length > 0) {
-        errors.push({
-          reason: 'bad-plant-id',
-          message: repeatMessage(otherRows),
-        });
-      }
-    }
-
-    const plantName = text(cells.plantName);
-    const projectName = text(cells.projectName);
-    if (!plantName && !projectName) {
-      errors.push({
-        reason: 'no-name',
-        message: 'The row has no Plant Name or Project Name.',
-      });
-    }
-
-    const location = readLocation(cells.latitude, cells.longitude, errors);
-    const size = readSize(cells.size, errors);
-    const active = readActive(cells.active, errors);
+    const idError = plantId
+      ? plantIdError(plantId, row, byPlantId)
+      : ({
+          reason: 'no-plant-id',
+          message: 'The row has no Plant ID.',
+        } as const);
+    const read = readCells(cells);
+    const errors = idError ? [idError, ...read.errors] : read.errors;
 
     if (!plantId || errors.length > 0) {
       return { ok: false, row, plantId, errors };
     }
-
-    const fields: MapProjectFields = {
-      plantId,
-      plantName,
-      projectName,
-      projectId: text(cells.projectId),
-      projectType: text(cells.projectType),
-      projectStatus: text(cells.projectStatus),
-      active,
-      location,
-      address: text(cells.address),
-      city: text(cells.city),
-      state: stateName(cells.state),
-      zip: text(cells.zip),
-      county: text(cells.county),
-      entity: list(cells.entity),
-      financing: list(cells.financing),
-      size,
-      technologies: list(cells.technologies),
-      websiteId: text(cells.websiteId),
-    };
+    const fields = { plantId, ...read.fields };
     return { ok: true, row, plantId, fields, warnings: warningsFor(fields) };
+  });
+}
+
+/**
+ * Checks the rows of the one-time starter load (AC-8.7). A row with a Website ID may lack a Plant
+ * ID, and no two rows may share a Website ID. Otherwise the rules match `validateRows`.
+ */
+export function validateStarterRows(rows: readonly ParsedRow[]): StarterRow[] {
+  const byPlantId = rowsById(rows, 'plantId');
+  const byWebsiteId = rowsById(rows, 'websiteId');
+
+  return rows.map(({ row, cells }) => {
+    const plantId = text(cells.plantId);
+    const websiteId = text(cells.websiteId);
+    const ids: StarterIds | null =
+      websiteId !== null
+        ? { plantId, websiteId }
+        : plantId !== null
+          ? { plantId, websiteId }
+          : null;
+
+    const errors: RowIssue<StarterErrorReason>[] = [];
+    if (!ids) {
+      errors.push({
+        reason: 'no-plant-id',
+        message: 'The row has no Plant ID or Website ID.',
+      });
+    }
+    const idError = plantId && plantIdError(plantId, row, byPlantId);
+    if (idError) errors.push(idError);
+    const repeat =
+      websiteId && repeatMessage('websiteId', websiteId, row, byWebsiteId);
+    if (repeat) errors.push({ reason: 'bad-website-id', message: repeat });
+    const read = readCells(cells);
+    errors.push(...read.errors);
+
+    if (!ids || errors.length > 0) {
+      return { ok: false, row, plantId, websiteId, errors };
+    }
+    const fields = { ...read.fields, plantId: ids.plantId };
+    return { ok: true, row, ...ids, fields, warnings: warningsFor(fields) };
   });
 }

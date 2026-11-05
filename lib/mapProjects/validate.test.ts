@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { COLUMN_KEYS, type ColumnKey } from './columns';
 import type { ParsedRow } from './parseCsv';
-import { type ValidatedRow, validateRows } from './validate';
+import {
+  type StarterRow,
+  type ValidatedRow,
+  validateRows,
+  validateStarterRows,
+} from './validate';
 
 /** A row with every cell blank, then the given cells. */
 function parsedRow(
@@ -327,5 +332,114 @@ describe('validateRows warnings (AC-4.3)', () => {
   it('gives an error row no warnings', () => {
     const result = validateOne({ ...VALID, plantId: '', active: 'No' });
     expect(result).not.toHaveProperty('warnings');
+  });
+});
+
+describe('validateStarterRows (AC-8.7)', () => {
+  /** A website-only row of the starter workbook (AC-8.3). */
+  const WEBSITE_ONLY = {
+    websiteId: ' 7c1d-library ',
+    projectName: 'Old Library',
+    technologies: 'LED Lighting',
+  };
+
+  const starterOne = (cells: Partial<Record<ColumnKey, string>>) => {
+    const [result] = validateStarterRows([parsedRow(2, cells)]);
+    if (!result) throw new Error('No result.');
+    return result;
+  };
+
+  const starterErrors = (result: StarterRow) =>
+    result.ok ? [] : result.errors.map((error) => error.reason);
+
+  it('accepts a website project row without a Plant ID', () => {
+    const result = starterOne(WEBSITE_ONLY);
+
+    expect(result).toMatchObject({
+      ok: true,
+      row: 2,
+      plantId: null,
+      websiteId: '7c1d-library',
+      fields: {
+        plantId: null,
+        websiteId: '7c1d-library',
+        projectName: 'Old Library',
+        technologies: ['LED Lighting'],
+      },
+    });
+  });
+
+  it('reads the cells of a plant row exactly as an import does', () => {
+    const cells = {
+      ...VALID,
+      state: 'ne',
+      entity: 'K-12; Municipal',
+      size: '$1,200',
+      active: 'No',
+    };
+    const [imported] = validateRows([parsedRow(2, cells)]);
+
+    expect(starterOne(cells)).toEqual({ ...imported, websiteId: null });
+  });
+
+  it('keeps both IDs on a merged row', () => {
+    expect(starterOne({ ...VALID, websiteId: '0b5e-newton' })).toMatchObject({
+      ok: true,
+      plantId: 'P-1',
+      websiteId: '0b5e-newton',
+      fields: { plantId: 'P-1', websiteId: '0b5e-newton' },
+    });
+  });
+
+  it('still needs a Plant ID on a row without a Website ID', () => {
+    expect(starterOne({ ...VALID, plantId: ' ' })).toMatchObject({
+      ok: false,
+      errors: [
+        {
+          reason: 'no-plant-id',
+          message: 'The row has no Plant ID or Website ID.',
+        },
+      ],
+    });
+  });
+
+  it('checks a Plant ID beside a Website ID', () => {
+    expect(
+      starterErrors(starterOne({ ...WEBSITE_ONLY, plantId: 'P 1' })),
+    ).toEqual(['bad-plant-id']);
+  });
+
+  it('rejects every row that repeats a Website ID or a Plant ID', () => {
+    const results = validateStarterRows([
+      parsedRow(2, { ...WEBSITE_ONLY, websiteId: 'a-1' }),
+      parsedRow(3, { ...WEBSITE_ONLY, websiteId: ' a-1' }),
+      parsedRow(4, { ...WEBSITE_ONLY, websiteId: 'A-1' }),
+      parsedRow(5, { ...VALID, plantId: 'P-1', websiteId: 'b-2' }),
+      parsedRow(6, { ...VALID, plantId: 'P-1' }),
+    ]);
+
+    expect(
+      results.map((result) => [
+        result.row,
+        result.ok ? 'ok' : result.errors.map((error) => error.message),
+      ]),
+    ).toEqual([
+      [2, ['Row 3 has the same Website ID.']],
+      [3, ['Row 2 has the same Website ID.']],
+      [4, 'ok'],
+      [5, ['Row 6 has the same Plant ID.']],
+      [6, ['Row 5 has the same Plant ID.']],
+    ]);
+    expect(starterErrors(results[0] as StarterRow)).toEqual(['bad-website-id']);
+  });
+
+  it('keeps the IDs of an error row, so the plan never hides its project', () => {
+    expect(starterOne({ ...WEBSITE_ONLY, size: 'lots' })).toEqual({
+      ok: false,
+      row: 2,
+      plantId: null,
+      websiteId: '7c1d-library',
+      errors: [{ reason: 'bad-size', message: 'Size ($) is not a number.' }],
+    });
   });
 });

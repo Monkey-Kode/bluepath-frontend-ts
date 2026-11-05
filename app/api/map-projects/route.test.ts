@@ -31,7 +31,7 @@ import {
   type FakeSanity,
   fakeSanity,
 } from '@/lib/mapProjects/testing/fakeSanity';
-import { type Cells, csv } from '@/lib/mapProjects/testing/files';
+import { type Cells, csv, starterCsv } from '@/lib/mapProjects/testing/files';
 import { writeClient } from '@/sanity/lib/writeClient';
 import { type RouteServer, send, serveRoute } from '@/test/http';
 
@@ -908,6 +908,173 @@ describe('the apply action', () => {
     expect(reply.status).toBe(400);
     expect(reply.body.error).toBe('bad-request');
     expect(wroteBeyondProofs()).toBe(false);
+  });
+});
+
+describe('the starter load actions (AC-8.7)', () => {
+  /** Website projects before the load. None has a Plant ID. */
+  const WEBSITE_PROJECTS: FakeDocument[] = [
+    { _id: 'site-wells', _type: 'casestudies', projectName: '111 Wells' },
+    { _id: 'site-library', _type: 'casestudies', projectName: 'Old Library' },
+  ];
+
+  /** Merges Wells with plant P-1, adds plant P-6, and leaves out the library. */
+  const STARTER = new TextDecoder().decode(
+    starterCsv(
+      {
+        websiteId: 'site-wells',
+        plantId: 'P-1',
+        plantName: FILE_TEXT,
+        projectName: '111 Wells',
+        projectType: 'Solar',
+      },
+      { plantId: 'P-6', plantName: 'Plant 6', projectType: 'Wind' },
+    ),
+  );
+
+  const fileSource = { kind: 'file', name: 'starter.csv' };
+
+  beforeEach(() => {
+    sanity = fakeSanity(WEBSITE_PROJECTS);
+  });
+
+  async function preview() {
+    const reply = await post({ action: 'starter-preview', file: STARTER });
+    expect(reply.status).toBe(200);
+    return reply.body.plan.token as string;
+  }
+
+  const load = (token: unknown, source: unknown = fileSource) =>
+    post({ action: 'starter-load', file: STARTER, token, source });
+
+  it('previews the load, with the hides, and writes nothing', async () => {
+    const reply = await post({ action: 'starter-preview', file: STARTER });
+
+    expect(reply.status).toBe(200);
+    expect(reply.body.result).toBe('ready');
+    const { plan } = reply.body;
+    expect(plan.rows.map(({ action }: { action: string }) => action)).toEqual([
+      'update',
+      'create',
+    ]);
+    expect(plan.hides).toEqual([
+      { id: 'site-library', plantId: null, name: 'Old Library' },
+    ]);
+    expect(wroteBeyondProofs()).toBe(false);
+  });
+
+  it('needs the Website ID column', async () => {
+    const reply = await post({ action: 'starter-preview', file: FILE });
+
+    expect(reply.status).toBe(422);
+    expect(reply.body.error).toBe('missing-columns');
+    expect(reply.body.message).toContain('Website ID');
+  });
+
+  it('loads the previewed workbook after a backup, and then imports open (AC-4.12)', async () => {
+    const token = await preview();
+
+    const reply = await load(token);
+
+    expect(reply.status).toBe(200);
+    expect(reply.body).toEqual({
+      result: 'applied',
+      counts: {
+        created: 1,
+        updated: 1,
+        unchanged: 0,
+        skipped: 0,
+        hidden: 1,
+        returned: 0,
+      },
+      backupId: expect.stringMatching(/^mapProjects\.backup\./),
+    });
+    expect(sanity.get('site-wells')).toMatchObject({
+      websiteId: 'site-wells',
+      plantId: 'P-1',
+      plantName: FILE_TEXT,
+    });
+    expect(sanity.get('site-library')).toMatchObject({
+      hiddenAt: NOW.toISOString(),
+    });
+    expect(sanity.get(reply.body.backupId)).toMatchObject({
+      source: fileSource,
+      person: PERSON,
+    });
+    expect((await post({ action: 'status' })).body.ready).toBe(true);
+  });
+
+  it('refuses both actions once a project has a Plant ID', async () => {
+    sanity = fakeSanity(PROJECTS);
+
+    for (const reply of [
+      await post({ action: 'starter-preview', file: STARTER }),
+      await load('token'),
+    ]) {
+      expect(reply.status).toBe(409);
+      expect(reply.body).toEqual({
+        error: 'loaded',
+        message:
+          'The starter load already ran, so it runs only once. Send later files as imports.',
+      });
+    }
+    expect(wroteBeyondProofs()).toBe(false);
+  });
+
+  it('writes nothing and shows a new preview when projects changed after the preview', async () => {
+    const token = await preview();
+    await sanity.mutate([
+      { patch: { id: 'site-library', set: { projectName: 'New Library' } } },
+    ]);
+    const before = projects();
+
+    const reply = await load(token);
+
+    expect(reply.status).toBe(409);
+    expect(reply.body.error).toBe('stale');
+    expect(reply.body.plan.token).not.toBe(token);
+    expect(projects()).toEqual(before);
+  });
+
+  it('says how to recover when a write fails', async () => {
+    const token = await preview();
+    sanity.failWhen((mutations) =>
+      mutations.some(
+        (mutation) =>
+          'create' in mutation && mutation.create._id === 'plant-P-6',
+      ),
+    );
+
+    const reply = await load(token);
+
+    expect(reply.status).toBe(500);
+    expect(reply.body.error).toBe('write-failed');
+    expect(reply.body.message).toMatch(/restore the backup/i);
+  });
+
+  it.each([
+    ['no token', undefined, fileSource],
+    ['an empty token', '', fileSource],
+    ['no source', 'token', undefined],
+    ['a sheet source', 'token', { kind: 'sheet', url: SHEET_URL }],
+  ])('refuses %s with 400 and writes nothing', async (_name, token, source) => {
+    const reply = await post({
+      action: 'starter-load',
+      file: STARTER,
+      token,
+      source,
+    });
+
+    expect(reply.status).toBe(400);
+    expect(reply.body.error).toBe('bad-request');
+    expect(wroteBeyondProofs()).toBe(false);
+  });
+
+  it('refuses a request without a file with 400', async () => {
+    const reply = await post({ action: 'starter-preview' });
+
+    expect(reply.status).toBe(400);
+    expect(reply.body.error).toBe('bad-request');
   });
 });
 

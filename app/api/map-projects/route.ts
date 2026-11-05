@@ -1,9 +1,13 @@
 import {
   ChangeFailure,
   applyImport,
+  applyStarterLoad,
   type ImportResult,
   type PreviewResult,
   previewImport,
+  previewStarterLoad,
+  type StarterLoadResult,
+  type StarterPreviewResult,
   starterLoadDone,
 } from '@/lib/mapProjects/apply';
 import {
@@ -177,6 +181,13 @@ type Action =
       hideMissing: boolean;
       token: string;
       source: BackupSource;
+    }
+  | { action: 'starter-preview'; file: string }
+  | {
+      action: 'starter-load';
+      file: string;
+      token: string;
+      source: Extract<BackupSource, { kind: 'file' }>;
     };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -249,6 +260,15 @@ function readAction(value: unknown): Action | null {
   if (action === 'delete') {
     const ids = readIds(value.ids);
     return ids ? { action, ids } : null;
+  }
+  if (action === 'starter-preview' || action === 'starter-load') {
+    if (typeof file !== 'string') return null;
+    if (action === 'starter-preview') return { action, file };
+    // The starter workbook comes as a file, never as a sheet link.
+    const source = readSource(value.source);
+    return typeof token === 'string' && token !== '' && source?.kind === 'file'
+      ? { action, file, token, source }
+      : null;
   }
   if (typeof hideMissing !== 'boolean') return null;
   if (action === 'sync') {
@@ -388,7 +408,9 @@ async function readStatus(client: MapProjectsClient): Promise<RouteReply> {
   };
 }
 
-function previewReply(result: PreviewResult): RouteReply {
+function previewReply(
+  result: PreviewResult | StarterPreviewResult,
+): RouteReply {
   switch (result.status) {
     case 'ready':
       return { status: 200, body: { result: 'ready', plan: result.plan } };
@@ -397,6 +419,12 @@ function previewReply(result: PreviewResult): RouteReply {
         503,
         'not-ready',
         'The website has no BlueIQ plants yet. Run the starter load first.',
+      );
+    case 'loaded':
+      return errorReply(
+        409,
+        'loaded',
+        'The starter load already ran, so it runs only once. Send later files as imports.',
       );
     case 'unreadable':
       return errorReply(422, result.error.reason, result.message);
@@ -415,7 +443,7 @@ function previewReply(result: PreviewResult): RouteReply {
   }
 }
 
-function importReply(result: ImportResult): RouteReply {
+function importReply(result: ImportResult | StarterLoadResult): RouteReply {
   switch (result.status) {
     case 'applied':
       for (const problem of result.problems) {
@@ -572,6 +600,22 @@ async function run(
       );
     case 'sync':
       return sync(client, action.url, action.hideMissing);
+    case 'starter-preview':
+      return previewReply(
+        await previewStarterLoad(client, { file: encode(action.file) }),
+      );
+    case 'starter-load':
+      return guarded(async () =>
+        importReply(
+          await applyStarterLoad(client, {
+            file: encode(action.file),
+            token: action.token,
+            source: action.source,
+            person,
+            now,
+          }),
+        ),
+      );
     case 'apply':
       return guarded(async () =>
         importReply(

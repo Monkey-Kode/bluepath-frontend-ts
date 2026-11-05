@@ -4,10 +4,13 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   applyImport,
+  applyStarterLoad,
   ChangeFailure,
   type ImportRequest,
   previewImport,
+  previewStarterLoad,
   runChange,
+  type StarterLoadRequest,
 } from './apply';
 import { BACKUP_TYPE, FEED_PERSON, loadBackup, saveBackup } from './backups';
 import { LOCK_ID, takeLock } from './lock';
@@ -17,7 +20,7 @@ import {
   type FakeSanity,
   fakeSanity,
 } from './testing/fakeSanity';
-import { type Cells, csv } from './testing/files';
+import { type Cells, csv, starterCsv } from './testing/files';
 
 const NOW = new Date('2026-11-04T12:00:00.000Z');
 const DAY = 24 * 60 * 60 * 1000;
@@ -605,6 +608,227 @@ describe('runChange', () => {
         throw new Error('No such project.');
       }),
     ).rejects.toThrow('No such project.');
+    expect(sanity.get(LOCK_ID)).toBeUndefined();
+  });
+});
+
+describe('starter load (AC-8.7)', () => {
+  /** Website projects before the load. None has a Plant ID or a Website ID yet. */
+  const WELLS: FakeDocument = {
+    _id: '0b5e-newton',
+    _type: 'casestudies',
+    title: '111 Wells',
+    projectName: '111 Wells',
+    location: { _type: 'geopoint', lat: 42.3, lng: -71.2 },
+    address: '111 Wells Ave',
+    city: 'Newton',
+    state: 'MA',
+    entity: ['Commercial'],
+    financing: ['PPA'],
+  };
+  const OLD_LIBRARY: FakeDocument = {
+    _id: '7c1d-library',
+    _type: 'casestudies',
+    title: 'Old Library',
+    projectName: 'Old Library',
+  };
+  const GONE: FakeDocument = {
+    _id: '9f2a-gone',
+    _type: 'casestudies',
+    title: 'Gone Project',
+  };
+  const WEBSITE = [WELLS, OLD_LIBRARY, GONE];
+
+  /** Merges Wells with plant P-2, keeps the library, and adds plant P-5. */
+  const WORKBOOK = starterCsv(
+    {
+      ...NEWTON_ROW,
+      websiteId: '0b5e-newton',
+      projectName: '111 Wells',
+      address: '111 Wells Ave',
+      city: 'Newton',
+      entity: 'Commercial',
+    },
+    {
+      websiteId: '7c1d-library',
+      projectName: 'Old Library',
+      technologies: 'LED Lighting',
+    },
+    HASTINGS_ROW,
+  );
+
+  const load = (
+    token: string,
+    fields: Partial<StarterLoadRequest> = {},
+  ): StarterLoadRequest => ({
+    file: WORKBOOK,
+    token,
+    source: { kind: 'file', name: 'starter.csv' },
+    person: 'Sadie',
+    now: NOW,
+    ...fields,
+  });
+
+  async function previewToken(client: MapProjectsClient, file = WORKBOOK) {
+    const preview = await previewStarterLoad(client, { file });
+    if (preview.status !== 'ready') throw new Error(preview.status);
+    return preview.plan.token;
+  }
+
+  it('previews the load without writing', async () => {
+    const sanity = fakeSanity(WEBSITE);
+
+    expect(await previewStarterLoad(sanity, { file: WORKBOOK })).toMatchObject({
+      status: 'ready',
+      plan: {
+        counts: { created: 1, updated: 2, skipped: 0, hidden: 1 },
+        hides: [{ id: '9f2a-gone', plantId: null, name: 'Gone Project' }],
+      },
+    });
+    expect(sanity.transactions).toEqual([]);
+  });
+
+  it('saves a backup, then writes every column of each row', async () => {
+    const sanity = fakeSanity(WEBSITE);
+    const before = projects(sanity);
+
+    const result = await applyStarterLoad(
+      sanity,
+      load(await previewToken(sanity)),
+    );
+
+    if (result.status !== 'applied' || !result.backupId) {
+      throw new Error(`No backup: ${result.status}`);
+    }
+    const saved = await loadBackup(sanity, result.backupId);
+    expect(saved?.backup).toMatchObject({
+      source: { kind: 'file', name: 'starter.csv' },
+      person: 'Sadie',
+      count: 3,
+    });
+    expect(saved?.projects).toEqual(before);
+
+    const { financing: _cleared, ...wells } = WELLS;
+    expect(withoutRev(projects(sanity))).toEqual(
+      withoutRev([
+        {
+          ...wells,
+          websiteId: '0b5e-newton',
+          plantId: 'P-2',
+          plantName: 'Wells Solar',
+          projectType: 'Solar + BESS',
+          projectStatus: 'Operating',
+          location: { _type: 'geopoint', lat: 42.33, lng: -71.2 },
+        },
+        {
+          ...OLD_LIBRARY,
+          websiteId: '7c1d-library',
+          technologies: ['LED Lighting'],
+        },
+        { ...GONE, hiddenAt: NOW.toISOString() },
+        {
+          _id: 'plant-P-5',
+          _type: 'casestudies',
+          plantId: 'P-5',
+          plantName: 'Hastings Solar',
+          projectType: 'Solar',
+          active: false,
+          location: { _type: 'geopoint', lat: 40.58, lng: -98.39 },
+          state: 'Nebraska',
+          size: 2500,
+          technologies: ['Solar PV', 'Battery Storage'],
+        },
+      ]),
+    );
+    expect(sanity.get(LOCK_ID)).toBeUndefined();
+  });
+
+  it('opens imports and stops offering the load once it ran (AC-4.12)', async () => {
+    const sanity = fakeSanity(WEBSITE);
+    const importFile = {
+      file: csv(NEWTON_ROW),
+      options: { hideMissing: false },
+    };
+    expect(await previewImport(sanity, importFile)).toEqual({
+      status: 'not-ready',
+    });
+    const token = await previewToken(sanity);
+
+    await applyStarterLoad(sanity, load(token));
+    const transactions = sanity.transactions.length;
+
+    expect(await previewImport(sanity, importFile)).toMatchObject({
+      status: 'ready',
+    });
+    expect(await previewStarterLoad(sanity, { file: WORKBOOK })).toEqual({
+      status: 'loaded',
+    });
+    expect(await applyStarterLoad(sanity, load(token))).toEqual({
+      status: 'loaded',
+    });
+    expect(sanity.transactions).toHaveLength(transactions);
+  });
+
+  it('replies loaded without a lock while any project has a Plant ID', async () => {
+    const sanity = fakeSanity([...WEBSITE, KEARNEY]);
+    await takeLock(sanity, NOW);
+    const transactions = sanity.transactions.length;
+
+    expect(await applyStarterLoad(sanity, load('any'))).toEqual({
+      status: 'loaded',
+    });
+    expect(sanity.transactions).toHaveLength(transactions);
+  });
+
+  it('rejects a file without the Website ID column before the lock', async () => {
+    const sanity = fakeSanity(WEBSITE);
+    await takeLock(sanity, NOW);
+
+    expect(
+      await applyStarterLoad(sanity, load('any', { file: FILE })),
+    ).toMatchObject({
+      status: 'unreadable',
+      error: { reason: 'missing-columns', headers: ['Website ID'] },
+    });
+  });
+
+  it('writes nothing and shows a new preview when projects changed after the preview', async () => {
+    const sanity = fakeSanity(WEBSITE);
+    const token = await previewToken(sanity);
+    await sanity.mutate([
+      { patch: { id: '9f2a-gone', set: { title: 'Gone, Renamed' } } },
+    ]);
+    const before = projects(sanity);
+
+    const result = await applyStarterLoad(sanity, load(token));
+
+    expect(result).toMatchObject({ status: 'stale' });
+    expect(projects(sanity)).toEqual(before);
+    expect(ofType(sanity, BACKUP_TYPE)).toEqual([]);
+  });
+
+  it('says how to recover when a write fails partway', async () => {
+    const sanity = fakeSanity(WEBSITE);
+    const token = await previewToken(sanity);
+    sanity.failWhen((mutations) =>
+      mutations.some(
+        (mutation) =>
+          'create' in mutation && mutation.create._id === 'plant-P-5',
+      ),
+    );
+
+    const error = await applyStarterLoad(
+      sanity,
+      load(token, { limits: { maxMutations: 1, maxBytes: 1_000_000 } }),
+    ).catch((caught) => caught);
+
+    expect(error).toBeInstanceOf(ChangeFailure);
+    expect(error).toMatchObject({
+      stage: 'write',
+      message:
+        'A write failed partway, so the load is incomplete. Restore the backup that the load saved, then run the load again.',
+      cause: { statusCode: 500 },
+    });
     expect(sanity.get(LOCK_ID)).toBeUndefined();
   });
 });
