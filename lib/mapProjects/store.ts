@@ -81,3 +81,25 @@ export async function commit(
   for (const group of groups) await client.mutate(group);
   return groups.length;
 }
+
+/**
+ * Deletes a document only while its `_rev` matches, in one transaction. The guarded patch fails
+ * on a changed or missing document, so two callers can't both delete it.
+ * @returns False when the document changed or is already gone.
+ */
+export async function deleteAtRevision(
+  client: MapProjectsClient,
+  id: string,
+  rev: string,
+) {
+  try {
+    await client.mutate([
+      { patch: { id, ifRevisionID: rev, set: { deleted: true } } },
+      { delete: { id } },
+    ]);
+    return true;
+  } catch (error) {
+    if (isConflict(error) || isNotFound(error)) return false;
+    throw error;
+  }
+}

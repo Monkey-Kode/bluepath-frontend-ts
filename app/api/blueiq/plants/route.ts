@@ -13,6 +13,13 @@ import {
 } from '@/lib/mapProjects/feedStatus';
 import { MAX_FILE_BYTES } from '@/lib/mapProjects/parseCsv';
 import type { ImportPlan } from '@/lib/mapProjects/plan';
+import {
+  errorReply,
+  hasMediaType,
+  logFailure,
+  readCapped,
+  type Reply,
+} from '@/lib/mapProjects/replies';
 import type { MapProjectsClient } from '@/lib/mapProjects/store';
 import { writeClient } from '@/sanity/lib/writeClient';
 
@@ -29,48 +36,37 @@ const RETRY_AFTER_SECONDS = 120;
 
 const LOG = '[blueiq-feed]';
 
-interface Reply {
-  status: number;
-  body: FeedReply;
-  headers?: Record<string, string>;
-}
+type FeedResponse = Reply<FeedReply>;
 
-const error = (
-  status: number,
-  code: string,
-  message: string,
-  headers?: Record<string, string>,
-): Reply => ({ status, body: { error: code, message }, headers });
-
-const METHOD_NOT_ALLOWED = error(
+const METHOD_NOT_ALLOWED = errorReply(
   405,
   'method-not-allowed',
   'Send the file with POST.',
   { Allow: 'POST' },
 );
-const NOT_CONFIGURED = error(
+const NOT_CONFIGURED = errorReply(
   503,
   'not-configured',
   'The feed is not set up on the website yet.',
 );
-const UNAUTHORIZED = error(
+const UNAUTHORIZED = errorReply(
   401,
   'unauthorized',
   'The X-API-Key header is missing or wrong.',
 );
-const UNSUPPORTED_TYPE = error(
+const UNSUPPORTED_TYPE = errorReply(
   415,
   'unsupported-type',
   'Send the file as text/csv.',
 );
-const TOO_BIG = error(413, 'too-big', 'The file is larger than 5 MB.');
-const SERVER_ERROR = error(
+const TOO_BIG = errorReply(413, 'too-big', 'The file is larger than 5 MB.');
+const SERVER_ERROR = errorReply(
   500,
   'server-error',
   'The website could not take the file. Try again later.',
 );
 
-function respond({ status, body, headers }: Reply) {
+function respond({ status, body, headers }: FeedResponse) {
   return Response.json(body, { status, headers });
 }
 
@@ -86,31 +82,6 @@ const digest = (value: string) => createHash('sha256').update(value).digest();
 /** Equal-length digests let `timingSafeEqual` compare keys of any length in constant time. */
 const keyMatches = (sent: string | null, key: string) =>
   sent !== null && timingSafeEqual(digest(sent), digest(key));
-
-function isCsv(contentType: string | null) {
-  const mediaType = contentType?.split(';')[0]?.trim().toLowerCase();
-  return mediaType === 'text/csv';
-}
-
-/** Reads the body, or returns null once it passes `limit` bytes. */
-async function readCapped(
-  body: ReadableStream<Uint8Array> | null,
-  limit: number,
-): Promise<Uint8Array | null> {
-  if (!body) return new Uint8Array();
-  const reader = body.getReader();
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    size += value.byteLength;
-    // The rest goes unread. Cancelling could close the connection before the reply.
-    if (size > limit) return null;
-    chunks.push(value);
-  }
-  return Buffer.concat(chunks);
-}
 
 /** The skipped rows. A Plant ID stays only when it is valid, so no bad cell is repeated. */
 function skippedRows(plan: ImportPlan): SkippedRow[] {
@@ -129,7 +100,7 @@ function skippedRows(plan: ImportPlan): SkippedRow[] {
   );
 }
 
-function importReply(result: ImportResult): Reply {
+function importReply(result: ImportResult): FeedResponse {
   switch (result.status) {
     case 'applied':
       return {
@@ -141,7 +112,7 @@ function importReply(result: ImportResult): Reply {
         },
       };
     case 'not-ready':
-      return error(
+      return errorReply(
         503,
         'not-ready',
         'The website has no BlueIQ plants yet. It takes files once the starter load runs.',
@@ -149,7 +120,7 @@ function importReply(result: ImportResult): Reply {
     case 'unreadable':
       return result.error.reason === 'too-big'
         ? TOO_BIG
-        : error(422, result.error.reason, result.message);
+        : errorReply(422, result.error.reason, result.message);
     case 'rejected': {
       const { rejection } = result.plan;
       if (!rejection) throw new Error('A rejected plan has no rejection.');
@@ -163,7 +134,7 @@ function importReply(result: ImportResult): Reply {
       };
     }
     case 'busy':
-      return error(
+      return errorReply(
         409,
         'busy',
         'Another change to the map is running. Try again in a few minutes.',
@@ -174,22 +145,14 @@ function importReply(result: ImportResult): Reply {
   }
 }
 
-/** Logs only an error's name and status code. Sanity's error text can quote the file. */
-function logFailure(stage: string, cause: unknown) {
-  const name = cause instanceof Error ? cause.name : typeof cause;
-  const statusCode =
-    typeof cause === 'object' && cause !== null && 'statusCode' in cause
-      ? cause.statusCode
-      : undefined;
-  console.error(LOG, `${stage} failed`, { name, statusCode });
-}
-
 async function accept(
   request: Request,
   client: MapProjectsClient,
   now: Date,
-): Promise<Reply> {
-  if (!isCsv(request.headers.get('content-type'))) return UNSUPPORTED_TYPE;
+): Promise<FeedResponse> {
+  if (!hasMediaType(request.headers.get('content-type'), 'text/csv')) {
+    return UNSUPPORTED_TYPE;
+  }
   if (Number(request.headers.get('content-length')) > MAX_FILE_BYTES) {
     return TOO_BIG;
   }
@@ -212,10 +175,10 @@ async function accept(
     return importReply(result);
   } catch (cause) {
     if (cause instanceof ChangeFailure) {
-      logFailure(cause.stage, cause.cause);
-      return error(500, `${cause.stage}-failed`, cause.message);
+      logFailure(LOG, cause.stage, cause.cause);
+      return errorReply(500, `${cause.stage}-failed`, cause.message);
     }
-    logFailure('import', cause);
+    logFailure(LOG, 'import', cause);
     return SERVER_ERROR;
   }
 }
@@ -252,7 +215,7 @@ export async function POST(request: Request) {
       reply: reply.body,
     });
   } catch (cause) {
-    logFailure('saving the feed status', cause);
+    logFailure(LOG, 'saving the feed status', cause);
   }
   console.info(
     LOG,

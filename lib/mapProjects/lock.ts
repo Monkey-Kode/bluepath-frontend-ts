@@ -1,6 +1,11 @@
 import { randomUUID } from 'node:crypto';
 
-import { isConflict, isNotFound, type MapProjectsClient } from './store';
+import {
+  deleteAtRevision,
+  isConflict,
+  isNotFound,
+  type MapProjectsClient,
+} from './store';
 
 /** One lock serves every change: a feed file, an import, a restore, a link, or a delete. */
 export const LOCK_ID = 'mapProjects.lock';
@@ -63,15 +68,6 @@ export async function takeLock(
  * the transaction then keeps the lock.
  * @returns False when another change took the lock over, or when it is already gone.
  */
-export async function releaseLock(client: MapProjectsClient, handle: string) {
-  try {
-    await client.mutate([
-      { patch: { id: LOCK_ID, ifRevisionID: handle, set: { released: true } } },
-      { delete: { id: LOCK_ID } },
-    ]);
-    return true;
-  } catch (error) {
-    if (isConflict(error) || isNotFound(error)) return false;
-    throw error;
-  }
+export function releaseLock(client: MapProjectsClient, handle: string) {
+  return deleteAtRevision(client, LOCK_ID, handle);
 }

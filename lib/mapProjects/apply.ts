@@ -232,6 +232,11 @@ function readFile(file: Uint8Array) {
     : parsed;
 }
 
+/** The starter load counts as done once any map project has a Plant ID (AC-4.12). */
+export const starterLoadDone = (
+  projects: readonly Pick<CurrentProject, 'plantId'>[],
+) => projects.some(({ plantId }) => Boolean(plantId));
+
 /**
  * Checks a file against the current projects in the routes' reply order: not ready (503), then
  * unreadable or rejected (422), then stale when a preview token no longer matches.
@@ -241,10 +246,7 @@ function check(
   { file, options, token }: PreviewRequest & { token?: string },
   read: ReturnType<typeof readFile>,
 ): PreviewResult | { status: 'stale'; plan: ImportPlan } {
-  // The starter load counts as done once any map project has a Plant ID (AC-4.12).
-  if (!projects.some(({ plantId }) => Boolean(plantId))) {
-    return { status: 'not-ready' };
-  }
+  if (!starterLoadDone(projects)) return { status: 'not-ready' };
   if (!read.ok) {
     return { status: 'unreadable', error: read.error, message: read.message };
   }
