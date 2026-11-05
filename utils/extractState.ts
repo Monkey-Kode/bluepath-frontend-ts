@@ -1,4 +1,4 @@
-const STATE_ABBREVIATIONS: Record<string, string> = {
+export const STATE_ABBREVIATIONS: Record<string, string> = {
   AL: 'Alabama',
   AK: 'Alaska',
   AZ: 'Arizona',
@@ -64,6 +64,24 @@ const INFORMAL_ABBREVIATIONS: Record<string, string> = {
   Tenn: 'Tennessee',
   Wis: 'Wisconsin',
 };
+
+const STATE_NAMES = new Map(
+  Object.values(STATE_ABBREVIATIONS).map((name) => [name.toLowerCase(), name]),
+);
+
+/**
+ * Gives a state's full name from a two-letter code or from a name in any case. An unknown value
+ * comes back trimmed, as written.
+ */
+export function stateName(value: string | null | undefined): string | null {
+  const trimmed = value?.trim().replace(/\s+/g, ' ');
+  if (!trimmed) return null;
+  return (
+    STATE_ABBREVIATIONS[trimmed.toUpperCase()] ??
+    STATE_NAMES.get(trimmed.toLowerCase()) ??
+    trimmed
+  );
+}
 
 export function extractState(
   address: string | null | undefined,

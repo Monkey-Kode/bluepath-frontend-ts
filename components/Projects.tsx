@@ -1,168 +1,160 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
-import { renderToString } from 'react-dom/server';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
-
-import InfoWindow from './InfoWindow';
-import { loader } from '@/lib/mapsLoader';
-
+import MapKey from '@/components/projectMap/MapKey';
+import MapLegend from '@/components/projectMap/MapLegend';
+import MapPanel from '@/components/projectMap/MapPanel';
+import MapSearch from '@/components/projectMap/MapSearch';
+import {
+  createMapLayer,
+  type FocusTarget,
+  type MapLayer,
+} from '@/lib/mapProjects/mapLayer';
+import {
+  loadStateOutlines,
+  type StateOutlines,
+} from '@/lib/mapProjects/outlines';
+import type { ProjectResult } from '@/lib/mapProjects/search';
+import { idle, panelView, select } from '@/lib/mapProjects/selection';
+import { loadMaps } from '@/lib/mapsLoader';
 import type {
   CasestudiesQueryResult,
   PageBySlugQueryResult,
+  ProjectMapQueryResult,
 } from '@/sanity.types';
 
-const mapMarker = '/marker.png';
+interface ProjectsProps {
+  page: Pick<NonNullable<PageBySlugQueryResult>, 'id'>;
+  casestudies: CasestudiesQueryResult;
+  /** The category descriptions and the resting prompt. A home section passes none. */
+  projectMap?: ProjectMapQueryResult;
+  fullHeight?: boolean;
+}
 
+/**
+ * The projects map with its legend and panel (FR-002 to FR-006). This component owns the
+ * selection. The map layer draws it on Google's map.
+ */
 function Projects({
   page,
   casestudies,
+  projectMap = null,
   fullHeight = false,
-}: {
-  page: NonNullable<PageBySlugQueryResult>;
-  casestudies: CasestudiesQueryResult;
-  fullHeight?: boolean;
-}) {
-  const { id } = page;
-  const projects = casestudies;
-  const ref = useRef<HTMLElement>(null);
+}: ProjectsProps) {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const [layer, setLayer] = useState<MapLayer | null>(null);
+  const [outlines, setOutlines] = useState<StateOutlines | null>(null);
+  const [selection, dispatch] = useReducer(select, idle);
 
   useEffect(() => {
-    const mql = window.matchMedia('(max-width: 600px)');
-    const mapOptions = {
-      center: { lat: 39.8283, lng: -98.5795 },
-      zoom: 5,
-      mapId: 'f909f5ad32968c2a',
-    };
-
-    if (mql.matches) mapOptions.zoom = 3.5;
-
-    loader
-      .load()
-      .then(() => {
-        if (!ref.current) {
-          console.error('Map container ref is not available');
-          return;
-        }
-
-        let activeInfoWindow: any;
-        const allMarkers: google.maps.Marker[] = [];
-        const map = new window.google.maps.Map(ref.current, mapOptions);
-
-        projects.forEach((project) => {
-          if (!project.location?.lat || !project.location?.lng) {
-            console.warn('Skipping project with missing location:', project.id);
-            return;
-          }
-
-          const infowindow = new window.google.maps.InfoWindow({
-            content: renderToString(<InfoWindow project={project} />),
-          });
-          const iconSize = 15;
-
-          const icon = {
-            url: mapMarker,
-            size: new window.google.maps.Size(iconSize, iconSize),
-            origin: new window.google.maps.Point(0, 0),
-            anchor: new window.google.maps.Point(0, 0),
-          };
-          const marker = new window.google.maps.Marker({
-            position: project.location as google.maps.LatLngLiteral,
-            map,
-            title: allMarkers.length.toString(),
-            icon,
-          });
-
-          allMarkers.push(marker);
-
-          const myoverlay = new window.google.maps.OverlayView();
-          myoverlay.draw = function (this: google.maps.OverlayView) {
-            const panes = this.getPanes();
-            if (panes) panes.markerLayer.id = 'markerLayer';
-          };
-          myoverlay.setMap(map);
-
-          marker.addListener(
-            'click',
-            function (this: google.maps.MarkerOptions) {
-              const thisTitle = Number(this.title);
-              const index = thisTitle + 2;
-              document
-                .querySelectorAll(`#markerLayer div img`)
-                .forEach((img) => {
-                  img.classList.remove('grow');
-                  img.classList.remove('shrink');
-                });
-
-              if (activeInfoWindow) activeInfoWindow.close();
-              infowindow.open(map, marker);
-              activeInfoWindow = infowindow;
-
-              const markerElement = document.querySelector(
-                `#markerLayer div:nth-child(${index}) img`,
-              );
-              markerElement?.classList.add('grow');
-            },
-          );
-
-          marker.addListener(
-            'mouseover',
-            function (this: google.maps.MarkerOptions) {
-              const thisTitle = Number(this.title);
-              const index = thisTitle + 2;
-              if (!activeInfoWindow) {
-                const image = document.querySelector(
-                  `#markerLayer div:nth-child(${index}) img`,
-                );
-                image?.classList.remove('shrink');
-                image?.classList.add('grow');
-              }
-            },
-          );
-
-          marker.addListener(
-            'mouseout',
-            function (this: google.maps.MarkerOptions) {
-              const thisTitle = Number(this.title);
-              const index = thisTitle + 2;
-              if (!activeInfoWindow) {
-                const image = document.querySelector(
-                  `#markerLayer div:nth-child(${index}) img`,
-                );
-                image?.classList.remove('grow');
-                image?.classList.add('shrink');
-                image?.classList.remove('shrink');
-              }
-            },
-          );
-
-          infowindow.addListener('closeclick', function () {
-            document.querySelectorAll(`#markerLayer div img`).forEach((img) => {
-              img.classList.remove('grow');
-              img.classList.remove('shrink');
-            });
-            activeInfoWindow = null;
-          });
+    const element = mapRef.current;
+    if (!element) return;
+    let cancelled = false;
+    let created: MapLayer | null = null;
+    // Without the outlines, the map still shows its markers.
+    const outlines = loadStateOutlines().catch((error: unknown) => {
+      console.error('The state outlines failed to load:', error);
+      return null;
+    });
+    // State search uses them even when Google Maps fails.
+    outlines.then((loaded) => {
+      if (!cancelled) setOutlines(loaded);
+    });
+    Promise.all([loadMaps(), outlines])
+      .then(([libraries, stateOutlines]) => {
+        if (cancelled) return;
+        created = createMapLayer(element, libraries, {
+          projects: casestudies,
+          outlines: stateOutlines,
+          onPickMarker: (project) => dispatch({ type: 'pickMarker', project }),
+          onClickMap: () => dispatch({ type: 'clickMap' }),
         });
+        setLayer(created);
       })
-      .catch((err) => {
-        console.error('Google Maps failed to load:', err);
+      // The legend and the panel still work without the map.
+      .catch((error: unknown) => {
+        console.error('The projects map failed to load:', error);
       });
-  }, [projects]);
+    return () => {
+      cancelled = true;
+      created?.destroy();
+      setLayer(null);
+    };
+  }, [casestudies]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      // The search's first Escape only closes its list (AC-9.7).
+      if (event.key === 'Escape' && !event.defaultPrevented)
+        dispatch({ type: 'escape' });
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  useEffect(() => {
+    layer?.show(selection);
+  }, [layer, selection]);
+
+  // Without the map, a search pick still selects the project and fills the panel (AC-9.3).
+  const focus = useCallback(
+    (target: FocusTarget) => layer?.focus(target),
+    [layer],
+  );
+  const pickResult = useCallback(
+    ({ id, category }: ProjectResult) => {
+      dispatch({ type: 'pickResult', project: { id, category } });
+      focus({ kind: 'project', id });
+    },
+    [focus],
+  );
+
+  const view = panelView(selection);
+  const picked =
+    view.kind === 'project'
+      ? casestudies.find((project) => project.id === view.id)
+      : undefined;
 
   return (
     <section
-      id={id ?? undefined}
-      ref={ref}
+      id={page.id}
       className={twMerge(
-        'w-full h-screen max-tablet:[--mobile-header-height:0px] max-tablet:h-[calc(100vh-var(--mobile-header-height))] max-tablet:min-h-[400px] max-tablet:mt-[var(--mobile-header-height)]',
-        // Off-home (/projects): inset the map below the fixed header on desktop,
-        // replacing the removed global `.page section` padding. Mobile keeps its
-        // own clearance trick above. As a home box, no offset is needed.
-        !fullHeight &&
-          'tablet:p-[5%] tablet:pt-[calc(var(--mobile-header-height)+2rem)]',
+        'w-full px-5',
+        // Off home (/projects), the section clears the fixed header. A home box needs no offset.
+        !fullHeight && 'header-offset mx-auto max-w-7xl pb-16',
       )}
-    />
+    >
+      {/*
+       * The frame keeps the lower 48's shape, about 9:5 in Google's projection. Its width follows
+       * the screen's height, so the map, legend, and panel fit on one 1440×900 screen (AC-2.9).
+       * 25.5rem covers the header gap, the search row, the legend and its gaps, the panel's 14rem,
+       * and a margin.
+       * It never gets narrower than 40rem, or the screen width when that is less.
+       */}
+      <div className="relative mx-auto w-full min-w-[min(100%,40rem)] max-w-[calc((100svh-var(--header-height,100px)-25.5rem)*9/5)]">
+        {/*
+         * The search sits above the map: full width below 800 px, and in one row over the map's
+         * top-right corner from 800 px (AC-9.1). Over the map, it would cover the Northeast's markers.
+         */}
+        <MapSearch
+          projects={casestudies}
+          onPickProject={pickResult}
+          outlines={outlines}
+          onFocus={focus}
+          className="mb-3 tablet:ml-auto tablet:w-fit"
+        />
+        <div ref={mapRef} data-map-root className="aspect-[9/5] w-full" />
+        <MapKey />
+      </div>
+      <div className="mt-6 space-y-4">
+        <MapLegend
+          selection={selection}
+          onPick={(category) => dispatch({ type: 'pickLegend', category })}
+        />
+        <MapPanel view={view} project={picked} copy={projectMap} />
+      </div>
+    </section>
   );
 }
 

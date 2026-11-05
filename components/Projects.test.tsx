@@ -1,0 +1,418 @@
+import { act, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  type StateOutlines,
+  STATE_OUTLINES_URL,
+} from '@/lib/mapProjects/outlines';
+import { loadMaps, type MapsLibraries } from '@/lib/mapsLoader';
+import type {
+  CasestudiesQueryResult,
+  ProjectMapQueryResult,
+} from '@/sanity.types';
+import { CITY_ZOOM } from '@/lib/mapProjects/mapLayer';
+import { fakeMaps } from '@/test/fakeMaps';
+import Projects from './Projects';
+
+vi.mock('@/lib/mapsLoader', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/mapsLoader')>()),
+  loadMaps: vi.fn(),
+}));
+
+type CaseStudy = CasestudiesQueryResult[number];
+
+const blank: CaseStudy = {
+  _id: '',
+  id: '',
+  title: null,
+  plantName: null,
+  projectName: null,
+  projectId: null,
+  projectType: null,
+  projectStatus: null,
+  active: true,
+  hiddenAt: null,
+  entity: null,
+  financing: null,
+  size: null,
+  technologies: null,
+  content: null,
+  address: null,
+  city: null,
+  state: null,
+  location: null,
+  image: null,
+};
+
+const at = (lat: number, lng: number) => ({
+  _type: 'geopoint' as const,
+  lat,
+  lng,
+});
+
+const casestudies: CaseStudy[] = [
+  {
+    ...blank,
+    _id: 'sun',
+    id: 'sun',
+    plantName: 'Sun Farm',
+    projectType: 'Solar',
+    location: at(40, -100),
+  },
+  {
+    ...blank,
+    _id: 'cell',
+    id: 'cell',
+    plantName: 'Cell Bank',
+    projectType: 'BESS',
+    location: at(35, -90),
+  },
+  {
+    ...blank,
+    _id: 'isle',
+    id: 'isle',
+    plantName: 'Isle Array',
+    projectType: 'Solar',
+    location: at(21.3, -157.8),
+  },
+];
+
+const copy = {
+  restingPrompt: 'Pick a marker or a category to learn more.',
+  categoryDescriptions: {
+    energyEfficiency: null,
+    solar: null,
+    solarBess: null,
+    bess: 'Batteries store power for later.',
+  },
+} satisfies ProjectMapQueryResult;
+
+const outlines = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      properties: { name: 'Westland' },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [-105, 35],
+            [-95, 35],
+            [-95, 45],
+            [-105, 45],
+            [-105, 35],
+          ],
+        ],
+      },
+    },
+  ],
+} satisfies StateOutlines;
+
+const loadMapsMock = vi.mocked(loadMaps);
+let fake: ReturnType<typeof fakeMaps>;
+let fetchMock: ReturnType<typeof vi.fn>;
+
+beforeEach(() => {
+  fake = fakeMaps();
+  loadMapsMock.mockReset();
+  loadMapsMock.mockResolvedValue(fake.libraries);
+  fetchMock = vi.fn(async () => Response.json(outlines));
+  vi.stubGlobal('fetch', fetchMock);
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
+
+/** The panel's one live region. */
+const panel = () => {
+  const region = document.querySelector<HTMLElement>('[aria-live]');
+  if (!region) throw new Error('The panel is missing.');
+  return region;
+};
+
+const legendEntry = (name: string) => screen.getByRole('button', { name });
+
+/** Renders the map and waits until the layer shows the first selection. */
+const show = async () => {
+  const view = render(
+    <Projects
+      page={{ id: 'projects' }}
+      casestudies={casestudies}
+      projectMap={copy}
+    />,
+  );
+  await waitFor(() => {
+    expect(fake.markers).toHaveLength(3);
+    for (const marker of fake.markers) expect(marker.look).toBe('normal');
+  });
+  return view;
+};
+
+describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
+  it('shows the picked project in the panel and marks its marker and category', async () => {
+    await show();
+    act(() => fake.marker('Cell Bank').pick());
+
+    expect(within(panel()).getByText('Cell Bank')).toBeVisible();
+    expect(fake.marker('Cell Bank').look).toBe('selected');
+    expect(fake.marker('Sun Farm').look).toBe('dimmed');
+    expect(legendEntry('BESS')).toHaveAttribute('data-look', 'match');
+    expect(legendEntry('Solar')).toHaveAttribute('data-look', 'faded');
+  });
+
+  it('shows a picked project in the panel, never in a Google popup (AC-0.2)', async () => {
+    const InfoWindow = vi.fn();
+    vi.stubGlobal('google', { maps: { InfoWindow } });
+    await show();
+    act(() => fake.marker('Sun Farm').pick());
+
+    expect(within(panel()).getByText('Sun Farm')).toBeVisible();
+    expect(InfoWindow).not.toHaveBeenCalled();
+  });
+
+  it('filters by a legend category and shows its description', async () => {
+    const user = userEvent.setup();
+    await show();
+    await user.click(legendEntry('BESS'));
+
+    expect(legendEntry('BESS')).toHaveAttribute('aria-pressed', 'true');
+    expect(fake.marker('Cell Bank').map).toBe(fake.map());
+    expect(fake.marker('Sun Farm').map).toBeNull();
+    expect(fake.marker('Isle Array').map).toBeNull();
+    expect(
+      within(panel()).getByText('Batteries store power for later.'),
+    ).toBeVisible();
+  });
+
+  it('returns to the resting prompt after a click on empty map', async () => {
+    await show();
+    act(() => fake.marker('Cell Bank').pick());
+    act(() =>
+      fake.map().trigger('click', { domEvent: { target: fake.map().element } }),
+    );
+
+    expect(panel()).toHaveTextContent(copy.restingPrompt);
+    for (const marker of fake.markers) expect(marker.look).toBe('normal');
+  });
+
+  it('returns to the resting prompt on Escape', async () => {
+    const user = userEvent.setup();
+    await show();
+    await user.click(legendEntry('BESS'));
+    await user.keyboard('{Escape}');
+
+    expect(panel()).toHaveTextContent(copy.restingPrompt);
+    expect(legendEntry('BESS')).toHaveAttribute('aria-pressed', 'false');
+    for (const marker of fake.markers) expect(marker.map).toBe(fake.map());
+  });
+
+  it('keeps the selection while the visitor pans and zooms', async () => {
+    await show();
+    act(() => fake.marker('Cell Bank').pick());
+    act(() => {
+      for (const name of [
+        'dragstart',
+        'drag',
+        'dragend',
+        'zoom_changed',
+        'center_changed',
+        'bounds_changed',
+        'idle',
+      ])
+        fake.map().trigger(name);
+    });
+
+    expect(within(panel()).getByText('Cell Bank')).toBeVisible();
+    expect(fake.marker('Cell Bank').look).toBe('selected');
+  });
+});
+
+describe('Projects map search (AC-9.3, AC-9.9)', () => {
+  const searchFor = async (text: string) => {
+    const user = userEvent.setup();
+    await user.type(screen.getByRole('combobox', { name: 'Search' }), text);
+    return user;
+  };
+
+  it('zooms to a searched project and shows it as a click would', async () => {
+    await show();
+    const user = await searchFor('cell');
+
+    await user.click(screen.getByRole('option', { name: /Cell Bank/ }));
+
+    expect(within(panel()).getByText('Cell Bank')).toBeVisible();
+    expect(fake.marker('Cell Bank').look).toBe('selected');
+    expect(fake.map().center).toEqual({ lat: 35, lng: -90 });
+    expect(fake.map().zoom).toBe(CITY_ZOOM);
+    // Google gets plain coordinates, without the geopoint's `_type`.
+    expect(fake.marker('Cell Bank').position).toEqual({ lat: 35, lng: -90 });
+  });
+
+  it('clears a legend filter that hides the picked project', async () => {
+    await show();
+    const user = userEvent.setup();
+    await user.click(legendEntry('Solar'));
+    expect(fake.marker('Cell Bank').look).toBe('hidden');
+
+    await searchFor('cell');
+    await user.click(screen.getByRole('option', { name: /Cell Bank/ }));
+
+    expect(legendEntry('Solar')).toHaveAttribute('aria-pressed', 'false');
+    expect(fake.marker('Cell Bank').look).toBe('selected');
+    expect(fake.marker('Sun Farm').look).toBe('dimmed');
+  });
+
+  it('still selects a searched project when Google Maps fails to load', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    loadMapsMock.mockRejectedValue(new Error('RefererNotAllowedMapError'));
+    render(<Projects page={{ id: 'projects' }} casestudies={casestudies} />);
+    const user = await searchFor('sun');
+
+    await user.click(screen.getByRole('option', { name: /Sun Farm/ }));
+
+    expect(within(panel()).getByText('Sun Farm')).toBeVisible();
+  });
+
+  it('counts a project under the state its pin falls in, as the shading does', async () => {
+    fetchMock.mockImplementation(async () =>
+      Response.json({
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: { name: 'Kansas' },
+            geometry: {
+              type: 'Polygon',
+              coordinates: [
+                [
+                  [-92, 33],
+                  [-88, 33],
+                  [-88, 37],
+                  [-92, 37],
+                  [-92, 33],
+                ],
+              ],
+            },
+          },
+        ],
+      } satisfies StateOutlines),
+    );
+    await show();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'State' }));
+    await searchFor('kansas');
+
+    // Cell Bank has no State field. Its pin at 35, -90 sits inside the Kansas outline.
+    expect(screen.getByRole('option', { name: /Kansas/ })).toHaveTextContent(
+      '1 project',
+    );
+  });
+
+  it('sends no request to Sanity, only the outlines file', async () => {
+    await show();
+    const user = await searchFor('farm');
+    await user.click(screen.getByRole('option', { name: /Sun Farm/ }));
+
+    expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
+      STATE_OUTLINES_URL,
+    ]);
+  });
+});
+
+describe('Projects map Escape with the search (AC-9.7)', () => {
+  it('keeps the selection on an Escape that the search already handled', async () => {
+    await show();
+    act(() => fake.marker('Cell Bank').pick());
+
+    const handled = new KeyboardEvent('keydown', {
+      key: 'Escape',
+      cancelable: true,
+    });
+    handled.preventDefault();
+    act(() => {
+      document.dispatchEvent(handled);
+    });
+    expect(within(panel()).getByText('Cell Bank')).toBeVisible();
+
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    });
+    expect(within(panel()).queryByText('Cell Bank')).toBeNull();
+  });
+});
+
+describe('Projects map loading', () => {
+  it('draws the state outlines from the outlines file', async () => {
+    await show();
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith(STATE_OUTLINES_URL);
+    expect(fake.map().data.added).toEqual([outlines]);
+  });
+
+  it('keeps the section anchor for in-page links', async () => {
+    await show();
+    expect(document.getElementById('projects')?.tagName).toBe('SECTION');
+  });
+
+  it('still plots the markers when the outlines fail to load', async () => {
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    fetchMock.mockResolvedValue(new Response('missing', { status: 404 }));
+    await show();
+
+    expect(fake.map().data.added).toEqual([]);
+    expect(logged).toHaveBeenCalledWith(
+      'The state outlines failed to load:',
+      expect.any(Error),
+    );
+  });
+
+  it('keeps the legend and the panel when Google Maps fails to load', async () => {
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const failure = new Error('The key is not allowed here.');
+    loadMapsMock.mockRejectedValue(failure);
+    render(
+      <Projects
+        page={{ id: 'projects' }}
+        casestudies={casestudies}
+        projectMap={copy}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(logged).toHaveBeenCalledWith(
+        'The projects map failed to load:',
+        failure,
+      ),
+    );
+    expect(legendEntry('BESS')).toBeVisible();
+    expect(panel()).toHaveTextContent(copy.restingPrompt);
+  });
+
+  it('takes the markers off the map when the section unmounts', async () => {
+    const { unmount } = await show();
+    unmount();
+    for (const marker of fake.markers) expect(marker.map).toBeNull();
+  });
+
+  it('draws no map when the section unmounts before Google Maps loads', async () => {
+    let finish: (libraries: MapsLibraries) => void = () => {};
+    loadMapsMock.mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    const { unmount } = render(
+      <Projects
+        page={{ id: 'projects' }}
+        casestudies={casestudies}
+        projectMap={copy}
+      />,
+    );
+    unmount();
+    await act(async () => finish(fake.libraries));
+
+    expect(fake.maps).toHaveLength(0);
+  });
+});

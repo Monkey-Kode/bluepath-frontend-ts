@@ -30,6 +30,7 @@ export const settingsQuery = defineQuery(`
   }
 `);
 
+// `parent` is the parent item's _id. A sub-item shows only in its parent's dropdown (FR-001).
 export const navigationQuery = defineQuery(`
   *[_type == "navigation"] | order(order asc){
     _id,
@@ -40,7 +41,8 @@ export const navigationQuery = defineQuery(`
     header,
     footer,
     order,
-    "page": page->{ _type, "slug": slug.current }
+    "page": page->{ _type, "slug": slug.current },
+    "parent": parent._ref
   }
 `);
 
@@ -56,7 +58,7 @@ export const addressesQuery = defineQuery(`
 `);
 
 export const sitemapQuery = defineQuery(`
-  *[_type in ["page", "event", "news"] && defined(slug.current)]{
+  *[_type in ["page", "event", "news", "caseStudy"] && defined(slug.current)]{
     _type,
     "slug": slug.current,
     _updatedAt
@@ -212,20 +214,37 @@ export const teamMemberBySlugQuery = defineQuery(`
   }
 `);
 
+// Returns hidden and inactive projects too. `isShown` and `isPlotted` in
+// `lib/mapProjects/display.ts` decide what the map and the ticker show.
 export const casestudiesQuery = defineQuery(`
   *[_type == "casestudies"]{
     _id,
     "id": _id,
     title,
+    plantName,
+    projectName,
+    projectId,
+    projectType,
+    projectStatus,
+    active,
+    hiddenAt,
     entity,
     financing,
     size,
     technologies,
     content,
     address,
+    city,
     state,
     location,
     image{ ${imageFields} }
+  }
+`);
+
+export const projectMapQuery = defineQuery(`
+  *[_type == "projectMap" && _id == "projectMap"][0]{
+    restingPrompt,
+    categoryDescriptions{ energyEfficiency, solar, solarBess, bess }
   }
 `);
 
@@ -263,6 +282,24 @@ export const eventBySlugQuery = defineQuery(`
 
 /* ---------- news ---------- */
 
+// News and case studies share one body field, so they share its projection.
+const articleBodyFields = /* groq */ `
+  body[]{
+    ...,
+    _type == "imageWithCaption" => {
+      ...,
+      image{ ..., asset->{ url, altText } }
+    },
+    markDefs[]{
+      ...,
+      _type == "internalLink" => {
+        ...,
+        reference->{ _type, slug }
+      }
+    }
+  }
+`;
+
 export const allNewsSlugsQuery = defineQuery(`
   *[_type == "news" && defined(slug.current)]{ "slug": slug.current }
 `);
@@ -293,20 +330,48 @@ export const newsBySlugQuery = defineQuery(`
     excerpt,
     heroImage{ ${imageFields} },
     featuredImage{ ${imageFields} },
-    body[]{
-      ...,
-      _type == "imageWithCaption" => {
-        ...,
-        image{ ..., asset->{ url, altText } }
-      },
-      markDefs[]{
-        ...,
-        _type == "internalLink" => {
-          ...,
-          reference->{ _type, slug }
-        }
-      }
-    },
+    ${articleBodyFields},
     seoDescription
+  }
+`);
+
+/* ---------- case study ---------- */
+
+// The project's fields come through the reference, so a case study copies no project data.
+const caseStudyProjectFields = /* groq */ `
+  project->{ plantName, projectName, title, projectType, technologies, city, state }
+`;
+
+export const allCaseStudiesQuery = defineQuery(`
+  *[_type == "caseStudy" && defined(slug.current)] | order(publishedAt desc){
+    _id,
+    title,
+    "slug": slug.current,
+    subhead,
+    publishedAt,
+    excerpt,
+    heroImage{ ${imageFields} },
+    featuredImage{ ${imageFields} },
+    ${caseStudyProjectFields}
+  }
+`);
+
+export const allCaseStudySlugsQuery = defineQuery(`
+  *[_type == "caseStudy" && defined(slug.current)]{ "slug": slug.current }
+`);
+
+export const caseStudyBySlugQuery = defineQuery(`
+  *[_type == "caseStudy" && slug.current == $slug][0]{
+    _id,
+    _type,
+    title,
+    "slug": slug.current,
+    subhead,
+    publishedAt,
+    excerpt,
+    heroImage{ ${imageFields} },
+    ${articleBodyFields},
+    seoDescription,
+    ${caseStudyProjectFields}
   }
 `);
