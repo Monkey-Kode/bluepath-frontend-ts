@@ -154,6 +154,10 @@ export default function MapSearch({
   const [chosenState, setChosenState] = useState<StateResult | null>(null);
   const [zip, setZip] = useState<ZipAnswer | null>(null);
 
+  const inputRef = useRef<HTMLInputElement>(null);
+  /** How the last row was picked. A tap closes the phone's keyboard, so the map shows. */
+  const pointer = useRef<string | null>(null);
+
   // A new parent callback on each render must not repeat a ZIP's map move.
   const focusRef = useRef(onFocus);
   focusRef.current = onFocus;
@@ -219,9 +223,14 @@ export default function MapSearch({
     onPickProject(option.result);
     setOpen(false);
     setActive(-1);
+    // After a tap, the keyboard would hide the map and the panel (AC-9.8). Keyboard users keep
+    // focus in the box.
+    if (pointer.current === 'touch') inputRef.current?.blur();
+    pointer.current = null;
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    pointer.current = null;
     const count = view.options.length;
     if (event.key === 'Escape' && (listShown || messageShown)) {
       // The first Escape only closes the list. The page's Escape then clears the map. React and
@@ -274,6 +283,7 @@ export default function MapSearch({
           Search
         </label>
         <input
+          ref={inputRef}
           id={`${id}-input`}
           type="search"
           role="combobox"
@@ -310,6 +320,9 @@ export default function MapSearch({
             aria-label="Search results"
             // Keeps focus in the box, so a click or tap on a row isn't lost to the blur.
             onMouseDown={(event) => event.preventDefault()}
+            onPointerDown={(event) => {
+              pointer.current = event.pointerType;
+            }}
             className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-sm border border-legend/30 bg-white shadow-lg"
           >
             {view.options.map((option, index) => (

@@ -153,8 +153,11 @@ export function createMapLayer(
           ? target.point
           : markers.find(({ picked }) => picked.id === target.id)?.position;
       if (!center) return;
-      map.setCenter(center);
-      map.setZoom(target.kind === 'point' ? ZIP_ZOOM : CITY_ZOOM);
+      // One move, so the map's bounds never clamp the center at the old zoom first.
+      map.moveCamera({
+        center,
+        zoom: target.kind === 'point' ? ZIP_ZOOM : CITY_ZOOM,
+      });
     },
     destroy() {
       clicks.remove();

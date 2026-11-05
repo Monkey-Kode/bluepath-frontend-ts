@@ -368,6 +368,8 @@ describe('the camera for a search pick (AC-9.3 to AC-9.5)', () => {
     layer.focus({ kind: 'project', id: 'cell' });
     expect(fake.map().center).toEqual({ lat: 35, lng: -90 });
     expect(fake.map().zoom).toBe(CITY_ZOOM);
+    // One move, so Google never clamps the center at the old zoom first.
+    expect(fake.map().cameraMoves).toBe(1);
   });
 
   it('leaves the camera alone for a project without a marker', () => {

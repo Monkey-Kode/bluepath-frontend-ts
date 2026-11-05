@@ -1,4 +1,11 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   afterEach,
@@ -129,6 +136,20 @@ describe('MapSearch: plain search (AC-9.2, AC-9.6)', () => {
     );
     expect(screen.queryByRole('listbox')).toBeNull();
     expect(box).toHaveFocus();
+  });
+});
+
+describe('MapSearch: a tap on a phone (AC-9.8)', () => {
+  it('drops focus after a touch pick, so the keyboard closes and the map shows', async () => {
+    const { user, box } = renderSearch();
+    await user.type(box, 'ford');
+    const option = screen.getByRole('option', { name: /Ford Motor Company/ });
+
+    fireEvent.pointerDown(option, { pointerType: 'touch' });
+    fireEvent.click(option);
+
+    expect(onPickProject).toHaveBeenCalledOnce();
+    expect(box).not.toHaveFocus();
   });
 });
 

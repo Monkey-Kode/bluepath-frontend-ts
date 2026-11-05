@@ -37,6 +37,8 @@ export class FakeMap {
   bounds: google.maps.LatLngBoundsLiteral | null = null;
   center: google.maps.LatLngLiteral | null = null;
   zoom: number | null = null;
+  /** Camera moves that set the center and the zoom together. */
+  cameraMoves = 0;
   private readonly handlers = new Map<string, Set<Handler>>();
 
   constructor(element: HTMLElement, options: google.maps.MapOptions) {
@@ -60,6 +62,13 @@ export class FakeMap {
 
   setZoom(zoom: number) {
     this.zoom = zoom;
+  }
+
+  /** Sets the center and the zoom in one step, as Google does. */
+  moveCamera({ center, zoom }: google.maps.CameraOptions) {
+    this.cameraMoves += 1;
+    if (center) this.center = center as google.maps.LatLngLiteral;
+    if (zoom !== undefined && zoom !== null) this.zoom = zoom;
   }
 
   /** Fires a map event, as Google does for a click, a drag, or a zoom. */
