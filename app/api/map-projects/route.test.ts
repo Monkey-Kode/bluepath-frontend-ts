@@ -1410,6 +1410,239 @@ describe('the delete-backup action', () => {
   });
 });
 
+/** Backs up the four projects, then deletes P-2 and adds P-8, so a restore has work to do. */
+async function restorable() {
+  const id = await backUp({ kind: 'feed' }, '2026-11-03T12:00:00.000Z');
+  const recorded = await readProjects(sanity);
+  await sanity.mutate([
+    { delete: { id: 'plant-P-2' } },
+    { create: plant(8, { plantName: 'Plant 8' }) },
+  ]);
+  return { id, recorded };
+}
+
+const backupIds = () =>
+  sanity
+    .documents()
+    .filter(({ _type }) => _type === BACKUP_TYPE)
+    .map(({ _id }) => _id);
+
+describe('the restore-preview action', () => {
+  it('returns what a restore would change, and writes nothing (AC-7.3)', async () => {
+    const { id } = await restorable();
+    const before = sanity.documents();
+
+    const reply = await post({ action: 'restore-preview', id });
+
+    expect(reply.status).toBe(200);
+    expectCors(reply.headers);
+    expect(reply.body).toEqual({
+      result: 'ready',
+      plan: {
+        backup: {
+          id,
+          createdAt: '2026-11-03T12:00:00.000Z',
+          source: { kind: 'feed' },
+          person: PERSON,
+          count: 4,
+        },
+        updates: [],
+        creates: [{ id: 'plant-P-2', plantId: 'P-2', name: 'Plant 2' }],
+        deletes: [{ id: 'plant-P-8', plantId: 'P-8', name: 'Plant 8' }],
+        keeps: [],
+        counts: { updated: 0, created: 1, deleted: 1, kept: 0, unchanged: 3 },
+        writes: true,
+        starterLoad: false,
+        token: expect.stringMatching(/^[0-9a-f]{64}$/),
+      },
+    });
+    expect(sanity.documents()).toEqual(before);
+  });
+
+  it('says the backup is gone', async () => {
+    const reply = await post({
+      action: 'restore-preview',
+      id: 'mapProjects.backup.x',
+    });
+
+    expect(reply.status).toBe(404);
+    expect(reply.body).toEqual({
+      error: 'missing',
+      message:
+        'That backup no longer exists. Another editor may have deleted it.',
+    });
+  });
+
+  it.each([
+    ['no ID', {}],
+    ['an empty ID', { id: '' }],
+    ['an ID that is not text', { id: ['mapProjects.backup.x'] }],
+  ])('refuses %s with 400', async (_name, fields) => {
+    const reply = await post({ action: 'restore-preview', ...fields });
+
+    expect(reply.status).toBe(400);
+    expect(reply.body.error).toBe('bad-request');
+  });
+});
+
+describe('the restore action', () => {
+  async function confirmed(id: string) {
+    const preview = await post({ action: 'restore-preview', id });
+    return preview.body.plan.token as string;
+  }
+
+  it('restores the backup that the editor previewed, after a backup of its own (AC-7.3)', async () => {
+    const { id, recorded } = await restorable();
+    const token = await confirmed(id);
+
+    const reply = await post({ action: 'restore', id, token });
+
+    expect(reply.status).toBe(200);
+    expectCors(reply.headers);
+    expect(reply.body).toEqual({
+      result: 'restored',
+      counts: { updated: 0, created: 1, deleted: 1, kept: 0, unchanged: 3 },
+      backupId: expect.stringMatching(/^mapProjects\.backup\./),
+    });
+    const ids = (await readProjects(sanity)).map(({ _id }) => _id);
+    expect(ids).toEqual(recorded.map(({ _id }) => _id));
+    expect(backupIds()).toEqual([id, reply.body.backupId].sort());
+    expect(sanity.get(reply.body.backupId)).toMatchObject({
+      source: { kind: 'restore', backupId: id },
+      person: PERSON,
+    });
+    expect(sanity.get(LOCK_ID)).toBeUndefined();
+  });
+
+  it('reports the restore and logs a lock it could not release', async () => {
+    const { id } = await restorable();
+    const token = await confirmed(id);
+    sanity.failWhen((mutations) =>
+      mutations.some(
+        (mutation) =>
+          'delete' in mutation &&
+          'id' in mutation.delete &&
+          mutation.delete.id === LOCK_ID,
+      ),
+    );
+
+    const reply = await post({ action: 'restore', id, token });
+
+    expect(reply.status).toBe(200);
+    expect(reply.body.result).toBe('restored');
+    expect(logs.map((args) => args.join(' '))).toContainEqual(
+      expect.stringContaining('unlock failed after the restore'),
+    );
+  });
+
+  it('says nothing changed when the projects already match', async () => {
+    const id = await backUp({ kind: 'link' }, '2026-11-03T12:00:00.000Z');
+    const token = await confirmed(id);
+
+    const reply = await post({ action: 'restore', id, token });
+
+    expect(reply.status).toBe(200);
+    expect(reply.body).toEqual({
+      result: 'no-changes',
+      counts: { updated: 0, created: 0, deleted: 0, kept: 0, unchanged: 4 },
+      backupId: null,
+    });
+    expect(backupIds()).toEqual([id]);
+  });
+
+  it('changes nothing when the projects changed after the preview, and sends the new plan', async () => {
+    const { id } = await restorable();
+    const token = await confirmed(id);
+    await sanity.mutate([
+      { patch: { id: 'plant-P-1', set: { plantName: 'Plant One' } } },
+    ]);
+    const before = projects();
+
+    const reply = await post({ action: 'restore', id, token });
+
+    expect(reply.status).toBe(409);
+    expect(reply.body).toMatchObject({
+      error: 'stale',
+      message:
+        'Map projects changed after the preview, so nothing changed. Check the new preview, then restore again.',
+      plan: {
+        updates: [
+          {
+            id: 'plant-P-1',
+            plantId: 'P-1',
+            name: 'Plant 1',
+            fields: ['plantName'],
+          },
+        ],
+      },
+    });
+    expect(reply.body.plan.token).not.toBe(token);
+    expect(projects()).toEqual(before);
+    expect(backupIds()).toEqual([id]);
+  });
+
+  it('says another change is running while the lock is held (AC-4.11)', async () => {
+    const { id } = await restorable();
+    const token = await confirmed(id);
+    await sanity.mutate([
+      {
+        create: { _id: LOCK_ID, _type: LOCK_ID, takenAt: NOW.toISOString() },
+      },
+    ]);
+    const before = projects();
+
+    const reply = await post({ action: 'restore', id, token });
+
+    expect(reply.status).toBe(409);
+    expect(reply.body.error).toBe('busy');
+    expect(projects()).toEqual(before);
+  });
+
+  it('says the backup is gone, and changes nothing', async () => {
+    const reply = await post({
+      action: 'restore',
+      id: 'mapProjects.backup.x',
+      token: 'a'.repeat(64),
+    });
+
+    expect(reply.status).toBe(404);
+    expect(reply.body.error).toBe('missing');
+    expect(wroteBeyondProofs()).toBe(false);
+  });
+
+  it('changes nothing when the backup fails', async () => {
+    const { id } = await restorable();
+    const token = await confirmed(id);
+    sanity.failWhen((mutations) =>
+      mutations.some(
+        (mutation) =>
+          'create' in mutation && mutation.create._type === BACKUP_PART_TYPE,
+      ),
+    );
+    const before = projects();
+
+    const reply = await post({ action: 'restore', id, token });
+
+    expect(reply.status).toBe(500);
+    expect(reply.body.error).toBe('backup-failed');
+    expect(projects()).toEqual(before);
+  });
+
+  it.each([
+    ['no ID', { token: 'abc' }],
+    ['an empty ID', { id: '', token: 'abc' }],
+    ['no token', { id: 'mapProjects.backup.x' }],
+    ['an empty token', { id: 'mapProjects.backup.x', token: '' }],
+    ['a token that is not text', { id: 'mapProjects.backup.x', token: 7 }],
+  ])('refuses %s with 400 and changes nothing', async (_name, fields) => {
+    const reply = await post({ action: 'restore', ...fields });
+
+    expect(reply.status).toBe(400);
+    expect(reply.body.error).toBe('bad-request');
+    expect(wroteBeyondProofs()).toBe(false);
+  });
+});
+
 describe('the sync action', () => {
   type Route = (url: string, init: RequestInit) => Response | Promise<Response>;
 

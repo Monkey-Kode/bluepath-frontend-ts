@@ -11,6 +11,7 @@ import {
   backupRows,
   deleteBackup,
   listBackups,
+  listedBackup,
   loadBackup,
 } from '@/lib/mapProjects/backups';
 import { COLUMN_KEYS, COLUMNS } from '@/lib/mapProjects/columns';
@@ -22,6 +23,11 @@ import {
 } from '@/lib/mapProjects/link';
 import { MAX_FILE_BYTES } from '@/lib/mapProjects/parseCsv';
 import type { CurrentProject } from '@/lib/mapProjects/plan';
+import {
+  previewRestore,
+  type RestoreResult,
+  restoreBackup,
+} from '@/lib/mapProjects/restore';
 import {
   type LinkedDocument,
   listHidden,
@@ -161,7 +167,8 @@ type Action =
   | { action: 'linkable' }
   | { action: 'link'; project: string; plant: string }
   | { action: 'backups' }
-  | { action: 'download' | 'delete-backup'; id: string }
+  | { action: 'download' | 'delete-backup' | 'restore-preview'; id: string }
+  | { action: 'restore'; id: string; token: string }
   | { action: 'preview'; file: string; hideMissing: boolean }
   | { action: 'sync'; url: string; hideMissing: boolean }
   | {
@@ -221,9 +228,19 @@ function readAction(value: unknown): Action | null {
   ) {
     return { action };
   }
-  if (action === 'download' || action === 'delete-backup') {
+  if (
+    action === 'download' ||
+    action === 'delete-backup' ||
+    action === 'restore-preview'
+  ) {
     const { id } = value;
     return isId(id) ? { action, id } : null;
+  }
+  if (action === 'restore') {
+    const { id } = value;
+    return isId(id) && typeof token === 'string' && token !== ''
+      ? { action, id, token }
+      : null;
   }
   if (action === 'link') {
     const { project, plant } = value;
@@ -278,11 +295,10 @@ async function download(
 ): Promise<RouteReply> {
   const loaded = await loadBackup(client, id);
   if (!loaded) return MISSING_BACKUP;
-  const { _id, createdAt, source, person, count } = loaded.backup;
   return {
     status: 200,
     body: {
-      backup: { id: _id, createdAt, source, person, count },
+      backup: listedBackup(loaded.backup),
       columns: COLUMN_LIST,
       rows: backupRows(loaded.projects),
     },
@@ -304,6 +320,46 @@ async function removeBackup(
         'feed-backup',
         "The feed's backups can't be deleted. Each one goes 90 days after the feed saved it.",
       );
+  }
+}
+
+async function restorePreview(
+  client: MapProjectsClient,
+  id: string,
+): Promise<RouteReply> {
+  const preview = await previewRestore(client, id);
+  if (preview.status === 'missing') return MISSING_BACKUP;
+  return { status: 200, body: { result: 'ready', plan: preview.plan } };
+}
+
+function restoreReply(result: RestoreResult): RouteReply {
+  switch (result.status) {
+    case 'restored':
+      for (const problem of result.problems) {
+        console.warn(LOG, `${problem.stage} failed after the restore`);
+      }
+      return {
+        status: 200,
+        body: {
+          result: result.plan.writes ? 'restored' : 'no-changes',
+          counts: result.plan.counts,
+          backupId: result.backupId,
+        },
+      };
+    case 'stale':
+      return {
+        status: 409,
+        body: {
+          error: 'stale',
+          message:
+            'Map projects changed after the preview, so nothing changed. Check the new preview, then restore again.',
+          plan: result.plan,
+        },
+      };
+    case 'busy':
+      return BUSY;
+    case 'missing':
+      return MISSING_BACKUP;
   }
 }
 
@@ -556,6 +612,19 @@ async function run(
       return download(client, action.id);
     case 'delete-backup':
       return removeBackup(client, action.id);
+    case 'restore-preview':
+      return restorePreview(client, action.id);
+    case 'restore':
+      return guarded(async () =>
+        restoreReply(
+          await restoreBackup(client, {
+            id: action.id,
+            token: action.token,
+            person,
+            now,
+          }),
+        ),
+      );
   }
 }
 

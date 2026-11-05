@@ -159,6 +159,21 @@ export interface ListedBackup {
   count: number;
 }
 
+/** A backup's header as Feed & imports lists it. */
+export const listedBackup = ({
+  _id,
+  createdAt,
+  source,
+  person,
+  count,
+}: BackupHeader): ListedBackup => ({
+  id: _id,
+  createdAt,
+  source,
+  person,
+  count,
+});
+
 /** Every backup, newest first. A backup that failed partway has no header, so it never lists. */
 export function listBackups(client: MapProjectsClient) {
   return client.fetch<ListedBackup[]>(
