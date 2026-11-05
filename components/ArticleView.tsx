@@ -1,27 +1,45 @@
 'use client';
 
+import type { ComponentProps } from 'react';
+
 import NewsBody from '@/components/NewsBody';
 import SanityImage from '@/components/SanityImage';
 import ViewTransition from '@/components/ViewTransition';
-import { mediaTransitionName, titleTransitionName } from '@/lib/newsEvents';
-import type { NewsBySlugQueryResult } from '@/sanity.types';
+import {
+  type ArticleKind,
+  formatArticleDate,
+  mediaTransitionName,
+  titleTransitionName,
+} from '@/lib/articles';
 
-export default function NewsArticleView({
+type HeroImage =
+  | (NonNullable<ComponentProps<typeof SanityImage>['image']> & {
+      caption?: string | null;
+    })
+  | null;
+
+export type ArticleViewData = {
+  title?: string | null;
+  /** News leaves it out. A case study shows its project's category and place. */
+  label?: string | null;
+  heroImage?: HeroImage;
+  publishedAt?: string | null;
+  body?: unknown;
+};
+
+/** The article layout that news and case studies share. */
+export default function ArticleView({
+  kind,
   article,
   slug,
 }: {
-  article: NonNullable<NewsBySlugQueryResult>;
+  kind: ArticleKind;
+  article: ArticleViewData;
   slug: string;
 }) {
-  const mediaVt = mediaTransitionName('news', slug);
-  const titleVt = titleTransitionName('news', slug);
-  const publishedAt = article.publishedAt
-    ? new Date(article.publishedAt).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-    : null;
+  const mediaVt = mediaTransitionName(kind, slug);
+  const titleVt = titleTransitionName(kind, slug);
+  const publishedAt = formatArticleDate(article.publishedAt);
 
   return (
     <main className="header-offset bg-white text-black px-5 pb-20">
@@ -32,6 +50,11 @@ export default function NewsArticleView({
               {article.title}
             </h1>
           </ViewTransition>
+        )}
+        {article.label && (
+          <p className="mt-0 mb-6 font-sans text-[0.8125rem] font-light uppercase tracking-[0.1em] text-black">
+            {article.label}
+          </p>
         )}
         {article.heroImage?.asset?._id && (
           <ViewTransition name={mediaVt} share="morph-media">

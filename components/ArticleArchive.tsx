@@ -1,0 +1,163 @@
+'use client';
+
+import Link from 'next/link';
+import { type ComponentProps, useEffect, useState } from 'react';
+
+import SanityImage from '@/components/SanityImage';
+import ViewTransition from '@/components/ViewTransition';
+import {
+  ARTICLE_PATHS,
+  type ArticleKind,
+  formatArticleDate,
+  mediaTransitionName,
+  titleTransitionName,
+} from '@/lib/articles';
+
+const PAGE_SIZE = 10;
+
+const CTA_LABELS: Record<ArticleKind, string> = {
+  news: 'CONTINUE READING',
+  event: 'VIEW EVENT DETAILS',
+  caseStudy: 'CONTINUE READING',
+};
+
+export type ArchiveItem = {
+  kind: ArticleKind;
+  id: string;
+  slug: string;
+  title: string;
+  subhead: string | null;
+  label: string | null;
+  excerpt: string | null;
+  /** An ISO date. The archive sorts on it and shows it. */
+  date: string;
+  image: ComponentProps<typeof SanityImage>['image'];
+};
+
+const CTA_CLASS =
+  'group inline-flex items-center gap-2 bg-blue text-white uppercase tracking-[0.12em] text-[0.8125rem] font-normal no-underline px-3 py-2 rounded-md transition-all duration-200 hover:bg-accent hover:text-white hover:-translate-y-0.5 hover:shadow-md';
+
+const sortKey = (item: ArchiveItem) => new Date(item.date).getTime();
+
+/** The archive layout: cards newest first, ten at a time, with LOAD MORE. */
+export default function ArticleArchive({
+  heading,
+  items,
+  emptyMessage,
+}: {
+  heading: string;
+  items: ArchiveItem[];
+  /** Shown in place of the cards when there are none. */
+  emptyMessage?: string;
+}) {
+  const sorted = [...items].sort((a, b) => sortKey(b) - sortKey(a));
+  const [visible, setVisible] = useState(PAGE_SIZE);
+  const shown = sorted.slice(0, visible);
+  const hasMore = visible < sorted.length;
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  return (
+    <main className="header-offset bg-white text-blue pb-20">
+      <div className="mx-auto max-w-7xl px-5">
+        <h1 className="font-sans font-extrabold text-blue tracking-normal text-h2 mt-8 mb-10 text-balance max-tablet:mb-0">
+          {heading}
+        </h1>
+        {sorted.length === 0 && emptyMessage && (
+          <p className="text-black m-0 text-p max-tablet:mt-10">
+            {emptyMessage}
+          </p>
+        )}
+        {shown.map((item) => {
+          const href = `${ARTICLE_PATHS[item.kind]}${item.slug}`;
+          const date = formatArticleDate(item.date);
+          const mediaVt = mediaTransitionName(item.kind, item.slug);
+          const titleVt = titleTransitionName(item.kind, item.slug);
+
+          return (
+            <article
+              key={item.id}
+              className="grid grid-cols-[273px_1fr] items-start gap-10 py-10 first-of-type:pt-4 max-tablet:grid-cols-1 max-tablet:gap-6 max-tablet:py-12"
+            >
+              <Link
+                href={href}
+                aria-label={item.title}
+                className="block w-full max-w-[273px] p-0 max-tablet:max-w-none"
+              >
+                <ViewTransition name={mediaVt} share="morph-media">
+                  {item.image?.asset?._id ? (
+                    <SanityImage
+                      className="w-full h-auto aspect-[273/387] object-cover"
+                      image={item.image}
+                      alt={item.title}
+                      width={600}
+                    />
+                  ) : (
+                    <div
+                      aria-hidden
+                      className="w-full aspect-[273/387] bg-[rgba(0,65,129,0.08)]"
+                    />
+                  )}
+                </ViewTransition>
+              </Link>
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-1  text-[0.8125rem] uppercase tracking-[0.1em]">
+                  {date && (
+                    <time className="text-black font-light">{date}</time>
+                  )}
+                  {item.label && (
+                    <span className="text-black font-light">{item.label}</span>
+                  )}
+                </div>
+                <ViewTransition name={titleVt} share="morph">
+                  <h2 className="font-sans font-semibold text-blue text-h2 m-0 text-balance">
+                    <Link
+                      href={href}
+                      className="text-blue no-underline font-inherit p-0 inline transition-colors duration-300 ease-in-out hover:text-accent"
+                    >
+                      {item.title}
+                    </Link>
+                  </h2>
+                </ViewTransition>
+                {item.subhead && (
+                  <p className="italic font-normal text-[1.125rem]  text-blue m-0 text-balance">
+                    {item.subhead}
+                  </p>
+                )}
+                {item.excerpt && (
+                  <p className="text-black m-0 text-p max-w-[60ch]">
+                    {item.excerpt}
+                  </p>
+                )}
+                <div className="mt-2">
+                  <Link href={href} className={CTA_CLASS}>
+                    <span>{CTA_LABELS[item.kind]}</span>
+                    <span
+                      aria-hidden
+                      className="inline-block transition-transform duration-200 ease-out group-hover:translate-x-1"
+                    >
+                      &rarr;
+                    </span>
+                  </Link>
+                </div>
+              </div>
+            </article>
+          );
+        })}
+        {hasMore && (
+          <div className="text-center mt-12">
+            <button
+              type="button"
+              onClick={() => setVisible((v) => v + PAGE_SIZE)}
+              className="bg-blue border-0 rounded-md text-white px-3 py-2  uppercase tracking-[0.12em] text-[0.8125rem] font-normal cursor-pointer transition-all duration-200 hover:bg-accent hover:-translate-y-0.5 hover:shadow-md"
+            >
+              LOAD MORE
+            </button>
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}

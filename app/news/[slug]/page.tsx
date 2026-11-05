@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
-import NewsArticleView from '@/components/NewsArticleView';
+import ArticleView from '@/components/ArticleView';
 import SiteFooter from '@/components/SiteFooter';
 import SiteHeader from '@/components/SiteHeader';
 import { sanityFetch } from '@/sanity/lib/live';
@@ -61,7 +61,7 @@ export default async function NewsArticlePage({
   return (
     <div className="news">
       <SiteHeader />
-      <NewsArticleView article={article} slug={slug} />
+      <ArticleView kind="news" article={article} slug={slug} />
       <SiteFooter />
     </div>
   );
