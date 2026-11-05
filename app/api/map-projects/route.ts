@@ -12,6 +12,11 @@ import { FEED_STATUS_ID, type FeedStatus } from '@/lib/mapProjects/feedStatus';
 import { MAX_FILE_BYTES } from '@/lib/mapProjects/parseCsv';
 import type { CurrentProject } from '@/lib/mapProjects/plan';
 import {
+  listHidden,
+  type RemoveResult,
+  removeHidden,
+} from '@/lib/mapProjects/remove';
+import {
   errorReply,
   hasMediaType,
   logFailure,
@@ -42,6 +47,9 @@ const LOG = '[map-projects]';
 const MAX_REQUEST_BYTES = 2 * MAX_FILE_BYTES + 64 * 1024;
 
 const MAX_FILE_NAME_LENGTH = 255;
+
+/** More than every plant BlueIQ has, so a real hidden list always fits. */
+const MAX_DELETE_IDS = 1000;
 
 function originOf(url: string) {
   try {
@@ -78,6 +86,11 @@ const UNSUPPORTED_TYPE = errorReply(
   'Send the request as application/json.',
 );
 const TOO_BIG = errorReply(413, 'too-big', 'The file is larger than 5 MB.');
+const BUSY = errorReply(
+  409,
+  'busy',
+  'Another change to the map is running. Try again in a few minutes.',
+);
 const SERVER_ERROR = errorReply(
   500,
   'server-error',
@@ -131,6 +144,8 @@ export const DELETE = GET;
 type Action =
   | { action: 'columns' }
   | { action: 'status' }
+  | { action: 'hidden' }
+  | { action: 'delete'; ids: string[] }
   | { action: 'preview'; file: string; hideMissing: boolean }
   | { action: 'sync'; url: string; hideMissing: boolean }
   | {
@@ -162,10 +177,30 @@ function readSource(value: unknown): BackupSource | null {
   return null;
 }
 
+/** Each ID is a published map project's ID, such as `plant-P-7`. */
+function readIds(value: unknown): string[] | null {
+  if (
+    !Array.isArray(value) ||
+    value.length === 0 ||
+    value.length > MAX_DELETE_IDS
+  ) {
+    return null;
+  }
+  return value.every((id) => typeof id === 'string' && id !== '')
+    ? value
+    : null;
+}
+
 function readAction(value: unknown): Action | null {
   if (!isRecord(value)) return null;
   const { action, file, url, hideMissing, token } = value;
-  if (action === 'columns' || action === 'status') return { action };
+  if (action === 'columns' || action === 'status' || action === 'hidden') {
+    return { action };
+  }
+  if (action === 'delete') {
+    const ids = readIds(value.ids);
+    return ids ? { action, ids } : null;
+  }
   if (typeof hideMissing !== 'boolean') return null;
   if (action === 'sync') {
     return typeof url === 'string' ? { action, url, hideMissing } : null;
@@ -275,13 +310,49 @@ function importReply(result: ImportResult): RouteReply {
         },
       };
     case 'busy':
-      return errorReply(
-        409,
-        'busy',
-        'Another change to the map is running. Try again in a few minutes.',
-      );
+      return BUSY;
     default:
       return previewReply(result);
+  }
+}
+
+function removeReply(result: RemoveResult): RouteReply {
+  switch (result.status) {
+    case 'deleted':
+      for (const problem of result.problems) {
+        console.warn(LOG, `${problem.stage} failed after the delete`);
+      }
+      return {
+        status: 200,
+        body: {
+          result: 'deleted',
+          deleted: result.deleted,
+          backupId: result.backupId,
+        },
+      };
+    case 'refused':
+      return {
+        status: 409,
+        body: {
+          error: 'changed',
+          message:
+            'Nothing was deleted. The hidden list changed after the pane showed it. Check the new list and try again.',
+          refused: result.refused,
+        },
+      };
+    case 'busy':
+      return BUSY;
+  }
+}
+
+/** A failed backup or write becomes a reply that names its stage (AC-7.1). */
+async function guarded(change: () => Promise<RouteReply>) {
+  try {
+    return await change();
+  } catch (cause) {
+    if (!(cause instanceof ChangeFailure)) throw cause;
+    logFailure(LOG, cause.stage, cause.cause);
+    return errorReply(500, `${cause.stage}-failed`, cause.message);
   }
 }
 
@@ -329,8 +400,8 @@ async function run(
     case 'sync':
       return sync(client, action.url, action.hideMissing);
     case 'apply':
-      try {
-        return importReply(
+      return guarded(async () =>
+        importReply(
           await applyImport(client, {
             file: encode(action.file),
             options: { hideMissing: action.hideMissing },
@@ -339,12 +410,16 @@ async function run(
             person,
             now,
           }),
-        );
-      } catch (cause) {
-        if (!(cause instanceof ChangeFailure)) throw cause;
-        logFailure(LOG, cause.stage, cause.cause);
-        return errorReply(500, `${cause.stage}-failed`, cause.message);
-      }
+        ),
+      );
+    case 'hidden':
+      return { status: 200, body: { projects: await listHidden(client) } };
+    case 'delete':
+      return guarded(async () =>
+        removeReply(
+          await removeHidden(client, { ids: action.ids, person, now }),
+        ),
+      );
   }
 }
 

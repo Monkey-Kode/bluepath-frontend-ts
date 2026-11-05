@@ -895,6 +895,168 @@ describe('the apply action', () => {
   });
 });
 
+/** A hidden plant that a draft case study links to. */
+const LINKED = plant(5, { hiddenAt: '2026-10-20T00:00:00.000Z' });
+const LINKED_STORY: FakeDocument = {
+  _id: 'drafts.story-5',
+  _type: 'caseStudy',
+  title: 'Plant 5 powers a school',
+  project: { _type: 'reference', _ref: LINKED._id },
+};
+
+describe('the hidden action', () => {
+  it('lists hidden projects with their dates and linked case studies, and writes nothing (AC-4.14)', async () => {
+    sanity = fakeSanity([...PROJECTS, LINKED, LINKED_STORY]);
+
+    const reply = await post({ action: 'hidden' });
+
+    expect(reply.status).toBe(200);
+    expectCors(reply.headers);
+    expect(reply.body).toEqual({
+      projects: [
+        {
+          id: 'plant-P-5',
+          plantId: 'P-5',
+          name: 'Plant 5',
+          hiddenAt: '2026-10-20T00:00:00.000Z',
+          caseStudies: [
+            {
+              id: 'story-5',
+              title: 'Plant 5 powers a school',
+              published: false,
+            },
+          ],
+        },
+        {
+          id: 'plant-P-4',
+          plantId: 'P-4',
+          name: 'Plant 4',
+          hiddenAt: '2026-10-01T00:00:00.000Z',
+          caseStudies: [],
+        },
+      ],
+    });
+    expect(wroteBeyondProofs()).toBe(false);
+  });
+});
+
+describe('the delete action', () => {
+  const remove = (ids: unknown) => post({ action: 'delete', ids });
+  const backups = () =>
+    sanity.documents().filter(({ _type }) => _type === BACKUP_TYPE);
+
+  it('deletes the chosen hidden projects after a backup (AC-4.14)', async () => {
+    const reply = await remove(['plant-P-4']);
+
+    expect(reply.status).toBe(200);
+    expect(reply.body).toEqual({
+      result: 'deleted',
+      deleted: [{ id: 'plant-P-4', name: 'Plant 4' }],
+      backupId: expect.stringMatching(/^mapProjects\.backup\./),
+    });
+    expect(sanity.get('plant-P-4')).toBeUndefined();
+    expect(sanity.get(reply.body.backupId)).toMatchObject({
+      _type: BACKUP_TYPE,
+      source: { kind: 'delete' },
+      person: PERSON,
+      count: 4,
+    });
+    expect(sanity.get(LOCK_ID)).toBeUndefined();
+  });
+
+  it('refuses a project that a case study links to, lists its case studies, and deletes nothing (AC-4.14)', async () => {
+    sanity = fakeSanity([...PROJECTS, LINKED, LINKED_STORY]);
+    const before = projects();
+
+    const reply = await remove(['plant-P-4', 'plant-P-5']);
+
+    expect(reply.status).toBe(409);
+    expect(reply.body).toEqual({
+      error: 'changed',
+      message:
+        'Nothing was deleted. The hidden list changed after the pane showed it. Check the new list and try again.',
+      refused: [
+        {
+          id: 'plant-P-5',
+          reason: 'linked',
+          name: 'Plant 5',
+          caseStudies: [
+            {
+              id: 'story-5',
+              title: 'Plant 5 powers a school',
+              published: false,
+            },
+          ],
+        },
+      ],
+    });
+    expect(projects()).toEqual(before);
+    expect(backups()).toEqual([]);
+  });
+
+  it('refuses a project on the map and deletes nothing', async () => {
+    const before = projects();
+
+    const reply = await remove(['plant-P-1']);
+
+    expect(reply.status).toBe(409);
+    expect(reply.body.refused).toEqual([
+      { id: 'plant-P-1', reason: 'shown', name: 'Plant 1' },
+    ]);
+    expect(projects()).toEqual(before);
+    expect(backups()).toEqual([]);
+  });
+
+  it('says another change is running while the lock is held (AC-4.11)', async () => {
+    await sanity.mutate([
+      {
+        create: { _id: LOCK_ID, _type: LOCK_ID, takenAt: NOW.toISOString() },
+      },
+    ]);
+    const before = projects();
+
+    const reply = await remove(['plant-P-4']);
+
+    expect(reply.status).toBe(409);
+    expect(reply.body.error).toBe('busy');
+    expect(projects()).toEqual(before);
+  });
+
+  it('deletes nothing when the backup fails', async () => {
+    sanity.failWhen((mutations) =>
+      mutations.some(
+        (mutation) =>
+          'create' in mutation && mutation.create._type === BACKUP_PART_TYPE,
+      ),
+    );
+    const before = projects();
+
+    const reply = await remove(['plant-P-4']);
+
+    expect(reply.status).toBe(500);
+    expect(reply.body.error).toBe('backup-failed');
+    expect(projects()).toEqual(before);
+  });
+
+  it.each([
+    ['no list', undefined],
+    ['a list that is not an array', 'plant-P-4'],
+    ['an empty list', []],
+    ['an ID that is not text', ['plant-P-4', 4]],
+    ['an empty ID', ['plant-P-4', '']],
+    [
+      'more than 1000 IDs',
+      Array.from({ length: 1001 }, (_, n) => `plant-P-${n}`),
+    ],
+  ])('refuses %s with 400 and deletes nothing', async (_name, ids) => {
+    const reply = await remove(ids);
+
+    expect(reply.status).toBe(400);
+    expect(reply.body.error).toBe('bad-request');
+    expect(wroteBeyondProofs()).toBe(false);
+  });
+});
+
 describe('the sync action', () => {
   type Route = (url: string, init: RequestInit) => Response | Promise<Response>;
 

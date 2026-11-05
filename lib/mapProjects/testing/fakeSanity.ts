@@ -47,9 +47,14 @@ function checkTopLevel(keys: string[]) {
   }
 }
 
+/** The client's default `published` perspective leaves out drafts and release versions. */
+const isPublished = ({ _id }: FakeDocument) =>
+  !_id.startsWith('drafts.') && !_id.startsWith('versions.');
+
 /**
- * An in-memory Sanity dataset for tests. Queries run through `groq-js`. Mutations follow the
- * real API, as a probe of the `development` dataset showed on Nov 4:
+ * An in-memory Sanity dataset for tests. Queries run through `groq-js`. A fetch reads published
+ * documents unless it asks for the `raw` perspective. Mutations follow the real API, as a probe of
+ * the `development` dataset showed on Nov 4:
  * - A transaction applies whole or not at all.
  * - `create` on an existing ID and a `patch` whose `ifRevisionID` doesn't match fail with 409.
  * - A `patch` on a missing document fails with 404.
@@ -111,8 +116,11 @@ export function fakeSanity(initial: readonly FakeDocument[] = []): FakeSanity {
     async fetch<R = unknown>(
       query: string,
       params: Record<string, unknown> = {},
+      options?: { perspective?: 'raw' },
     ) {
-      const dataset = [...store.values()];
+      const all = [...store.values()];
+      const dataset =
+        options?.perspective === 'raw' ? all : all.filter(isPublished);
       const value = await evaluate(parse(query, { params }), {
         dataset,
         params,

@@ -7,9 +7,14 @@ import type { Casestudies } from '@/sanity.types';
  * pass `fakeSanity()` instead.
  */
 export interface MapProjectsClient {
+  /**
+   * Reads published documents by default. `raw` adds drafts and release versions, such as a
+   * draft case study that links to a map project.
+   */
   fetch<R = unknown>(
     query: string,
     params?: Record<string, unknown>,
+    options?: { perspective?: 'raw' },
   ): Promise<R>;
   mutate(
     mutations: Mutation[],
