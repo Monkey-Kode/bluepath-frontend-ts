@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { COLUMN_KEYS, COLUMNS, type ColumnKey } from './columns';
 import { parseCsv } from './parseCsv';
 import {
   type CurrentProject,
@@ -7,25 +6,8 @@ import {
   planImport,
   type RowPlan,
 } from './plan';
+import { type Cells, csv } from './testing/files';
 import { validateRows } from './validate';
-
-type Cells = Partial<Record<ColumnKey, string>>;
-
-const FILE_KEYS = COLUMN_KEYS.filter(
-  (key) => COLUMNS[key].presence !== 'starter',
-);
-
-/** A CSV file with every column that BlueIQ sends, and the given rows from row 2 on. */
-function csv(...rows: Cells[]) {
-  const quote = (cell: string) => `"${cell.replaceAll('"', '""')}"`;
-  const lines = [
-    FILE_KEYS.map((key) => COLUMNS[key].header),
-    ...rows.map((cells) => FILE_KEYS.map((key) => cells[key] ?? '')),
-  ];
-  return new TextEncoder().encode(
-    lines.map((cells) => cells.map(quote).join(',')).join('\r\n'),
-  );
-}
 
 function planFor(
   projects: readonly CurrentProject[],
