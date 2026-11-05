@@ -10,6 +10,7 @@ import type {
   CasestudiesQueryResult,
   ProjectMapQueryResult,
 } from '@/sanity.types';
+import { CITY_ZOOM } from '@/lib/mapProjects/mapLayer';
 import { fakeMaps } from '@/test/fakeMaps';
 import Projects from './Projects';
 
@@ -226,6 +227,63 @@ describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
 
     expect(within(panel()).getByText('Cell Bank')).toBeVisible();
     expect(fake.marker('Cell Bank').look).toBe('selected');
+  });
+});
+
+describe('Projects map search (AC-9.3, AC-9.9)', () => {
+  const searchFor = async (text: string) => {
+    const user = userEvent.setup();
+    await user.type(screen.getByRole('combobox', { name: 'Search' }), text);
+    return user;
+  };
+
+  it('zooms to a searched project and shows it as a click would', async () => {
+    await show();
+    const user = await searchFor('cell');
+
+    await user.click(screen.getByRole('option', { name: /Cell Bank/ }));
+
+    expect(within(panel()).getByText('Cell Bank')).toBeVisible();
+    expect(fake.marker('Cell Bank').look).toBe('selected');
+    expect(fake.map().center).toEqual({ lat: 35, lng: -90 });
+    expect(fake.map().zoom).toBe(CITY_ZOOM);
+    // Google gets plain coordinates, without the geopoint's `_type`.
+    expect(fake.marker('Cell Bank').position).toEqual({ lat: 35, lng: -90 });
+  });
+
+  it('clears a legend filter that hides the picked project', async () => {
+    await show();
+    const user = userEvent.setup();
+    await user.click(legendEntry('Solar'));
+    expect(fake.marker('Cell Bank').look).toBe('hidden');
+
+    await searchFor('cell');
+    await user.click(screen.getByRole('option', { name: /Cell Bank/ }));
+
+    expect(legendEntry('Solar')).toHaveAttribute('aria-pressed', 'false');
+    expect(fake.marker('Cell Bank').look).toBe('selected');
+    expect(fake.marker('Sun Farm').look).toBe('dimmed');
+  });
+
+  it('still selects a searched project when Google Maps fails to load', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    loadMapsMock.mockRejectedValue(new Error('RefererNotAllowedMapError'));
+    render(<Projects page={{ id: 'projects' }} casestudies={casestudies} />);
+    const user = await searchFor('sun');
+
+    await user.click(screen.getByRole('option', { name: /Sun Farm/ }));
+
+    expect(within(panel()).getByText('Sun Farm')).toBeVisible();
+  });
+
+  it('sends no request to Sanity, only the outlines file', async () => {
+    await show();
+    const user = await searchFor('farm');
+    await user.click(screen.getByRole('option', { name: /Sun Farm/ }));
+
+    expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
+      STATE_OUTLINES_URL,
+    ]);
   });
 });
 

@@ -1,12 +1,18 @@
 'use client';
 
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import MapKey from '@/components/projectMap/MapKey';
 import MapLegend from '@/components/projectMap/MapLegend';
 import MapPanel from '@/components/projectMap/MapPanel';
-import { createMapLayer, type MapLayer } from '@/lib/mapProjects/mapLayer';
+import MapSearch from '@/components/projectMap/MapSearch';
+import {
+  createMapLayer,
+  type FocusTarget,
+  type MapLayer,
+} from '@/lib/mapProjects/mapLayer';
 import { loadStateOutlines } from '@/lib/mapProjects/outlines';
+import type { ProjectResult } from '@/lib/mapProjects/search';
 import { idle, panelView, select } from '@/lib/mapProjects/selection';
 import { loadMaps } from '@/lib/mapsLoader';
 import type {
@@ -81,6 +87,19 @@ function Projects({
     layer?.show(selection);
   }, [layer, selection]);
 
+  // Without the map, a search pick still selects the project and fills the panel (AC-9.3).
+  const focus = useCallback(
+    (target: FocusTarget) => layer?.focus(target),
+    [layer],
+  );
+  const pickResult = useCallback(
+    ({ id, category }: ProjectResult) => {
+      dispatch({ type: 'pickResult', project: { id, category } });
+      focus({ kind: 'project', id });
+    },
+    [focus],
+  );
+
   const view = panelView(selection);
   const picked =
     view.kind === 'project'
@@ -103,6 +122,13 @@ function Projects({
        * It never gets narrower than 40rem, or the screen width when that is less.
        */}
       <div className="relative mx-auto w-full min-w-[min(100%,40rem)] max-w-[calc((100svh-var(--header-height,100px)-21rem)*9/5)]">
+        {/* Below 800 px, the search sits above the map. From 800 px, it sits at the map's top right (AC-9.1). */}
+        <MapSearch
+          projects={casestudies}
+          onPickProject={pickResult}
+          onFocus={focus}
+          className="mb-3 tablet:absolute tablet:top-3 tablet:right-3 tablet:z-10 tablet:mb-0 tablet:w-72 tablet:rounded-sm tablet:bg-white/90 tablet:p-3 tablet:shadow"
+        />
         <div ref={mapRef} data-map-root className="aspect-[9/5] w-full" />
         <MapKey />
       </div>

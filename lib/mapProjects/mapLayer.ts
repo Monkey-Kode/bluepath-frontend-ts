@@ -98,12 +98,14 @@ export function createMapLayer(
     const category = categoryOf(project);
     if (!category) return [];
     const { color, label } = CATEGORY_BY_KEY[category];
+    // Google gets plain coordinates, without Sanity's `_type` on a geopoint.
+    const position = { lat: project.location.lat, lng: project.location.lng };
     const dot = document.createElement('span');
     dot.className = DOT_CLASSES;
     dot.style.backgroundColor = color;
     const marker = new AdvancedMarkerElement({
       map,
-      position: project.location,
+      position,
       title: `${displayName(project)}, ${label}`,
       content: dot,
       // A clickable marker takes Tab, the arrow keys, Enter, and Space (AC-2.8).
@@ -113,7 +115,7 @@ export function createMapLayer(
     });
     const picked = { id: project.id, category };
     marker.addEventListener('gmp-click', () => onPickMarker(picked));
-    return [{ marker, dot, picked, position: project.location }];
+    return [{ marker, dot, picked, position }];
   });
 
   const clicks = map.addListener(
