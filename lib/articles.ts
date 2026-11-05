@@ -5,6 +5,8 @@
  * is part of the name to keep slugs from colliding across collections.
  */
 
+import type { Metadata } from 'next';
+
 /** Each kind is the Sanity document type of its articles. */
 export type ArticleKind = 'news' | 'event' | 'caseStudy';
 
@@ -49,4 +51,30 @@ export function archiveImage<F extends WithAsset, H extends WithAsset>(
   hero: H | null | undefined,
 ): F | H | null {
   return featured?.asset?._id ? featured : (hero ?? null);
+}
+
+/**
+ * A detail page's title, description, and sharing image. The description is the SEO
+ * description, else the excerpt. News and case studies share it.
+ */
+export function articleMetadata(article: {
+  title: string;
+  seoDescription?: string | null;
+  excerpt?: string | null;
+  heroImage?: { asset?: { url?: string | null } | null } | null;
+  publishedAt?: string | null;
+}): Metadata {
+  const description = article.seoDescription ?? article.excerpt ?? undefined;
+  const ogImage = article.heroImage?.asset?.url ?? undefined;
+  return {
+    title: article.title,
+    description,
+    openGraph: {
+      type: 'article',
+      images: ogImage ? [ogImage] : [],
+      ...(article.publishedAt
+        ? { publishedTime: new Date(article.publishedAt).toISOString() }
+        : {}),
+    },
+  };
 }

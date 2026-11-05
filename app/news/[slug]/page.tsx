@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import ArticleView from '@/components/ArticleView';
 import SiteFooter from '@/components/SiteFooter';
 import SiteHeader from '@/components/SiteHeader';
+import { articleMetadata } from '@/lib/articles';
 import { sanityFetch } from '@/sanity/lib/live';
 import { allNewsSlugsQuery, newsBySlugQuery } from '@/sanity/lib/queries';
 
@@ -30,19 +31,7 @@ export async function generateMetadata({
     stega: false,
   });
   if (!article) return {};
-  const description = article.seoDescription ?? article.excerpt ?? undefined;
-  const ogImage = article.heroImage?.asset?.url ?? undefined;
-  return {
-    title: article.title ?? 'News',
-    description: description ?? undefined,
-    openGraph: {
-      type: 'article',
-      images: ogImage ? [ogImage] : [],
-      ...(article.publishedAt
-        ? { publishedTime: new Date(article.publishedAt).toISOString() }
-        : {}),
-    },
-  };
+  return articleMetadata({ ...article, title: article.title ?? 'News' });
 }
 
 export default async function NewsArticlePage({

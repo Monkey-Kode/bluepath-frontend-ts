@@ -281,6 +281,24 @@ export const eventBySlugQuery = defineQuery(`
 
 /* ---------- news ---------- */
 
+// News and case studies share one body field, so they share its projection.
+const articleBodyFields = /* groq */ `
+  body[]{
+    ...,
+    _type == "imageWithCaption" => {
+      ...,
+      image{ ..., asset->{ url, altText } }
+    },
+    markDefs[]{
+      ...,
+      _type == "internalLink" => {
+        ...,
+        reference->{ _type, slug }
+      }
+    }
+  }
+`;
+
 export const allNewsSlugsQuery = defineQuery(`
   *[_type == "news" && defined(slug.current)]{ "slug": slug.current }
 `);
@@ -311,20 +329,7 @@ export const newsBySlugQuery = defineQuery(`
     excerpt,
     heroImage{ ${imageFields} },
     featuredImage{ ${imageFields} },
-    body[]{
-      ...,
-      _type == "imageWithCaption" => {
-        ...,
-        image{ ..., asset->{ url, altText } }
-      },
-      markDefs[]{
-        ...,
-        _type == "internalLink" => {
-          ...,
-          reference->{ _type, slug }
-        }
-      }
-    },
+    ${articleBodyFields},
     seoDescription
   }
 `);
@@ -346,6 +351,26 @@ export const allCaseStudiesQuery = defineQuery(`
     excerpt,
     heroImage{ ${imageFields} },
     featuredImage{ ${imageFields} },
+    ${caseStudyProjectFields}
+  }
+`);
+
+export const allCaseStudySlugsQuery = defineQuery(`
+  *[_type == "caseStudy" && defined(slug.current)]{ "slug": slug.current }
+`);
+
+export const caseStudyBySlugQuery = defineQuery(`
+  *[_type == "caseStudy" && slug.current == $slug][0]{
+    _id,
+    _type,
+    title,
+    "slug": slug.current,
+    subhead,
+    publishedAt,
+    excerpt,
+    heroImage{ ${imageFields} },
+    ${articleBodyFields},
+    seoDescription,
     ${caseStudyProjectFields}
   }
 `);
