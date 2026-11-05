@@ -144,7 +144,8 @@ describe('CaseStudyArchive', () => {
             _id: 'no-project',
             slug: 'no-project',
             title: 'No project',
-            project: null,
+            // A draft in the Presentation preview can lack a required field.
+            project: null as never,
           }),
         ]}
       />,
@@ -169,7 +170,7 @@ describe('CaseStudyArchive', () => {
             _id: 'undated',
             slug: 'undated',
             title: 'Undated',
-            publishedAt: null,
+            publishedAt: null as never,
           }),
         ]}
       />,
