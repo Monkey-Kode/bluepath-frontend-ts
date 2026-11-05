@@ -19,6 +19,8 @@ export interface Selection {
 export type Action =
   | { readonly type: 'pickMarker'; readonly project: PickedProject }
   | { readonly type: 'pickLegend'; readonly category: CategoryKey }
+  /** A pick from the map search (AC-9.3). */
+  | { readonly type: 'pickResult'; readonly project: PickedProject }
   /** A click on the map that hits no marker. */
   | { readonly type: 'clickMap' }
   | { readonly type: 'escape' };
@@ -32,6 +34,12 @@ export function select(state: Selection, action: Action): Selection {
       return state.project?.id === action.project.id
         ? { ...state, project: null }
         : { ...state, project: action.project };
+    case 'pickResult':
+      // A search pick never toggles off. It drops a filter that would hide its marker.
+      return {
+        filter: state.filter === action.project.category ? state.filter : null,
+        project: action.project,
+      };
     case 'pickLegend':
       return state.filter === action.category
         ? idle

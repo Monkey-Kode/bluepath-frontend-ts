@@ -92,6 +92,40 @@ describe('select (AC-2.6)', () => {
   });
 });
 
+describe('a search pick (AC-9.3)', () => {
+  const result = (project: typeof solarA | typeof bessC) =>
+    ({ type: 'pickResult', project }) as const;
+
+  it('selects the picked project', () => {
+    expect(run(result(solarA))).toEqual({ filter: null, project: solarA });
+  });
+
+  it('keeps the project selected when it is picked again', () => {
+    expect(run(result(solarA), result(solarA))).toEqual({
+      filter: null,
+      project: solarA,
+    });
+    expect(run(pick(solarA), result(solarA))).toEqual({
+      filter: null,
+      project: solarA,
+    });
+  });
+
+  it("keeps a filter that shows the project's category", () => {
+    expect(run(legend('solar'), result(solarA))).toEqual({
+      filter: 'solar',
+      project: solarA,
+    });
+  });
+
+  it("clears a filter that hides the project's category", () => {
+    expect(run(legend('bess'), result(solarA))).toEqual({
+      filter: null,
+      project: solarA,
+    });
+  });
+});
+
 describe('markerLook (AC-2.4, AC-2.5)', () => {
   it('shows every marker normally before any selection', () => {
     expect(markerLook(idle, solarA)).toBe('normal');
