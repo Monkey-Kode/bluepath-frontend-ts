@@ -1,9 +1,11 @@
 import type { Mutation } from '@sanity/client';
+import { getPublishedId } from '@sanity/client/csm';
 
 import type { Casestudies } from '@/sanity.types';
 
 import { type ChangeContext, type ChangeProblem, runChange } from './apply';
 import { displayName } from './display';
+import { type ProjectRef, refOf } from './plan';
 import type { MapProjectsClient } from './store';
 
 /**
@@ -21,10 +23,7 @@ export interface LinkedDocument {
   published: boolean;
 }
 
-export interface HiddenProject {
-  id: string;
-  plantId: string | null;
-  name: string;
+export interface HiddenProject extends ProjectRef {
   /** When the project left BlueIQ's file, as an ISO time. */
   hiddenAt: string;
   caseStudies: LinkedDocument[];
@@ -62,10 +61,6 @@ type HiddenRow = Pick<
   '_id' | 'plantId' | 'plantName' | 'projectName' | 'title'
 > & { hiddenAt: string };
 
-/** A draft is `drafts.<id>`, and a release version is `versions.<release>.<id>`. */
-const publishedId = (id: string) =>
-  id.replace(/^drafts\./, '').replace(/^versions\.[^.]+\./, '');
-
 /**
  * The documents that link to each project, drafts and release versions included. The client
  * reads published documents by default, so this read asks for every variant.
@@ -86,7 +81,7 @@ export async function readLinks(
   for (const row of rows) {
     const byId = new Map<string, LinkedDocument>();
     for (const link of row.links) {
-      const id = publishedId(link._id);
+      const id = getPublishedId(link._id);
       const published = id === link._id;
       const seen = byId.get(id);
       // The published copy's title wins over a draft's.
@@ -114,9 +109,7 @@ export async function listHidden(
     rows.map(({ _id }) => _id),
   );
   return rows.map((row) => ({
-    id: row._id,
-    plantId: row.plantId ?? null,
-    name: displayName(row),
+    ...refOf(row),
     hiddenAt: row.hiddenAt,
     caseStudies: links.get(row._id) ?? [],
   }));
@@ -133,7 +126,7 @@ export async function readVariants(
     {},
     { perspective: 'raw' },
   );
-  return variants.filter((id) => wanted.has(publishedId(id)));
+  return variants.filter((id) => wanted.has(getPublishedId(id)));
 }
 
 export interface RemoveRequest extends Omit<ChangeContext, 'source'> {
@@ -186,7 +179,7 @@ export async function removeHidden(
       );
       const mutations: Mutation[] = deleted.flatMap(({ id }) => [
         ...variants
-          .filter((variant) => publishedId(variant) === id)
+          .filter((variant) => getPublishedId(variant) === id)
           .map((variant) => ({ delete: { id: variant } })),
         { delete: { id } },
       ]);

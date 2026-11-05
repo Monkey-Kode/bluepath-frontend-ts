@@ -245,7 +245,13 @@ function starterValues(fields: StarterFields): StarterValues {
   ) as StarterValues;
 }
 
-const refOf = (project: CurrentProject): ProjectRef => ({
+/** A project's ID, Plant ID, and name, as the routes report it. */
+export const refOf = (
+  project: Pick<
+    CurrentProject,
+    '_id' | 'plantId' | 'plantName' | 'projectName' | 'title'
+  >,
+): ProjectRef => ({
   id: project._id,
   plantId: project.plantId ?? null,
   name: displayName(project),

@@ -12,7 +12,7 @@ import {
 } from './apply';
 import { type ListedBackup, listedBackup, loadBackup } from './backups';
 import { COLUMN_KEYS } from './columns';
-import { displayName } from './display';
+import { type ProjectRef, refOf } from './plan';
 import { type LinkedDocument, readLinks, readVariants } from './remove';
 import { type MapProjectsClient, readProjects } from './store';
 
@@ -22,19 +22,13 @@ import { type MapProjectsClient, readProjects } from './store';
  * backup go, except the ones that a case study links to. Those stay hidden instead.
  */
 
-export interface RestoreProject {
-  id: string;
-  plantId: string | null;
-  name: string;
-}
-
-export interface RestoreUpdate extends RestoreProject {
+export interface RestoreUpdate extends ProjectRef {
   /** The fields that change back, in the starter workbook's order. */
   fields: string[];
 }
 
 /** A project added since the backup that a case study links to. */
-export interface RestoreKeep extends RestoreProject {
+export interface RestoreKeep extends ProjectRef {
   caseStudies: LinkedDocument[];
   /** False when the project is already hidden, so the restore leaves it alone. */
   hides: boolean;
@@ -45,9 +39,9 @@ export interface RestorePlan {
   /** Each group sorts by name. Names come from the copy that stays. */
   updates: RestoreUpdate[];
   /** Projects that went after the backup, which come back. */
-  creates: RestoreProject[];
+  creates: ProjectRef[];
   /** Projects added since the backup, which go with their drafts. */
-  deletes: RestoreProject[];
+  deletes: ProjectRef[];
   keeps: RestoreKeep[];
   counts: {
     updated: number;
@@ -146,14 +140,7 @@ function changedFields(recorded: Fields, current: Fields) {
     .sort(byFieldOrder);
 }
 
-const summaryOf = (project: Casestudies): RestoreProject => ({
-  id: project._id,
-  plantId: project.plantId ?? null,
-  name: displayName(project),
-});
-
-const byName = (a: RestoreProject, b: RestoreProject) =>
-  a.name.localeCompare(b.name);
+const byName = (a: ProjectRef, b: ProjectRef) => a.name.localeCompare(b.name);
 
 function restoreToken(
   backup: ListedBackup,
@@ -185,30 +172,30 @@ async function planRestore(
   );
 
   const updates: RestoreUpdate[] = [];
-  const creates: RestoreProject[] = [];
+  const creates: ProjectRef[] = [];
   let unchanged = 0;
   for (const project of recorded) {
     const now = currentById.get(project._id);
     if (!now) {
-      creates.push(summaryOf(project));
+      creates.push(refOf(project));
       continue;
     }
     const fields = changedFields(fieldsOf(project), fieldsOf(now));
     if (fields.length === 0) unchanged += 1;
-    else updates.push({ ...summaryOf(project), fields });
+    else updates.push({ ...refOf(project), fields });
   }
 
-  const deletes: RestoreProject[] = [];
+  const deletes: ProjectRef[] = [];
   const keeps: RestoreKeep[] = [];
   const kept: Casestudies[] = [];
   for (const project of added) {
     const caseStudies = links.get(project._id) ?? [];
     if (caseStudies.length === 0) {
-      deletes.push(summaryOf(project));
+      deletes.push(refOf(project));
       continue;
     }
     keeps.push({
-      ...summaryOf(project),
+      ...refOf(project),
       caseStudies,
       hides: !project.hiddenAt,
     });

@@ -9,7 +9,7 @@ import {
   writable,
 } from './apply';
 import { displayName, locationOf } from './display';
-import { linkChanges } from './plan';
+import { linkChanges, type ProjectRef, refOf } from './plan';
 import { type LinkedDocument, readLinks, readVariants } from './remove';
 import { type MapProjectsClient, readProjects } from './store';
 
@@ -39,11 +39,8 @@ export interface LinkOptions {
   plants: LinkablePlant[];
 }
 
-export interface LinkedPlant {
-  id: string;
-  plantId: string;
-  name: string;
-}
+/** A plant always has a Plant ID. */
+export type LinkedPlant = ProjectRef & { plantId: string };
 
 type Refusal =
   /** The project or the plant is missing or no longer fits, so nothing changed. */
@@ -84,9 +81,8 @@ const byName = (
 ) => a.name.localeCompare(b.name);
 
 const plantOf = (plant: Casestudies & { plantId: string }): LinkedPlant => ({
-  id: plant._id,
+  ...refOf(plant),
   plantId: plant.plantId,
-  name: displayName(plant),
 });
 
 /** The projects and plants that an editor can link, each by name. Ties keep the read's ID order. */
