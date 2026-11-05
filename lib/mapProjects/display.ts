@@ -44,11 +44,15 @@ export interface ProjectPanel {
   fields: PanelField[];
 }
 
-const clean = (value: Text) => value?.trim().replace(/\s+/g, ' ') ?? '';
+/** Trims a value and collapses its inner spaces. A missing value becomes blank. */
+export const clean = (value: Text) => value?.trim().replace(/\s+/g, ' ') ?? '';
 
-/** Trims each value, drops blanks and repeats, and joins the rest. */
-const list = (values: List) =>
-  [...new Set((values ?? []).map(clean).filter(Boolean))].join(', ');
+/** Trims each value and drops blanks and repeats. */
+export const distinct = (values: List) => [
+  ...new Set((values ?? []).map(clean).filter(Boolean)),
+];
+
+const list = (values: List) => distinct(values).join(', ');
 
 /**
  * A blank Active counts as Yes. A project hides once it leaves BlueIQ's latest file (AC-4.5).

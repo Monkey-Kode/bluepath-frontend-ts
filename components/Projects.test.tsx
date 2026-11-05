@@ -26,6 +26,7 @@ const blank: CaseStudy = {
   title: null,
   plantName: null,
   projectName: null,
+  projectId: null,
   projectType: null,
   projectStatus: null,
   active: true,

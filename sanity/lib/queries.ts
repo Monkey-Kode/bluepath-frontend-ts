@@ -223,6 +223,7 @@ export const casestudiesQuery = defineQuery(`
     title,
     plantName,
     projectName,
+    projectId,
     projectType,
     projectStatus,
     active,
