@@ -80,6 +80,8 @@ function renderSearch() {
 const options = () =>
   screen.queryAllByRole('option').map((option) => option.textContent);
 const status = () => screen.getByRole('status');
+/** The message shown in place of the list. The status speaks it. */
+const message = () => document.querySelector('[data-search-message]');
 
 describe('MapSearch: plain search (AC-9.2, AC-9.6)', () => {
   it('lists matching plotted projects as the visitor types, and announces the count', async () => {
@@ -100,13 +102,17 @@ describe('MapSearch: plain search (AC-9.2, AC-9.6)', () => {
   it('shows each row with its place', async () => {
     const { user, box } = renderSearch();
     await user.type(box, 'cartwright');
-    expect(options()).toEqual(['Cartwright SchoolArizona']);
+    // The category shows as words, never by the swatch's color alone.
+    expect(options()).toEqual(['Cartwright SchoolEnergy Efficiency · Arizona']);
   });
 
   it('says so when nothing matches', async () => {
     const { user, box } = renderSearch();
     await user.type(box, 'zzz');
-    expect(screen.getByRole('listbox')).toHaveTextContent('No projects match.');
+    // The message sits outside the listbox, which only ever holds options.
+    expect(message()).toHaveTextContent('No projects match.');
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(box).toHaveAttribute('aria-expanded', 'false');
     expect(status()).toHaveTextContent('No projects match.');
   });
 
@@ -142,10 +148,25 @@ describe('MapSearch: keyboard (AC-9.7)', () => {
     );
   });
 
+  it('scrolls the highlighted row into view', async () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    const { user, box } = renderSearch();
+    await user.type(box, 'ford');
+
+    await user.keyboard('{ArrowDown}{ArrowDown}');
+
+    expect(scrollIntoView).toHaveBeenLastCalledWith({ block: 'nearest' });
+    expect(scrollIntoView.mock.contexts.at(-1)).toBe(
+      screen.getByRole('option', { name: /Stanford Solar/ }),
+    );
+  });
+
   it('closes the list on the first Escape, and lets the second reach the page', async () => {
     const pageEscape = vi.fn();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') pageEscape();
+      // The page skips an Escape that the search handled, as Projects.tsx does.
+      if (event.key === 'Escape' && !event.defaultPrevented) pageEscape();
     };
     document.addEventListener('keydown', onKey);
     const { user, box } = renderSearch();
@@ -154,6 +175,8 @@ describe('MapSearch: keyboard (AC-9.7)', () => {
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('listbox')).toBeNull();
     expect(pageEscape).not.toHaveBeenCalled();
+    // The browser keeps the typed text, which a search field's Escape would clear.
+    expect(box).toHaveValue('ford');
 
     await user.keyboard('{Escape}');
     expect(pageEscape).toHaveBeenCalledOnce();
@@ -174,6 +197,7 @@ describe('MapSearch: State (AC-9.4)', () => {
     await user.click(screen.getByRole('option', { name: /California/ }));
     expect(onFocus).toHaveBeenCalledWith({ kind: 'state', name: 'California' });
     expect(options()).toEqual([expect.stringContaining('Stanford Solar')]);
+    expect(status()).toHaveTextContent('California: 1 project');
 
     await user.click(screen.getByRole('option', { name: /Stanford Solar/ }));
     expect(onPickProject).toHaveBeenCalledWith(
@@ -188,9 +212,7 @@ describe('MapSearch: State (AC-9.4)', () => {
     expect(options()).toEqual(['NevadaNo projects']);
 
     await user.click(screen.getByRole('option', { name: /Nevada/ }));
-    expect(screen.getByRole('listbox')).toHaveTextContent(
-      'No projects in Nevada yet.',
-    );
+    expect(message()).toHaveTextContent('No projects in Nevada yet.');
   });
 
   it('makes no call to Google', async () => {
@@ -211,9 +233,7 @@ describe('MapSearch: ZIP Code (AC-9.5, AC-9.6)', () => {
 
     await user.type(box, '8503');
     expect(lookup).not.toHaveBeenCalled();
-    expect(screen.getByRole('listbox')).toHaveTextContent(
-      'Type a five-digit ZIP code.',
-    );
+    expect(message()).toHaveTextContent('Type a five-digit ZIP code.');
 
     await user.type(box, '3');
     expect(lookup).toHaveBeenCalledOnce();
@@ -234,11 +254,9 @@ describe('MapSearch: ZIP Code (AC-9.5, AC-9.6)', () => {
     const { user, box } = renderSearch();
     await user.click(screen.getByRole('button', { name: 'ZIP Code' }));
     await user.type(box, '00000');
-    expect(
-      await within(screen.getByRole('listbox')).findByText(
-        "We couldn't find that ZIP code.",
-      ),
-    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(message()).toHaveTextContent("We couldn't find that ZIP code."),
+    );
     expect(onFocus).not.toHaveBeenCalled();
   });
 
@@ -248,15 +266,17 @@ describe('MapSearch: ZIP Code (AC-9.5, AC-9.6)', () => {
     const zip = screen.getByRole('button', { name: 'ZIP Code' });
     await user.click(zip);
     await user.type(box, '85033');
-    expect(
-      await within(screen.getByRole('listbox')).findByText(
+    await waitFor(() =>
+      expect(message()).toHaveTextContent(
         /ZIP lookup isn't available right now/,
       ),
-    ).toBeInTheDocument();
+    );
 
     await user.click(zip);
     expect(zip).toHaveAttribute('aria-pressed', 'false');
-    expect(box).toHaveValue('');
+    // Switching keeps the typed text, so nothing is erased without a word.
+    expect(box).toHaveValue('85033');
+    await user.clear(box);
     await user.type(box, 'ford');
     expect(options()).toHaveLength(2);
   });

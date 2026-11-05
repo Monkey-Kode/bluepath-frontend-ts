@@ -9,6 +9,7 @@ import {
   useState,
 } from 'react';
 import { twMerge } from 'tailwind-merge';
+import { CATEGORY_BY_KEY } from '@/lib/categories';
 import type { FocusTarget } from '@/lib/mapProjects/mapLayer';
 import type { StateOutlines } from '@/lib/mapProjects/outlines';
 import {
@@ -180,8 +181,18 @@ export default function MapSearch({
     return plainView(text, projects);
   }, [mode, text, zip, chosenState, projects, outlines]);
 
-  const shown = open && (view.options.length > 0 || view.message !== null);
+  // A message shows outside the listbox, so the listbox only ever holds options.
+  const listShown = open && view.options.length > 0;
+  const messageShown = open && !listShown && view.message !== null;
   const optionId = (index: number) => `${id}-option-${index}`;
+
+  // The highlighted row stays in view as the arrow keys move through a long list.
+  useEffect(() => {
+    if (active >= 0)
+      document
+        .getElementById(`${id}-option-${active}`)
+        ?.scrollIntoView?.({ block: 'nearest' });
+  }, [active, id]);
 
   function changeText(value: string) {
     setText(value);
@@ -190,9 +201,9 @@ export default function MapSearch({
     setOpen(true);
   }
 
+  // The typed text stays, so switching never erases it without a word.
   function changeMode(next: Exclude<Mode, 'plain'>) {
     setMode(mode === next ? 'plain' : next);
-    setText('');
     setChosenState(null);
     setActive(-1);
   }
@@ -212,14 +223,17 @@ export default function MapSearch({
 
   function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     const count = view.options.length;
-    if (event.key === 'Escape' && shown) {
-      // The first Escape only closes the list. The page's Escape then clears the map.
+    if (event.key === 'Escape' && (listShown || messageShown)) {
+      // The first Escape only closes the list. The page's Escape then clears the map. React and
+      // the page both listen on the document, so the page checks `defaultPrevented`. Preventing
+      // the default also stops the browser from clearing a search field.
+      event.preventDefault();
       event.stopPropagation();
       setOpen(false);
       setActive(-1);
     } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
-      if (!shown) {
+      if (!listShown) {
         setOpen(true);
         return;
       }
@@ -228,15 +242,20 @@ export default function MapSearch({
       setActive((current) =>
         current < 0 && step < 0 ? count - 1 : (current + step + count) % count,
       );
-    } else if (event.key === 'Enter' && shown && active >= 0) {
+    } else if (event.key === 'Enter' && listShown && active >= 0) {
       event.preventDefault();
       pick(view.options[active]);
     }
   }
 
-  const announcement = shown
-    ? (view.message ?? countText(view.options.length, 'result', 'results'))
-    : '';
+  const count = view.options.length;
+  const announcement = messageShown
+    ? view.message
+    : !listShown
+      ? ''
+      : chosenState
+        ? `${chosenState.name}: ${countText(count, 'project', 'projects')}`
+        : countText(count, 'result', 'results');
 
   return (
     <div
@@ -261,10 +280,10 @@ export default function MapSearch({
           autoComplete="off"
           inputMode={mode === 'zip' ? 'numeric' : undefined}
           aria-autocomplete="list"
-          aria-expanded={shown}
+          aria-expanded={listShown}
           aria-controls={listId}
           aria-activedescendant={
-            shown && active >= 0 ? optionId(active) : undefined
+            listShown && active >= 0 ? optionId(active) : undefined
           }
           placeholder={PLACEHOLDERS[mode]}
           value={text}
@@ -272,9 +291,19 @@ export default function MapSearch({
           onFocus={() => setOpen(true)}
           onBlur={() => setOpen(false)}
           onKeyDown={onKeyDown}
-          className="mt-1 block min-h-10 w-full rounded-sm border border-legend/40 bg-white px-3 text-base text-black placeholder:text-legend-faded focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+          className="mt-1 block min-h-10 w-full rounded-sm border border-legend-faded bg-white px-3 text-base text-black placeholder:text-legend-faded focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
         />
-        {shown && (
+        {messageShown && (
+          // The status below speaks the message, so screen readers skip this copy.
+          <p
+            data-search-message
+            aria-hidden="true"
+            className="absolute inset-x-0 top-full z-20 mt-1 rounded-sm border border-legend/30 bg-white px-3 py-2 text-gray-2 shadow-lg"
+          >
+            {view.message}
+          </p>
+        )}
+        {listShown && (
           <ul
             id={listId}
             role="listbox"
@@ -283,66 +312,67 @@ export default function MapSearch({
             onMouseDown={(event) => event.preventDefault()}
             className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-sm border border-legend/30 bg-white shadow-lg"
           >
-            {view.message !== null ? (
-              <li className="px-3 py-2 text-gray-2">{view.message}</li>
-            ) : (
-              view.options.map((option, index) => (
-                <li
-                  key={
-                    option.kind === 'state'
-                      ? `state-${option.state.code}`
-                      : option.result.id
-                  }
-                  id={optionId(index)}
-                  role="option"
-                  aria-selected={index === active}
-                  onClick={() => pick(option)}
-                  className="flex min-h-11 cursor-pointer items-center gap-2 px-3 py-2 aria-selected:bg-surface hover:bg-surface"
-                >
-                  {option.kind === 'state' ? (
-                    <>
-                      <span className="font-semibold text-blue">
-                        {option.state.name}
+            {view.options.map((option, index) => (
+              <li
+                key={
+                  option.kind === 'state'
+                    ? `state-${option.state.code}`
+                    : option.result.id
+                }
+                id={optionId(index)}
+                role="option"
+                aria-selected={index === active}
+                onClick={() => pick(option)}
+                className="flex min-h-11 cursor-pointer items-center gap-2 px-3 py-2 hover:bg-surface aria-selected:bg-surface aria-selected:outline aria-selected:outline-2 aria-selected:-outline-offset-2 aria-selected:outline-accent"
+              >
+                {option.kind === 'state' ? (
+                  <>
+                    <span className="font-semibold text-blue">
+                      {option.state.name}
+                    </span>
+                    <span className="ml-auto text-xs">
+                      {option.state.count
+                        ? countText(option.state.count, 'project', 'projects')
+                        : 'No projects'}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Swatch category={option.result.category} />
+                    <span className="min-w-0">
+                      <span className="block font-semibold text-blue">
+                        {option.result.name}
                       </span>
-                      <span className="ml-auto text-xs">
-                        {option.state.count
-                          ? countText(option.state.count, 'project', 'projects')
-                          : 'No projects'}
+                      {/* The category shows as words too, never by color alone. */}
+                      <span className="block text-xs">
+                        {[
+                          CATEGORY_BY_KEY[option.result.category].label,
+                          option.result.place,
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
                       </span>
-                    </>
-                  ) : (
-                    <>
-                      <Swatch category={option.result.category} />
-                      <span className="min-w-0">
-                        <span className="block font-semibold text-blue">
-                          {option.result.name}
-                        </span>
-                        {option.result.place && (
-                          <span className="block text-xs">
-                            {option.result.place}
-                          </span>
-                        )}
+                    </span>
+                    {option.result.miles !== undefined && (
+                      <span className="ml-auto shrink-0 text-xs">
+                        {Math.round(option.result.miles)} mi
                       </span>
-                      {option.result.miles !== undefined && (
-                        <span className="ml-auto shrink-0 text-xs">
-                          {Math.round(option.result.miles)} mi
-                        </span>
-                      )}
-                    </>
-                  )}
-                </li>
-              ))
-            )}
+                    )}
+                  </>
+                )}
+              </li>
+            ))}
           </ul>
         )}
       </div>
       <div
         role="group"
-        aria-labelledby={`${id}-category`}
+        aria-labelledby={`${id}-by`}
         className="mt-2 flex flex-wrap items-center gap-2 tablet:mt-0 tablet:min-h-10"
       >
-        <span id={`${id}-category`} className="text-xs uppercase tracking-wide">
-          Category
+        {/* The design says "Category", but the legend's categories are project types. */}
+        <span id={`${id}-by`} className="text-xs uppercase tracking-wide">
+          Search by
         </span>
         {MODES.map(({ mode: option, label }) => (
           <button
@@ -350,7 +380,7 @@ export default function MapSearch({
             type="button"
             aria-pressed={mode === option}
             onClick={() => changeMode(option)}
-            className="min-h-8 cursor-pointer rounded-sm border border-legend/40 bg-white px-2 text-xs uppercase tracking-wide focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent aria-pressed:border-blue aria-pressed:bg-blue aria-pressed:text-white"
+            className="min-h-8 cursor-pointer rounded-sm border border-legend-faded bg-white px-2 text-xs uppercase tracking-wide focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent aria-pressed:border-blue aria-pressed:bg-blue aria-pressed:text-white"
           >
             {label}
           </button>

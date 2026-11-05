@@ -322,6 +322,28 @@ describe('Projects map search (AC-9.3, AC-9.9)', () => {
   });
 });
 
+describe('Projects map Escape with the search (AC-9.7)', () => {
+  it('keeps the selection on an Escape that the search already handled', async () => {
+    await show();
+    act(() => fake.marker('Cell Bank').pick());
+
+    const handled = new KeyboardEvent('keydown', {
+      key: 'Escape',
+      cancelable: true,
+    });
+    handled.preventDefault();
+    act(() => {
+      document.dispatchEvent(handled);
+    });
+    expect(within(panel()).getByText('Cell Bank')).toBeVisible();
+
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    });
+    expect(within(panel()).queryByText('Cell Bank')).toBeNull();
+  });
+});
+
 describe('Projects map loading', () => {
   it('draws the state outlines from the outlines file', async () => {
     await show();

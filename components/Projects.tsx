@@ -85,7 +85,9 @@ function Projects({
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') dispatch({ type: 'escape' });
+      // The search's first Escape only closes its list (AC-9.7).
+      if (event.key === 'Escape' && !event.defaultPrevented)
+        dispatch({ type: 'escape' });
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
