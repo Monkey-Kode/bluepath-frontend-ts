@@ -10,7 +10,7 @@ Calls the BlueIQ feed route and the Studio's map-projects route on the local ser
   ```sh
   scripts/route.sh GET /api/blueiq/plants --expect 308
   scripts/route.sh POST /api/blueiq/plants/ --file FEED.csv --content-type text/csv \
-    --secret-header x-blueiq-key=BLUEIQ_FEED_KEY --expect 200 \
+    --secret-header X-API-Key=BLUEIQ_FEED_KEY --expect 200 \
     --out ../.claude/specs/feat/case-studies/.mk-goal/evidence/routes
   scripts/route.sh OPTIONS /api/map-projects/ --origin http://localhost:3333 --expect 204
   PROOF_UUID=$(python3 -c 'import uuid; print(uuid.uuid4())') scripts/route.sh POST \
@@ -18,7 +18,6 @@ Calls the BlueIQ feed route and the Studio's map-projects route on the local ser
     --origin http://localhost:3333 --secret-header X-Map-Projects-Request=PROOF_UUID
   ```
 
-  The header name is an example. Use the one that the feed route reads.
 - **Expected result:** the status matches `--expect`. A path without its trailing slash gets a 308 to the slashed path.
 - **Evidence:** with `--out`, the headers and body of each reply.
 - **Known-bad proof:** a POST while the server reads `production` exits 1 with `refusing a write`.

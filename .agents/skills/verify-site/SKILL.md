@@ -82,7 +82,7 @@ The selectors above are examples. Use the ones that the map component actually r
 ```
 
 - It prints the status, the `Location` header, a few other headers, and the first 600 bytes of the body.
-- `--secret-header x-blueiq-key=BLUEIQ_FEED_KEY` reads the value from that env var. The value goes to curl through stdin and never prints.
+- `--secret-header X-API-Key=BLUEIQ_FEED_KEY` reads the value from that env var. The value goes to curl through stdin and never prints.
 - GET, HEAD, and OPTIONS need an owned server.
 - Every other method needs an owned server on the `development` dataset. Otherwise it refuses.
 - A path without its trailing slash returns 308, because `next.config.ts` sets `trailingSlash: true`.
@@ -114,7 +114,7 @@ Never point `--out` at the run directory. The run directory is disposable.
 
 - Writes stay local. No helper writes to a remote site or to the `production` dataset.
 - Google Maps fails on `localhost:3000` until the browser key allows `http://localhost:3000/*`. Until then, local map journeys show Google's error box. Use `--base https://bluepathfinance.com` for read-only map checks.
-- `/api/blueiq/plants/` and `/api/map-projects/` do not exist at revision `4448905`. Before they exist, both return 404.
+- The feed route arrived at `500e502` and the Studio route at `c1b715c`. An older checkout returns 404 for both.
 - One-finger and two-finger touch checks need a manual step or a touch-capable driver. `overlap.sh` does not test them.
 
 Journeys live in `features/`. Start with `features/README.md`.
