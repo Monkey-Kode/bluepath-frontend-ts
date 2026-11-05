@@ -328,3 +328,24 @@ export const newsBySlugQuery = defineQuery(`
     seoDescription
   }
 `);
+
+/* ---------- case study ---------- */
+
+// The project's fields come through the reference, so a case study copies no project data.
+const caseStudyProjectFields = /* groq */ `
+  project->{ plantName, projectName, title, projectType, technologies, city, state }
+`;
+
+export const allCaseStudiesQuery = defineQuery(`
+  *[_type == "caseStudy" && defined(slug.current)] | order(publishedAt desc){
+    _id,
+    title,
+    "slug": slug.current,
+    subhead,
+    publishedAt,
+    excerpt,
+    heroImage{ ${imageFields} },
+    featuredImage{ ${imageFields} },
+    ${caseStudyProjectFields}
+  }
+`);

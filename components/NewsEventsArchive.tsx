@@ -1,4 +1,5 @@
 import ArticleArchive, { type ArchiveItem } from '@/components/ArticleArchive';
+import { archiveImage } from '@/lib/articles';
 import type { AllEventsQueryResult, AllNewsQueryResult } from '@/sanity.types';
 
 const eventDateToISO = (eventAt: string) => `${eventAt}T00:00:00`;
@@ -23,9 +24,7 @@ export default function NewsEventsArchive({
             label: n.publication ?? null,
             excerpt: n.excerpt ?? null,
             date: n.publishedAt,
-            image: n.featuredImage?.asset?._id
-              ? n.featuredImage
-              : (n.heroImage ?? null),
+            image: archiveImage(n.featuredImage, n.heroImage),
           },
         ]
       : [],
