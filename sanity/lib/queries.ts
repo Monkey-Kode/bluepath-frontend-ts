@@ -58,7 +58,7 @@ export const addressesQuery = defineQuery(`
 `);
 
 export const sitemapQuery = defineQuery(`
-  *[_type in ["page", "event", "news"] && defined(slug.current)]{
+  *[_type in ["page", "event", "news", "caseStudy"] && defined(slug.current)]{
     _type,
     "slug": slug.current,
     _updatedAt
