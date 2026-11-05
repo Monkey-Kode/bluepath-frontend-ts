@@ -9,9 +9,15 @@ import {
 import type { BackupSource } from '@/lib/mapProjects/backups';
 import { COLUMN_KEYS, COLUMNS } from '@/lib/mapProjects/columns';
 import { FEED_STATUS_ID, type FeedStatus } from '@/lib/mapProjects/feedStatus';
+import {
+  type LinkResult,
+  linkProject,
+  listLinkOptions,
+} from '@/lib/mapProjects/link';
 import { MAX_FILE_BYTES } from '@/lib/mapProjects/parseCsv';
 import type { CurrentProject } from '@/lib/mapProjects/plan';
 import {
+  type LinkedDocument,
   listHidden,
   type RemoveResult,
   removeHidden,
@@ -146,6 +152,8 @@ type Action =
   | { action: 'status' }
   | { action: 'hidden' }
   | { action: 'delete'; ids: string[] }
+  | { action: 'linkable' }
+  | { action: 'link'; project: string; plant: string }
   | { action: 'preview'; file: string; hideMissing: boolean }
   | { action: 'sync'; url: string; hideMissing: boolean }
   | {
@@ -177,7 +185,11 @@ function readSource(value: unknown): BackupSource | null {
   return null;
 }
 
-/** Each ID is a published map project's ID, such as `plant-P-7`. */
+/** A published map project's ID, such as `plant-P-7`. */
+const isId = (value: unknown): value is string =>
+  typeof value === 'string' && value !== '';
+
+/** The IDs to delete, at most `MAX_DELETE_IDS`. */
 function readIds(value: unknown): string[] | null {
   if (
     !Array.isArray(value) ||
@@ -186,16 +198,23 @@ function readIds(value: unknown): string[] | null {
   ) {
     return null;
   }
-  return value.every((id) => typeof id === 'string' && id !== '')
-    ? value
-    : null;
+  return value.every(isId) ? value : null;
 }
 
 function readAction(value: unknown): Action | null {
   if (!isRecord(value)) return null;
   const { action, file, url, hideMissing, token } = value;
-  if (action === 'columns' || action === 'status' || action === 'hidden') {
+  if (
+    action === 'columns' ||
+    action === 'status' ||
+    action === 'hidden' ||
+    action === 'linkable'
+  ) {
     return { action };
+  }
+  if (action === 'link') {
+    const { project, plant } = value;
+    return isId(project) && isId(plant) ? { action, project, plant } : null;
   }
   if (action === 'delete') {
     const ids = readIds(value.ids);
@@ -345,6 +364,49 @@ function removeReply(result: RemoveResult): RouteReply {
   }
 }
 
+/** A case study's title in quotes, marked when only a draft links. */
+const caseStudyName = ({ title, published }: LinkedDocument) =>
+  `"${title ?? 'Untitled case study'}"${published ? '' : ' (draft)'}`;
+
+function linkReply(result: LinkResult): RouteReply {
+  switch (result.status) {
+    case 'linked':
+      for (const problem of result.problems) {
+        console.warn(LOG, `${problem.stage} failed after the link`);
+      }
+      return {
+        status: 200,
+        body: {
+          result: 'linked',
+          project: result.project,
+          plant: result.plant,
+          backupId: result.backupId,
+        },
+      };
+    case 'refused': {
+      if (result.reason !== 'case-studies') {
+        return errorReply(
+          409,
+          'changed',
+          'Nothing changed. The website project or the plant changed after the pane showed it. Check the lists and try again.',
+        );
+      }
+      const { plant, caseStudies } = result;
+      return {
+        status: 409,
+        body: {
+          error: 'case-study',
+          message: `Nothing changed. Case studies link to ${plant.name}, Plant ID ${plant.plantId}: ${caseStudies.map(caseStudyName).join(', ')}. Point each case study at the website project instead, then link again.`,
+          plant,
+          caseStudies,
+        },
+      };
+    }
+    case 'busy':
+      return BUSY;
+  }
+}
+
 /** A failed backup or write becomes a reply that names its stage (AC-7.1). */
 async function guarded(change: () => Promise<RouteReply>) {
   try {
@@ -418,6 +480,19 @@ async function run(
       return guarded(async () =>
         removeReply(
           await removeHidden(client, { ids: action.ids, person, now }),
+        ),
+      );
+    case 'linkable':
+      return { status: 200, body: await listLinkOptions(client) };
+    case 'link':
+      return guarded(async () =>
+        linkReply(
+          await linkProject(client, {
+            project: action.project,
+            plant: action.plant,
+            person,
+            now,
+          }),
         ),
       );
   }

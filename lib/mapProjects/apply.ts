@@ -145,7 +145,7 @@ export async function runChange<T>(
 }
 
 /** Splits a row's fields into Sanity's set and unset. Null clears a field. */
-function writable(fields: Partial<FieldValues>) {
+export function writable(fields: Partial<FieldValues>) {
   const set: Record<string, unknown> = {};
   const unset: string[] = [];
   for (const [field, value] of Object.entries(fields)) {

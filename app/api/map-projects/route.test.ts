@@ -1057,6 +1057,182 @@ describe('the delete action', () => {
   });
 });
 
+/** A website-only project that BlueIQ later added as plant P-1. */
+const OLD_MILL: FakeDocument = {
+  _id: '0b5e-old-mill',
+  _type: 'casestudies',
+  websiteId: '0b5e-old-mill',
+  title: 'Old Mill',
+  city: 'Lowell',
+  state: 'MA',
+};
+
+describe('the linkable action', () => {
+  it('lists website-only projects and plants by name, and writes nothing (AC-4.15)', async () => {
+    sanity = fakeSanity([...PROJECTS, OLD_MILL]);
+
+    const reply = await post({ action: 'linkable' });
+
+    expect(reply.status).toBe(200);
+    expectCors(reply.headers);
+    expect(reply.body).toEqual({
+      projects: [
+        {
+          id: '0b5e-old-mill',
+          name: 'Old Mill',
+          location: 'Lowell, Massachusetts',
+        },
+      ],
+      plants: [1, 2, 3, 4].map((n) => ({
+        id: `plant-P-${n}`,
+        plantId: `P-${n}`,
+        name: `Plant ${n}`,
+        hiddenAt: n === 4 ? '2026-10-01T00:00:00.000Z' : null,
+      })),
+    });
+    expect(wroteBeyondProofs()).toBe(false);
+  });
+});
+
+describe('the link action', () => {
+  const link = (fields: Record<string, unknown>) =>
+    post({ action: 'link', ...fields });
+  const backups = () =>
+    sanity.documents().filter(({ _type }) => _type === BACKUP_TYPE);
+
+  beforeEach(() => {
+    sanity = fakeSanity([...PROJECTS, OLD_MILL, LINKED, LINKED_STORY]);
+  });
+
+  it("gives the project the plant's Plant ID and deletes the plant's project, after a backup (AC-4.15)", async () => {
+    const reply = await link({ project: OLD_MILL._id, plant: 'plant-P-1' });
+
+    expect(reply.status).toBe(200);
+    expectCors(reply.headers);
+    expect(reply.body).toEqual({
+      result: 'linked',
+      project: { id: '0b5e-old-mill', name: 'Old Mill' },
+      plant: { id: 'plant-P-1', plantId: 'P-1', name: 'Plant 1' },
+      backupId: expect.stringMatching(/^mapProjects\.backup\./),
+    });
+    expect(sanity.get(OLD_MILL._id)).toMatchObject({
+      title: 'Old Mill',
+      plantId: 'P-1',
+      plantName: 'Plant 1',
+    });
+    expect(sanity.get('plant-P-1')).toBeUndefined();
+    expect(sanity.get(reply.body.backupId)).toMatchObject({
+      source: { kind: 'link' },
+      person: PERSON,
+      count: 6,
+    });
+    expect(sanity.get(LOCK_ID)).toBeUndefined();
+  });
+
+  it("names the case studies that link to the plant's project, and changes nothing (AC-4.15)", async () => {
+    const before = projects();
+
+    const reply = await link({ project: OLD_MILL._id, plant: LINKED._id });
+
+    expect(reply.status).toBe(409);
+    expect(reply.body).toEqual({
+      error: 'case-study',
+      message:
+        'Nothing changed. Case studies link to Plant 5, Plant ID P-5: "Plant 5 powers a school" (draft). Point each case study at the website project instead, then link again.',
+      plant: { id: 'plant-P-5', plantId: 'P-5', name: 'Plant 5' },
+      caseStudies: [
+        { id: 'story-5', title: 'Plant 5 powers a school', published: false },
+      ],
+    });
+    expect(projects()).toEqual(before);
+    expect(backups()).toEqual([]);
+  });
+
+  it('calls a case study with no title or slug untitled', async () => {
+    sanity = fakeSanity([
+      ...PROJECTS,
+      OLD_MILL,
+      LINKED,
+      {
+        _id: 'story-blank',
+        _type: 'caseStudy',
+        project: { _type: 'reference', _ref: LINKED._id },
+      },
+    ]);
+
+    const reply = await link({ project: OLD_MILL._id, plant: LINKED._id });
+
+    expect(reply.body.message).toContain(
+      'Plant ID P-5: "Untitled case study". Point',
+    );
+  });
+
+  it.each([
+    ['a plant as the project', 'plant-P-2', 'plant-P-1'],
+    ['a website project as the plant', OLD_MILL._id, OLD_MILL._id],
+    ['a missing plant', OLD_MILL._id, 'plant-P-404'],
+  ])('refuses %s and changes nothing', async (_name, project, plant) => {
+    const before = projects();
+
+    const reply = await link({ project, plant });
+
+    expect(reply.status).toBe(409);
+    expect(reply.body).toEqual({
+      error: 'changed',
+      message:
+        'Nothing changed. The website project or the plant changed after the pane showed it. Check the lists and try again.',
+    });
+    expect(projects()).toEqual(before);
+    expect(backups()).toEqual([]);
+  });
+
+  it('says another change is running while the lock is held (AC-4.11)', async () => {
+    await sanity.mutate([
+      {
+        create: { _id: LOCK_ID, _type: LOCK_ID, takenAt: NOW.toISOString() },
+      },
+    ]);
+    const before = projects();
+
+    const reply = await link({ project: OLD_MILL._id, plant: 'plant-P-1' });
+
+    expect(reply.status).toBe(409);
+    expect(reply.body.error).toBe('busy');
+    expect(projects()).toEqual(before);
+  });
+
+  it('changes nothing when the backup fails', async () => {
+    sanity.failWhen((mutations) =>
+      mutations.some(
+        (mutation) =>
+          'create' in mutation && mutation.create._type === BACKUP_PART_TYPE,
+      ),
+    );
+    const before = projects();
+
+    const reply = await link({ project: OLD_MILL._id, plant: 'plant-P-1' });
+
+    expect(reply.status).toBe(500);
+    expect(reply.body.error).toBe('backup-failed');
+    expect(projects()).toEqual(before);
+  });
+
+  it.each([
+    ['no project', { plant: 'plant-P-1' }],
+    ['no plant', { project: OLD_MILL._id }],
+    ['an empty project', { project: '', plant: 'plant-P-1' }],
+    ['an empty plant', { project: OLD_MILL._id, plant: '' }],
+    ['a project that is not text', { project: 7, plant: 'plant-P-1' }],
+    ['a plant that is not text', { project: OLD_MILL._id, plant: ['P-1'] }],
+  ])('refuses %s with 400 and changes nothing', async (_name, fields) => {
+    const reply = await link(fields);
+
+    expect(reply.status).toBe(400);
+    expect(reply.body.error).toBe('bad-request');
+    expect(wroteBeyondProofs()).toBe(false);
+  });
+});
+
 describe('the sync action', () => {
   type Route = (url: string, init: RequestInit) => Response | Promise<Response>;
 

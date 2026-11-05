@@ -184,6 +184,24 @@ function changesFor(project: CurrentProject, fields: FieldValues) {
   return changes as Partial<FieldValues>;
 }
 
+/**
+ * What a website-only project gains from its plant when an editor links the two (AC-4.15).
+ * BlueIQ's fields come from the plant. The project keeps its address and its website fields. A blank
+ * website field takes the plant's value. The project must have its Website ID.
+ */
+export function linkChanges(project: CurrentProject, plant: CurrentProject) {
+  const fields = Object.fromEntries(
+    PLAN_FIELDS.map((field) => {
+      const kept =
+        FIELD_OWNERS[field] === 'website' &&
+        storedValue(project, field) !== null;
+      // A null website value keeps the project's own.
+      return [field, kept ? null : storedValue(plant, field)];
+    }),
+  ) as FieldValues;
+  return changesFor(project, fields);
+}
+
 function fieldValues(fields: MapProjectFields): FieldValues {
   return Object.fromEntries(
     PLAN_FIELDS.map((field) => [field, fields[field]]),

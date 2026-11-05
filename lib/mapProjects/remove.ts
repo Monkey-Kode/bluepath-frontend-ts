@@ -70,7 +70,10 @@ const publishedId = (id: string) =>
  * The documents that link to each project, drafts and release versions included. The client
  * reads published documents by default, so this read asks for every variant.
  */
-async function readLinks(client: MapProjectsClient, ids: readonly string[]) {
+export async function readLinks(
+  client: MapProjectsClient,
+  ids: readonly string[],
+) {
   const links = new Map<string, LinkedDocument[]>();
   if (ids.length === 0) return links;
   const rows = await client.fetch<
@@ -120,7 +123,10 @@ export async function listHidden(
 }
 
 /** The drafts and release versions of these projects. */
-async function readVariants(client: MapProjectsClient, ids: readonly string[]) {
+export async function readVariants(
+  client: MapProjectsClient,
+  ids: readonly string[],
+) {
   const wanted = new Set(ids);
   const variants = await client.fetch<string[]>(
     '*[_type == "casestudies" && (_id in path("drafts.*") || _id in path("versions.*.*"))]._id',
