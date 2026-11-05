@@ -15,11 +15,17 @@ import {
   vi,
 } from 'vitest';
 
-import { BACKUP_PART_TYPE, BACKUP_TYPE } from '@/lib/mapProjects/backups';
+import {
+  BACKUP_PART_TYPE,
+  BACKUP_TYPE,
+  type BackupSource,
+  saveBackup,
+} from '@/lib/mapProjects/backups';
 import { COLUMN_KEYS, COLUMNS } from '@/lib/mapProjects/columns';
 import { FEED_STATUS_ID } from '@/lib/mapProjects/feedStatus';
 import { LOCK_ID } from '@/lib/mapProjects/lock';
 import { MAX_FILE_BYTES } from '@/lib/mapProjects/parseCsv';
+import { readProjects } from '@/lib/mapProjects/store';
 import {
   type FakeDocument,
   type FakeSanity,
@@ -230,6 +236,16 @@ const wroteBeyondProofs = () =>
 function expectCors(headers: Record<string, unknown>) {
   expect(headers['access-control-allow-origin']).toBe(ORIGIN);
   expect(String(headers.vary)).toMatch(/\bOrigin\b/);
+}
+
+/** Saves a backup of the current map projects, as a change does before it writes. */
+async function backUp(source: BackupSource, at: string) {
+  return saveBackup(sanity, {
+    projects: await readProjects(sanity),
+    source,
+    person: PERSON,
+    now: new Date(at),
+  });
 }
 
 const OTHER_ORIGINS = [
@@ -1226,6 +1242,167 @@ describe('the link action', () => {
     ['a plant that is not text', { project: OLD_MILL._id, plant: ['P-1'] }],
   ])('refuses %s with 400 and changes nothing', async (_name, fields) => {
     const reply = await link(fields);
+
+    expect(reply.status).toBe(400);
+    expect(reply.body.error).toBe('bad-request');
+    expect(wroteBeyondProofs()).toBe(false);
+  });
+});
+
+describe('the backups action', () => {
+  it('lists the backups newest first, and writes nothing (AC-7.2)', async () => {
+    const older = await backUp({ kind: 'feed' }, '2026-11-02T12:00:00.000Z');
+    const newer = await backUp(
+      { kind: 'file', name: 'plants.xlsx' },
+      '2026-11-03T12:00:00.000Z',
+    );
+    const before = sanity.documents();
+
+    const reply = await post({ action: 'backups' });
+
+    expect(reply.status).toBe(200);
+    expectCors(reply.headers);
+    expect(reply.body).toEqual({
+      backups: [
+        {
+          id: newer,
+          createdAt: '2026-11-03T12:00:00.000Z',
+          source: { kind: 'file', name: 'plants.xlsx' },
+          person: PERSON,
+          count: 4,
+        },
+        {
+          id: older,
+          createdAt: '2026-11-02T12:00:00.000Z',
+          source: { kind: 'feed' },
+          person: PERSON,
+          count: 4,
+        },
+      ],
+    });
+    expect(sanity.documents()).toEqual(before);
+  });
+});
+
+describe('the download action', () => {
+  it("returns the backup's projects as rows of the starter workbook's columns (AC-7.2)", async () => {
+    const id = await backUp({ kind: 'link' }, '2026-11-03T12:00:00.000Z');
+    // The rows hold the projects as the backup saved them, not as they are now.
+    await sanity.mutate([{ delete: { id: 'plant-P-2' } }]);
+    const before = sanity.documents();
+
+    const reply = await post({ action: 'download', id });
+
+    expect(reply.status).toBe(200);
+    expectCors(reply.headers);
+    expect(reply.body.backup).toEqual({
+      id,
+      createdAt: '2026-11-03T12:00:00.000Z',
+      source: { kind: 'link' },
+      person: PERSON,
+      count: 4,
+    });
+    expect(reply.body.columns).toEqual(
+      COLUMN_KEYS.map((key) => ({ key, ...COLUMNS[key] })),
+    );
+    const plantIds = COLUMN_KEYS.indexOf('plantId');
+    expect(reply.body.rows.map((row: unknown[]) => row[plantIds])).toEqual([
+      'P-1',
+      'P-2',
+      'P-3',
+      'P-4',
+    ]);
+    expect(reply.body.rows[0]).toHaveLength(COLUMN_KEYS.length);
+    expect(sanity.documents()).toEqual(before);
+  });
+
+  it('says the backup is gone', async () => {
+    const reply = await post({
+      action: 'download',
+      id: 'mapProjects.backup.x',
+    });
+
+    expect(reply.status).toBe(404);
+    expectCors(reply.headers);
+    expect(reply.body).toEqual({
+      error: 'missing',
+      message:
+        'That backup no longer exists. Another editor may have deleted it.',
+    });
+  });
+
+  it.each([
+    ['no ID', {}],
+    ['an empty ID', { id: '' }],
+    ['an ID that is not text', { id: 7 }],
+  ])('refuses %s with 400', async (_name, fields) => {
+    const reply = await post({ action: 'download', ...fields });
+
+    expect(reply.status).toBe(400);
+    expect(reply.body.error).toBe('bad-request');
+  });
+});
+
+describe('the delete-backup action', () => {
+  const removeBackup = (id: unknown) => post({ action: 'delete-backup', id });
+  const backups = () =>
+    sanity
+      .documents()
+      .filter(({ _type }) => _type === BACKUP_TYPE)
+      .map(({ _id }) => _id);
+
+  it("deletes an editor's backup, and leaves the map projects alone (AC-7.4)", async () => {
+    const kept = await backUp({ kind: 'link' }, '2026-11-02T12:00:00.000Z');
+    const id = await backUp(
+      { kind: 'file', name: 'plants.xlsx' },
+      '2026-11-03T12:00:00.000Z',
+    );
+    const before = projects();
+
+    const reply = await removeBackup(id);
+
+    expect(reply.status).toBe(200);
+    expectCors(reply.headers);
+    expect(reply.body).toEqual({ result: 'deleted', id });
+    expect(backups()).toEqual([kept]);
+    expect(
+      sanity
+        .documents()
+        .filter(({ _type }) => _type === BACKUP_PART_TYPE)
+        .map(({ backup }) => backup),
+    ).toEqual([kept]);
+    expect(projects()).toEqual(before);
+    expect(sanity.get(LOCK_ID)).toBeUndefined();
+  });
+
+  it("keeps the feed's backups, which go after 90 days (AC-7.4)", async () => {
+    const id = await backUp({ kind: 'feed' }, '2026-11-03T12:00:00.000Z');
+
+    const reply = await removeBackup(id);
+
+    expect(reply.status).toBe(409);
+    expect(reply.body).toEqual({
+      error: 'feed-backup',
+      message:
+        "The feed's backups can't be deleted. Each one goes 90 days after the feed saved it.",
+    });
+    expect(backups()).toEqual([id]);
+  });
+
+  it('says the backup is gone, and deletes nothing', async () => {
+    const reply = await removeBackup('plant-P-1');
+
+    expect(reply.status).toBe(404);
+    expect(reply.body.error).toBe('missing');
+    expect(wroteBeyondProofs()).toBe(false);
+  });
+
+  it.each([
+    ['no ID', undefined],
+    ['an empty ID', ''],
+    ['a list of IDs', ['mapProjects.backup.x']],
+  ])('refuses %s with 400 and deletes nothing', async (_name, id) => {
+    const reply = await removeBackup(id);
 
     expect(reply.status).toBe(400);
     expect(reply.body.error).toBe('bad-request');

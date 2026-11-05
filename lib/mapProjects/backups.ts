@@ -2,6 +2,7 @@ import { gunzipSync, gzipSync } from 'node:zlib';
 
 import type { Casestudies } from '@/sanity.types';
 
+import { COLUMN_KEYS, type ColumnKey } from './columns';
 import { commit, type MapProjectsClient } from './store';
 
 export const BACKUP_TYPE = 'mapProjects.backup';
@@ -147,4 +148,99 @@ export async function pruneBackups(client: MapProjectsClient, now: Date) {
     })),
   );
   return expired.length;
+}
+
+/** A backup as Feed & imports lists it (AC-7.2). */
+export interface ListedBackup {
+  id: string;
+  createdAt: string;
+  source: BackupSource;
+  person: string;
+  count: number;
+}
+
+/** Every backup, newest first. A backup that failed partway has no header, so it never lists. */
+export function listBackups(client: MapProjectsClient) {
+  return client.fetch<ListedBackup[]>(
+    `*[_type == $type] | order(createdAt desc) {
+      "id": _id, createdAt, source, person, count
+    }`,
+    { type: BACKUP_TYPE },
+  );
+}
+
+/** A cell of a downloaded backup. Null is a blank cell. */
+export type BackupCell = string | number | null;
+
+function cellOf(value: unknown): BackupCell {
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (typeof value === 'number') return value;
+  if (Array.isArray(value)) {
+    return cellOf(
+      value
+        .filter((item) => typeof item === 'string' && item.trim() !== '')
+        .join('; '),
+    );
+  }
+  return typeof value === 'string' && value.trim() !== '' ? value : null;
+}
+
+function cellFor(project: Casestudies, key: ColumnKey): BackupCell {
+  // A project from before the starter load has only its old name and its document ID. The
+  // starter workbook names a website project the same way (AC-8.3).
+  const websiteOnly = !project.plantId;
+  switch (key) {
+    case 'latitude':
+      return cellOf(project.location?.lat);
+    case 'longitude':
+      return cellOf(project.location?.lng);
+    case 'projectName':
+      return (
+        cellOf(project.projectName) ??
+        (websiteOnly ? cellOf(project.title) : null)
+      );
+    case 'websiteId':
+      return cellOf(project.websiteId) ?? (websiteOnly ? project._id : null);
+    default:
+      return cellOf(project[key]);
+  }
+}
+
+/**
+ * Each project as a row of the starter workbook's columns, in the backup's order (AC-7.2). Lists
+ * join with "; ", Active reads Yes or No, and numbers stay numbers.
+ */
+export function backupRows(projects: readonly Casestudies[]) {
+  return projects.map((project) =>
+    COLUMN_KEYS.map((key) => cellFor(project, key)),
+  );
+}
+
+/** `feed` means the backup is the feed's, which goes only after 90 days. */
+export type DeleteBackupResult = 'deleted' | 'missing' | 'feed';
+
+/**
+ * Deletes an editor's backup and its parts in one transaction (AC-7.4). It needs no lock, because
+ * `loadBackup` reads a backup's header and parts in one query.
+ */
+export async function deleteBackup(
+  client: MapProjectsClient,
+  id: string,
+): Promise<DeleteBackupResult> {
+  const { backup, parts } = await client.fetch<{
+    backup: Pick<BackupHeader, 'source'> | null;
+    parts: string[];
+  }>(
+    `{
+      "backup": *[_id == $id && _type == $type][0]{ source },
+      "parts": *[_type == $partType && backup == $id]._id
+    }`,
+    { id, type: BACKUP_TYPE, partType: BACKUP_PART_TYPE },
+  );
+  if (!backup) return 'missing';
+  if (backup.source.kind === 'feed') return 'feed';
+  await client.mutate(
+    [id, ...parts].map((target) => ({ delete: { id: target } })),
+  );
+  return 'deleted';
 }

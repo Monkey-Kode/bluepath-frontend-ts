@@ -6,7 +6,13 @@ import {
   previewImport,
   starterLoadDone,
 } from '@/lib/mapProjects/apply';
-import type { BackupSource } from '@/lib/mapProjects/backups';
+import {
+  type BackupSource,
+  backupRows,
+  deleteBackup,
+  listBackups,
+  loadBackup,
+} from '@/lib/mapProjects/backups';
 import { COLUMN_KEYS, COLUMNS } from '@/lib/mapProjects/columns';
 import { FEED_STATUS_ID, type FeedStatus } from '@/lib/mapProjects/feedStatus';
 import {
@@ -154,6 +160,8 @@ type Action =
   | { action: 'delete'; ids: string[] }
   | { action: 'linkable' }
   | { action: 'link'; project: string; plant: string }
+  | { action: 'backups' }
+  | { action: 'download' | 'delete-backup'; id: string }
   | { action: 'preview'; file: string; hideMissing: boolean }
   | { action: 'sync'; url: string; hideMissing: boolean }
   | {
@@ -208,9 +216,14 @@ function readAction(value: unknown): Action | null {
     action === 'columns' ||
     action === 'status' ||
     action === 'hidden' ||
-    action === 'linkable'
+    action === 'linkable' ||
+    action === 'backups'
   ) {
     return { action };
+  }
+  if (action === 'download' || action === 'delete-backup') {
+    const { id } = value;
+    return isId(id) ? { action, id } : null;
   }
   if (action === 'link') {
     const { project, plant } = value;
@@ -241,16 +254,58 @@ function parseJson(body: Uint8Array): unknown {
   }
 }
 
+const COLUMN_LIST = COLUMN_KEYS.map((key) => ({
+  key,
+  header: COLUMNS[key].header,
+  presence: COLUMNS[key].presence,
+}));
+
 const COLUMNS_REPLY: RouteReply = {
   status: 200,
-  body: {
-    columns: COLUMN_KEYS.map((key) => ({
-      key,
-      header: COLUMNS[key].header,
-      presence: COLUMNS[key].presence,
-    })),
-  },
+  body: { columns: COLUMN_LIST },
 };
+
+const MISSING_BACKUP = errorReply(
+  404,
+  'missing',
+  'That backup no longer exists. Another editor may have deleted it.',
+);
+
+/** The backup's projects as rows of the starter workbook's columns (AC-7.2). */
+async function download(
+  client: MapProjectsClient,
+  id: string,
+): Promise<RouteReply> {
+  const loaded = await loadBackup(client, id);
+  if (!loaded) return MISSING_BACKUP;
+  const { _id, createdAt, source, person, count } = loaded.backup;
+  return {
+    status: 200,
+    body: {
+      backup: { id: _id, createdAt, source, person, count },
+      columns: COLUMN_LIST,
+      rows: backupRows(loaded.projects),
+    },
+  };
+}
+
+async function removeBackup(
+  client: MapProjectsClient,
+  id: string,
+): Promise<RouteReply> {
+  switch (await deleteBackup(client, id)) {
+    case 'deleted':
+      return { status: 200, body: { result: 'deleted', id } };
+    case 'missing':
+      return MISSING_BACKUP;
+    case 'feed':
+      return errorReply(
+        409,
+        'feed-backup',
+        "The feed's backups can't be deleted. Each one goes 90 days after the feed saved it.",
+      );
+  }
+}
 
 /** Whether the starter load ran, and the feed's last file for the two-day warning (AC-4.13). */
 async function readStatus(client: MapProjectsClient): Promise<RouteReply> {
@@ -495,6 +550,12 @@ async function run(
           }),
         ),
       );
+    case 'backups':
+      return { status: 200, body: { backups: await listBackups(client) } };
+    case 'download':
+      return download(client, action.id);
+    case 'delete-backup':
+      return removeBackup(client, action.id);
   }
 }
 

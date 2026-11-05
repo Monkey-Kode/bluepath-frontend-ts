@@ -7,10 +7,14 @@ import {
   BACKUP_PART_TYPE,
   BACKUP_TYPE,
   type BackupSource,
+  backupRows,
+  deleteBackup,
+  listBackups,
   loadBackup,
   pruneBackups,
   saveBackup,
 } from './backups';
+import { COLUMN_KEYS } from './columns';
 import { fakeSanity } from './testing/fakeSanity';
 
 const NOW = new Date('2026-11-04T12:00:00.000Z');
@@ -237,5 +241,219 @@ describe('pruneBackups', () => {
 
     expect(await pruneBackups(sanity, NOW)).toBe(0);
     expect(sanity.transactions).toHaveLength(before);
+  });
+});
+
+describe('listBackups', () => {
+  it('lists each backup newest first with its time, source, person, and count (AC-7.2)', async () => {
+    const sanity = fakeSanity();
+    const older = await save(sanity, { kind: 'feed' }, daysAgo(2));
+    const newest = await save(sanity, { kind: 'link' }, NOW);
+    const middle = await save(
+      sanity,
+      { kind: 'file', name: 'plants.xlsx' },
+      daysAgo(1),
+      [project(1)],
+    );
+
+    expect(await listBackups(sanity)).toEqual([
+      {
+        id: newest,
+        createdAt: NOW.toISOString(),
+        source: { kind: 'link' },
+        person: 'Sadie',
+        count: 2,
+      },
+      {
+        id: middle,
+        createdAt: daysAgo(1).toISOString(),
+        source: { kind: 'file', name: 'plants.xlsx' },
+        person: 'Sadie',
+        count: 1,
+      },
+      {
+        id: older,
+        createdAt: daysAgo(2).toISOString(),
+        source: { kind: 'feed' },
+        person: 'Sadie',
+        count: 2,
+      },
+    ]);
+  });
+
+  it('lists nothing when no backup exists', async () => {
+    expect(await listBackups(fakeSanity([project(1)]))).toEqual([]);
+  });
+});
+
+describe('backupRows', () => {
+  const row = (project: Casestudies) =>
+    Object.fromEntries(
+      COLUMN_KEYS.map((key, index) => [key, backupRows([project])[0][index]]),
+    );
+
+  it("gives each project the starter workbook's columns, in order (AC-7.2)", () => {
+    const merged = project(7, {
+      _id: '0b5e-old-mill',
+      plantName: 'Old Mill Solar',
+      projectId: 'PR-70',
+      projectName: 'Old Mill',
+      projectType: 'Solar',
+      projectStatus: 'Operating',
+      active: true,
+      location: { _type: 'geopoint', lat: 42.6334, lng: -71.3162 },
+      address: '1 Mill St',
+      city: 'Lowell',
+      state: 'Massachusetts',
+      zip: '01852',
+      county: 'Middlesex',
+      entity: ['School', 'Nonprofit'],
+      financing: ['PPA'],
+      size: 1250000,
+      technologies: ['Solar', 'Storage'],
+      websiteId: '0b5e-old-mill',
+      title: 'The old name',
+    });
+
+    expect(backupRows([merged])).toEqual([
+      [
+        'P-7',
+        'Old Mill Solar',
+        'PR-70',
+        'Old Mill',
+        'Solar',
+        'Operating',
+        'Yes',
+        42.6334,
+        -71.3162,
+        '1 Mill St',
+        'Lowell',
+        'Massachusetts',
+        '01852',
+        'Middlesex',
+        'School; Nonprofit',
+        'PPA',
+        1250000,
+        'Solar; Storage',
+        '0b5e-old-mill',
+      ],
+    ]);
+  });
+
+  it('keeps one row per project, in the backup order', () => {
+    const rows = backupRows([project(2), project(1)]);
+
+    expect(rows.map(([plantId]) => plantId)).toEqual(['P-2', 'P-1']);
+    for (const cells of rows) expect(cells).toHaveLength(COLUMN_KEYS.length);
+  });
+
+  it('leaves a blank cell for each missing, empty, or blank value', () => {
+    const sparse = project(3, {
+      plantName: '',
+      projectType: '   ',
+      active: false,
+      location: undefined,
+      entity: [],
+      financing: ['', ' '],
+    });
+
+    expect(row(sparse)).toEqual({
+      ...Object.fromEntries(COLUMN_KEYS.map((key) => [key, null])),
+      plantId: 'P-3',
+      active: 'No',
+    });
+  });
+
+  it('names a project from before the starter load as the starter workbook does (AC-8.3)', () => {
+    const before = project(0, {
+      _id: '7c1d-acorn',
+      plantId: undefined,
+      plantName: undefined,
+      location: undefined,
+      title: 'Acorn School',
+    });
+
+    expect(row(before)).toMatchObject({
+      plantId: null,
+      projectName: 'Acorn School',
+      websiteId: '7c1d-acorn',
+    });
+  });
+
+  it("keeps BlueIQ's blank Project Name and a plant's blank Website ID", () => {
+    expect(row(project(4, { title: 'An old name' }))).toMatchObject({
+      projectName: null,
+      websiteId: null,
+    });
+  });
+
+  it("keeps a website project's own Project Name and Website ID", () => {
+    const after = project(0, {
+      _id: '7c1d-acorn',
+      plantId: undefined,
+      projectName: 'Acorn School',
+      websiteId: '7c1d-acorn',
+      title: 'Acorn School (old)',
+    });
+
+    expect(row(after)).toMatchObject({
+      projectName: 'Acorn School',
+      websiteId: '7c1d-acorn',
+    });
+  });
+});
+
+describe('deleteBackup', () => {
+  it("deletes an editor's backup with all its parts in one transaction (AC-7.4)", async () => {
+    const sanity = fakeSanity([project(1)]);
+    const projects = Array.from({ length: 40 }, (_, n) =>
+      project(n, { content: `Project ${n} `.repeat(20 + n) }),
+    );
+    const kept = await save(sanity, { kind: 'link' }, daysAgo(1));
+    const id = await saveBackup(
+      sanity,
+      {
+        projects,
+        source: { kind: 'file', name: 'plants.xlsx' },
+        person: 'Sadie',
+        now: NOW,
+      },
+      { partChars: 500 },
+    );
+    expect(ofType(sanity, BACKUP_PART_TYPE).length).toBeGreaterThan(2);
+    const before = sanity.transactions.length;
+
+    expect(await deleteBackup(sanity, id)).toBe('deleted');
+
+    expect(sanity.transactions).toHaveLength(before + 1);
+    expect(ofType(sanity, BACKUP_TYPE).map(({ _id }) => _id)).toEqual([kept]);
+    expect(
+      ofType(sanity, BACKUP_PART_TYPE).map(({ backup }) => backup),
+    ).toEqual([kept]);
+    expect(sanity.get('plant-P-1')).toBeDefined();
+  });
+
+  it("keeps the feed's backups, which go after 90 days (AC-7.4)", async () => {
+    const sanity = fakeSanity();
+    const id = await save(sanity, { kind: 'feed' }, NOW);
+    const before = sanity.documents();
+
+    expect(await deleteBackup(sanity, id)).toBe('feed');
+    expect(sanity.documents()).toEqual(before);
+  });
+
+  it.each([
+    ['a backup that does not exist', 'mapProjects.backup.x'],
+    ['a backup part', 'PART'],
+    ['a map project', 'plant-P-1'],
+  ])('deletes nothing for %s', async (_name, target) => {
+    const sanity = fakeSanity([project(1)]);
+    const id = await save(sanity, { kind: 'link' }, NOW);
+    const before = sanity.documents();
+
+    expect(
+      await deleteBackup(sanity, target === 'PART' ? `${id}.0` : target),
+    ).toBe('missing');
+    expect(sanity.documents()).toEqual(before);
   });
 });
