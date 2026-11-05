@@ -19,6 +19,8 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    // Netlify renders dates in UTC. Tests use the same zone on any machine.
+    env: { TZ: 'UTC' },
     setupFiles: ['./vitest.setup.ts'],
     include: ['**/*.test.{ts,tsx}'],
     exclude: ['node_modules/**', '.next/**', '.netlify/**'],
