@@ -1,5 +1,6 @@
 import './globals.css';
 
+import { GoogleTagManager } from '@next/third-parties/google';
 import type { Metadata } from 'next';
 import { Urbanist } from 'next/font/google';
 import { draftMode } from 'next/headers';
@@ -17,6 +18,9 @@ const urbanist = Urbanist({
   variable: '--font-urbanist',
   display: 'swap',
 });
+
+/** BluePath's Google Tag Manager container. It sends page views to Google Analytics 4. */
+const GTM_ID = 'GTM-NBC77994';
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -43,9 +47,13 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const { isEnabled: isDraftMode } = await draftMode();
+  // Only the production deploy reports visits. Deploy previews, local runs, and editors
+  // previewing drafts would otherwise count as visitors.
+  const loadAnalytics = process.env.CONTEXT === 'production' && !isDraftMode;
 
   return (
     <html lang="en" className={urbanist.variable}>
+      {loadAnalytics && <GoogleTagManager gtmId={GTM_ID} />}
       <body>
         {children}
         <Toaster />
