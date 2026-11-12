@@ -118,6 +118,36 @@ describe('tickerEntries (AC-4.7, D-13)', () => {
     expect(new Set(placed).size).toBe(placed.length);
   });
 
+  // BlueIQ's daily file has no Project ID, so a plant added after the starter load lacks one.
+  it('groups plants without a Project ID by their Project Name, but never website projects', () => {
+    const entries = tickerEntries([
+      plant('plant-1', {
+        plantId: '1161',
+        projectId: null,
+        projectName: 'Michigan DNR - 30',
+      }),
+      plant('plant-2', {
+        plantId: '1162',
+        projectId: ' ',
+        projectName: ' michigan  DNR - 30 ',
+      }),
+      plant('plant-3', {
+        plantId: '1163',
+        projectId: 'J-30',
+        projectName: 'Michigan DNR - 30',
+      }),
+      plant('website-1', { projectId: null, projectName: 'Michigan DNR - 30' }),
+      plant('plant-4', { plantId: '1164', projectId: null, projectName: null }),
+    ]);
+
+    expect(entries.map(({ key, ids }) => ({ key, ids }))).toEqual([
+      { key: 'name:michigan dnr - 30', ids: ['plant-1', 'plant-2'] },
+      { key: 'project:J-30', ids: ['plant-3'] },
+      { key: 'document:website-1', ids: ['website-1'] },
+      { key: 'document:plant-4', ids: ['plant-4'] },
+    ]);
+  });
+
   it('keeps a Project ID apart from a document ID with the same text', () => {
     const entries = tickerEntries([
       plant('P-100', { projectId: null }),

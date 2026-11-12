@@ -8,12 +8,16 @@ import { clean, distinct, isShown, type MapProject } from './display';
 
 export interface TickerProject extends MapProject {
   _id: string;
+  plantId?: string | null;
   projectId?: string | null;
   address?: string | null;
 }
 
 export interface TickerEntry {
-  /** The shared Project ID, or the project's own document ID when it has none. */
+  /**
+   * The shared Project ID. A plant without one uses its Project Name, because BlueIQ's daily file
+   * has no Project ID (D-44). A website project without one uses its own document ID.
+   */
   key: string;
   /** The document ID of every project in the entry. */
   ids: string[];
@@ -56,14 +60,21 @@ function entryOf(key: string, projects: TickerProject[]): TickerEntry {
   };
 }
 
+function keyOf(project: TickerProject) {
+  const projectId = clean(project.projectId);
+  if (projectId) return `project:${projectId}`;
+  const projectName = clean(project.projectName).toLowerCase();
+  if (clean(project.plantId) && projectName) return `name:${projectName}`;
+  return `document:${project._id}`;
+}
+
 /** One entry per shown project, in the order that each project first appears (AC-4.7). */
 export function tickerEntries(
   projects: readonly TickerProject[],
 ): TickerEntry[] {
   const groups = new Map<string, TickerProject[]>();
   for (const project of projects.filter(isShown)) {
-    const projectId = clean(project.projectId);
-    const key = projectId ? `project:${projectId}` : `document:${project._id}`;
+    const key = keyOf(project);
     groups.set(key, [...(groups.get(key) ?? []), project]);
   }
   return [...groups].map(([key, members]) => entryOf(key, members));

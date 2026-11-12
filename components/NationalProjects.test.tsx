@@ -132,6 +132,7 @@ const blank: MapProject = {
   _id: '',
   id: '',
   title: null,
+  plantId: null,
   plantName: null,
   projectName: null,
   projectId: null,
