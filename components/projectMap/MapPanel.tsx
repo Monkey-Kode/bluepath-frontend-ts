@@ -16,10 +16,10 @@ interface MapPanelProps {
 }
 
 /**
- * The panel on the map (FR-004, FR-006). It keeps one live region through every switch, so screen
- * readers hear each change (AC-2.7, AC-2.8). It sits apart from the key and the legend, so its
- * size never moves them. A long project scrolls inside it. The panel takes focus, so a keyboard
- * user can scroll it too (WCAG 2.1.1). With nothing to show, it has no size.
+ * The panel above the key and the legend (FR-004, FR-006). It keeps one live region through every
+ * switch, so screen readers hear each change (AC-2.7, AC-2.8). It grows upward over the map, so
+ * the legend never moves. With nothing to show, it takes no room. A long project scrolls inside
+ * it. The panel takes focus, so a keyboard user can scroll it too (WCAG 2.1.1).
  */
 export default function MapPanel({
   view,
@@ -38,7 +38,7 @@ export default function MapPanel({
       data-view={view.kind}
       className={twMerge(
         MAP_OVERLAY,
-        'max-h-[35svh] w-full overflow-y-auto p-3 text-center text-gray-3 text-sm tablet:text-base empty:p-0 empty:shadow-none empty:backdrop-blur-none tablet:max-h-80 tablet:max-w-sm tablet:text-left empty:bg-transparent',
+        'max-h-[35svh] w-full overflow-y-auto p-3 text-center text-gray-3 text-sm tablet:w-xl tablet:max-w-full tablet:text-base empty:bg-transparent empty:p-0 empty:shadow-none empty:backdrop-blur-none',
         // On a phone, the resting prompt would cover the map, so only screen readers get it.
         'max-tablet:data-[view=resting]:bg-transparent max-tablet:data-[view=resting]:p-0 max-tablet:data-[view=resting]:shadow-none max-tablet:data-[view=resting]:backdrop-blur-none',
         className,
@@ -72,7 +72,7 @@ function ProjectDetails({ project }: { project: MapProject }) {
       <p className="font-semibold text-blue text-h4">{name}</p>
       {projectName && <p className="text-fine">{projectName}</p>}
       {/* The fields wrap and center, one "Label: value" pair at a time, as in the design. */}
-      <dl className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-1 text-fine tablet:justify-start">
+      <dl className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-1 text-fine">
         {fields.map(({ label, value }) => (
           <div key={label} className="flex gap-1">
             <dt className="text-legend after:content-[':']">{label}</dt>
@@ -94,7 +94,7 @@ function CategoryDetails({
   const text = description?.trim();
   return (
     <>
-      <p className="flex items-center justify-center gap-2 font-semibold text-blue text-h4 tablet:justify-start">
+      <p className="flex items-center justify-center gap-2 font-semibold text-blue text-h4">
         <Swatch category={category} />
         {CATEGORY_BY_KEY[category].label}
       </p>

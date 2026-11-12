@@ -176,6 +176,16 @@ describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
     expect(InfoWindow).not.toHaveBeenCalled();
   });
 
+  it('puts the panel right after the legend, so Tab goes from a legend entry to its description (AC-2.8)', async () => {
+    const user = userEvent.setup();
+    await show();
+    await user.click(legendEntry('Battery'));
+    // Battery is the legend's last entry.
+    await user.tab();
+
+    expect(panel()).toHaveFocus();
+  });
+
   it('filters by a legend category and shows its description', async () => {
     const user = userEvent.setup();
     await show();

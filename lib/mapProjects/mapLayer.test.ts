@@ -131,7 +131,7 @@ let element: HTMLElement;
 const onPickMarker = vi.fn();
 const onClickMap = vi.fn();
 
-/** The search and the panel cover the top, and the key and the legend the bottom. */
+/** The search covers the top, and the key, the legend, and the panel the bottom. */
 const OPEN: Padding = { top: 120, right: 16, bottom: 110, left: 16 };
 let padding = OPEN;
 let size = { width: 1440, height: 780 };
@@ -431,7 +431,30 @@ describe('the map (AC-2.9, AC-2.10)', () => {
     for (const place of Object.values(places)) {
       expect(holds(region, place)).toBe(true);
     }
-    expect(holds(region, { lat: 48.9, lng: 2.35 })).toBe(false);
+    // Beijing stays outside, so the region doesn't wrap the whole world.
+    expect(holds(region, { lat: 39.9, lng: 116.4 })).toBe(false);
+  });
+
+  it.each([
+    { width: 1280, height: 600 },
+    // A 1440 px window with the map at its 30rem minimum height.
+    { width: 1440, height: 480 },
+  ])('leaves the first view room inside the region on a short, wide $width×$height map', (short) => {
+    // The search at the top and the resting prompt, key, and legend at the bottom leave a low,
+    // wide open area. A region that is too narrow makes Google clamp the first view, and the UI
+    // covers part of the lower 48.
+    size = short;
+    padding = { top: 102, right: 16, bottom: 156, left: 16 };
+    create();
+    const region = fake.map().options.restriction
+      ?.latLngBounds as google.maps.LatLngBoundsLiteral;
+    const { lat } = camera().center;
+    // The region's edges lie at or past the screen's sides. It crosses the antimeridian, so its
+    // west edge counts from 360 degrees back.
+    const west = screenPoint({ lat, lng: region.west - 360 }, camera(), size);
+    const east = screenPoint({ lat, lng: region.east }, camera(), size);
+    expect(west.x).toBeLessThanOrEqual(0);
+    expect(east.x).toBeGreaterThanOrEqual(size.width);
   });
 });
 

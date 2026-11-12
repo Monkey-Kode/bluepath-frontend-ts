@@ -169,7 +169,9 @@ function Projects({
     <section
       id={page.id}
       className={twMerge(
-        'relative h-svh min-h-[32rem] w-full',
+        // From 800 px, the map always holds the stacked UI and some open map. A shorter screen
+        // scrolls the page instead (AC-2.9).
+        'relative h-svh min-h-[32rem] w-full tablet:min-h-[calc(var(--header-height,100px)+30rem)]',
         // Off home (/projects), the map starts under the fixed header. A home box needs no offset.
         !fullHeight && 'pt-[var(--header-height,100px)]',
       )}
@@ -177,35 +179,41 @@ function Projects({
       <div className="relative size-full">
         <div ref={mapRef} data-map-root className="absolute inset-0" />
         {/*
-         * The UI sits on top of the map in a grid that lets clicks through its gaps. Below 800 px,
-         * the search runs across the top and the rest stacks at the bottom, clear of Google's zoom
-         * buttons in the right column. From 800 px, the
-         * search sits top right, the key bottom left, and the legend bottom center, as in the
-         * design. The panel sits under the search until 1280 px, then beside it. The bottom row
-         * clears Google's logo and attribution (AC-2.9).
+         * The UI sits on top of the map in a grid that lets clicks through its gaps. The search
+         * sits at the top, full width below 800 px and top right from 800 px. The panel, the key,
+         * and the legend stack at the bottom. The panel sits above them and grows up over the map,
+         * so the legend never moves and the panel needs no reserved height. Below 800 px, the parts
+         * stay clear of Google's zoom buttons in the right column. From 1280 px, the key moves
+         * beside the panel and the legend, to leave the map more height. The bottom row clears
+         * Google's logo and attribution (AC-2.9).
          */}
         <div
           ref={overlayRef}
-          className="pointer-events-none absolute inset-0 grid grid-cols-[minmax(0,1fr)_2.75rem] grid-rows-[auto_1fr_auto_auto_auto] gap-2 p-3 pb-8 [grid-template-areas:'search_search'_'._.'_'panel_.'_'key_.'_'legend_.'] tablet:grid-cols-[minmax(0,1fr)_auto] tablet:gap-3 tablet:grid-rows-[auto_auto_1fr_auto_auto] tablet:p-4 tablet:pb-8 tablet:[grid-template-areas:'._search'_'panel_.'_'._.'_'key_.'_'legend_legend'] xl:grid-rows-[auto_1fr_auto_auto] xl:[grid-template-areas:'panel_search'_'._.'_'key_.'_'legend_legend']"
+          className="pointer-events-none absolute inset-0 grid grid-cols-[minmax(0,1fr)_2.75rem] grid-rows-[auto_1fr_auto_auto_auto] gap-2 p-3 pb-8 [grid-template-areas:'search_search'_'._.'_'panel_.'_'key_.'_'legend_.'] tablet:grid-cols-[minmax(0,1fr)_auto] tablet:gap-3 tablet:p-4 tablet:pb-8 tablet:[grid-template-areas:'._search'_'._.'_'panel_panel'_'key_.'_'legend_legend'] xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:grid-rows-[auto_1fr_auto_auto] xl:[grid-template-areas:'._search_search'_'._._.'_'key_panel_.'_'key_legend_.']"
         >
           <MapSearch
             projects={casestudies}
             onPickProject={pickResult}
             outlines={outlines}
             onFocus={setTarget}
-            className="pointer-events-auto [grid-area:search] tablet:justify-self-end"
+            // The results list hangs over the legend and the panel, so the search draws above them.
+            className="pointer-events-auto z-10 [grid-area:search] tablet:justify-self-end"
           />
-          <MapPanel
-            view={view}
-            project={picked}
-            copy={projectMap}
-            className="pointer-events-auto [grid-area:panel] tablet:justify-self-start"
-          />
-          <MapKey className="pointer-events-auto [grid-area:key] justify-self-start" />
+          <MapKey className="pointer-events-auto [grid-area:key] justify-self-start xl:self-end" />
           <MapLegend
             selection={selection}
             onPick={(category) => dispatch({ type: 'pickLegend', category })}
             className="pointer-events-auto [grid-area:legend] justify-self-center"
+          />
+          {/*
+           * The panel sits above the legend but follows it in the page, so Tab moves from a legend
+           * entry to its description.
+           */}
+          <MapPanel
+            view={view}
+            project={picked}
+            copy={projectMap}
+            className="pointer-events-auto [grid-area:panel] justify-self-center"
           />
         </div>
       </div>

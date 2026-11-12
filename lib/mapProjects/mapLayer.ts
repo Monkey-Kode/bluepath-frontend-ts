@@ -77,13 +77,16 @@ const LOWER_48: google.maps.LatLngBoundsLiteral = {
  * Panning and zooming stay inside this region (AC-2.10). Alaska's Aleutians cross the
  * antimeridian, so west is greater than east. The mask reaches past every edge, so the white
  * surround never ends. The south edge leaves room to center the lower 48 above a phone's legend,
- * where the map's middle sits far south of the lower 48.
+ * where the map's middle sits far south of the lower 48. The east and west edges sit about 114
+ * degrees either side of the lower 48's middle. That leaves room for a wide, short open area,
+ * such as a 1440 px window with the map at its minimum height. A narrower region makes Google
+ * clamp the first view, and the UI covers part of the lower 48.
  */
 const US_REGION: google.maps.LatLngBoundsLiteral = {
   south: -35,
   west: 150,
   north: 80,
-  east: -40,
+  east: 18,
 };
 
 const SURROUND = '#ffffff';
