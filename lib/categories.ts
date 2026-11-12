@@ -26,12 +26,15 @@ export const CATEGORY_BY_KEY = Object.fromEntries(
 const normalize = (value: string) =>
   value.trim().replace(/\s+/g, ' ').toLowerCase();
 
+/** BlueIQ's older names from the starter workbook, then its names in the daily file (D-44). */
 const PROJECT_TYPES = new Map<string, CategoryKey>([
   ['energy efficiency', 'energyEfficiency'],
   ['solar', 'solar'],
   ['solar + ev', 'solar'],
   ['solar + bess', 'solarBess'],
   ['bess', 'bess'],
+  ['solar + battery', 'solarBess'],
+  ['battery', 'bess'],
 ]);
 
 const SOLAR = /\bsolar\b/;

@@ -30,6 +30,9 @@ describe('categoryOf (AC-2.11)', () => {
     ['Solar + BESS', 'solarBess'],
     ['BESS', 'bess'],
     ['Solar + EV', 'solar'],
+    // BlueIQ's names in its final file (D-44).
+    ['Solar + Battery', 'solarBess'],
+    ['battery', 'bess'],
   ])('maps Project Type %s to %s', (projectType, key) => {
     expect(categoryOf({ projectType })).toBe(key);
   });
