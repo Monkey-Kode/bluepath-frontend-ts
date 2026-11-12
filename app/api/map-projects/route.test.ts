@@ -21,7 +21,12 @@ import {
   type BackupSource,
   saveBackup,
 } from '@/lib/mapProjects/backups';
-import { COLUMN_KEYS, COLUMNS } from '@/lib/mapProjects/columns';
+import {
+  COLUMN_KEYS,
+  COLUMNS,
+  IMPORT_KEYS,
+  importHeaderOf,
+} from '@/lib/mapProjects/columns';
 import { FEED_STATUS_ID } from '@/lib/mapProjects/feedStatus';
 import { LOCK_ID } from '@/lib/mapProjects/lock';
 import { MAX_FILE_BYTES } from '@/lib/mapProjects/parseCsv';
@@ -66,7 +71,9 @@ const plant = (
   _type: 'casestudies',
   plantId: `P-${n}`,
   plantName: `Plant ${n}`,
+  projectName: `Plant ${n}`,
   projectType: 'Solar',
+  active: true,
   ...fields,
 });
 
@@ -80,21 +87,24 @@ const PROJECTS = [
 
 const ROWS: Cells[] = [
   // Row 2 renames P-1 to the file-only text.
-  { plantId: 'P-1', plantName: FILE_TEXT, projectType: 'Solar' },
-  { plantId: 'P-2', plantName: 'Plant 2', projectType: 'Solar' },
-  { plantId: 'P-4', plantName: 'Plant 4', projectType: 'Solar' },
-  { plantId: 'P-6', plantName: 'Plant 6', projectType: 'Wind' },
-  { plantId: 'P-7', plantName: 'Plant 7', projectType: 'Solar', size: 'lots' },
+  { plantId: 'P-1', projectName: FILE_TEXT, projectType: 'Solar' },
+  { plantId: 'P-2', projectName: 'Plant 2', projectType: 'Solar' },
+  { plantId: 'P-4', projectName: 'Plant 4', projectType: 'Solar' },
+  { plantId: 'P-6', projectName: 'Plant 6', projectType: 'Wind' },
+  {
+    plantId: 'P-7',
+    projectName: 'Plant 7',
+    projectType: 'Solar',
+    sizeMw: 'lots',
+  },
 ];
 const FILE = new TextDecoder().decode(csv(...ROWS));
 
-/** A file with every required column but State. */
-const FILE_WITHOUT_STATE = (() => {
-  const keys = COLUMN_KEYS.filter(
-    (key) => COLUMNS[key].presence !== 'starter' && key !== 'state',
-  );
+/** A file with every import column but Project Name. */
+const FILE_WITHOUT_NAME = (() => {
+  const keys = IMPORT_KEYS.filter((key) => key !== 'projectName');
   return [
-    keys.map((key) => COLUMNS[key].header).join(','),
+    keys.map(importHeaderOf).join(','),
     keys.map((key) => (key === 'plantId' ? 'P-1' : 'x')).join(','),
   ].join('\r\n');
 })();
@@ -451,9 +461,9 @@ describe('POST /api/map-projects/ checks', () => {
 
   it('takes a 5 MB file whose JSON is twice as long', async () => {
     // Each quote in a cell doubles in the CSV and again in the JSON.
-    const plantName = '"'.repeat(MAX_FILE_BYTES / 2 - 1000);
+    const projectName = '"'.repeat(MAX_FILE_BYTES / 2 - 1000);
     const file = new TextDecoder().decode(
-      csv({ plantId: 'P-1', plantName, projectType: 'Solar' }),
+      csv({ plantId: 'P-1', projectName, projectType: 'Solar' }),
     );
     expect(file.length).toBeLessThanOrEqual(MAX_FILE_BYTES);
     const body = JSON.stringify({
@@ -466,7 +476,7 @@ describe('POST /api/map-projects/ checks', () => {
     const reply = await post(body);
 
     expect(reply.status).toBe(200);
-    expect(reply.body.plan.rows[0].changes).toEqual({ plantName });
+    expect(reply.body.plan.rows[0].changes).toEqual({ projectName });
   });
 
   it('refuses a body that is not JSON with 415 and leaves its proof alone', async () => {
@@ -544,15 +554,33 @@ describe('POST /api/map-projects/ checks', () => {
 });
 
 describe('the columns action', () => {
-  it('lists the template columns in order with their presence (AC-4.1)', async () => {
+  it("lists BlueIQ's 7 columns first, in the file's order, as required (AC-4.1, D-44)", async () => {
     const reply = await post({ action: 'columns' });
 
     expect(reply.status).toBe(200);
-    expect(reply.body.columns).toEqual(
-      COLUMN_KEYS.map((key) => ({
+    const { columns } = reply.body;
+    expect(columns.slice(0, 7)).toEqual(
+      [
+        ['plantId', 'Plant ID'],
+        ['latitude', 'Latitude'],
+        ['longitude', 'Longitude'],
+        ['financingAmount', 'Financing Amount ($)'],
+        ['sizeMw', 'Size (MWdc)'],
+        ['projectType', 'Technology / Project Type'],
+        ['projectName', 'Project Name'],
+      ].map(([key, header]) => ({ key, header, presence: 'required' })),
+    );
+    // The rest name the fields a starter preview or a restore can change.
+    expect(columns.slice(7)).toEqual(
+      COLUMN_KEYS.filter(
+        (key) =>
+          !columns
+            .slice(0, 7)
+            .some((column: { key: string }) => column.key === key),
+      ).map((key) => ({
         key,
         header: COLUMNS[key].header,
-        presence: COLUMNS[key].presence,
+        presence: 'starter',
       })),
     );
   });
@@ -625,7 +653,7 @@ describe('the preview action', () => {
       'create',
       'error',
     ]);
-    expect(plan.rows[0].changes).toEqual({ plantName: FILE_TEXT });
+    expect(plan.rows[0].changes).toEqual({ projectName: FILE_TEXT });
     expect(plan.rows[2].returns).toBe(true);
     expect(plan.rows[4].errors).toEqual([
       expect.objectContaining({ reason: 'bad-size' }),
@@ -657,13 +685,13 @@ describe('the preview action', () => {
   it('names a missing column and writes nothing (AC-4.2, AC-4.8)', async () => {
     const reply = await post({
       action: 'preview',
-      file: FILE_WITHOUT_STATE,
+      file: FILE_WITHOUT_NAME,
       hideMissing: true,
     });
 
     expect(reply.status).toBe(422);
     expect(reply.body.error).toBe('missing-columns');
-    expect(reply.body.message).toContain('State');
+    expect(reply.body.message).toContain('Project Name');
     expect(wroteBeyondProofs()).toBe(false);
   });
 
@@ -682,7 +710,7 @@ describe('the preview action', () => {
   it('rejects a file with no valid rows and shows its plan', async () => {
     const reply = await post({
       action: 'preview',
-      file: new TextDecoder().decode(csv({ plantName: 'No ID' })),
+      file: new TextDecoder().decode(csv({ projectName: 'No ID' })),
       hideMissing: true,
     });
 
@@ -737,7 +765,7 @@ describe('the apply action', () => {
       },
       backupId: expect.stringMatching(/^mapProjects\.backup\./),
     });
-    expect(sanity.get('plant-P-1')).toMatchObject({ plantName: FILE_TEXT });
+    expect(sanity.get('plant-P-1')).toMatchObject({ projectName: FILE_TEXT });
     expect(sanity.get('plant-P-3')).toMatchObject({
       hiddenAt: NOW.toISOString(),
     });
@@ -879,7 +907,7 @@ describe('the apply action', () => {
   it('names the reason when the file is rejected', async () => {
     const reply = await post({
       action: 'apply',
-      file: FILE_WITHOUT_STATE,
+      file: FILE_WITHOUT_NAME,
       hideMissing: true,
       token: 'any',
       source: fileSource,
@@ -1469,10 +1497,12 @@ describe('the download action', () => {
       person: PERSON,
       count: 4,
     });
-    expect(reply.body.columns).toEqual(
-      COLUMN_KEYS.map((key) => ({ key, ...COLUMNS[key] })),
+    // Each header sits above its own cells, in the full layout's order.
+    const headers = reply.body.columns.map(
+      ({ header }: { header: string }) => header,
     );
-    const plantIds = COLUMN_KEYS.indexOf('plantId');
+    expect(headers).toEqual(COLUMN_KEYS.map((key) => COLUMNS[key].header));
+    const plantIds = headers.indexOf('Plant ID');
     expect(reply.body.rows.map((row: unknown[]) => row[plantIds])).toEqual([
       'P-1',
       'P-2',
@@ -2059,13 +2089,13 @@ describe('the sync action', () => {
   });
 
   it('names a missing column in the sheet (AC-4.8)', async () => {
-    sheets(() => csvReply(FILE_WITHOUT_STATE));
+    sheets(() => csvReply(FILE_WITHOUT_NAME));
 
     const reply = await sync(SHEET_URL);
 
     expect(reply.status).toBe(422);
     expect(reply.body.error).toBe('missing-columns');
-    expect(reply.body.message).toContain('State');
+    expect(reply.body.message).toContain('Project Name');
     // Only a ready preview carries the file for the pane to apply.
     expect(reply.body).not.toHaveProperty('file');
   });

@@ -17,7 +17,11 @@ import {
 } from 'vitest';
 
 import { BACKUP_PART_TYPE } from '@/lib/mapProjects/backups';
-import { COLUMN_KEYS, COLUMNS } from '@/lib/mapProjects/columns';
+import {
+  type ColumnKey,
+  IMPORT_KEYS,
+  importHeaderOf,
+} from '@/lib/mapProjects/columns';
 import { FEED_STATUS_ID } from '@/lib/mapProjects/feedStatus';
 import { LOCK_ID } from '@/lib/mapProjects/lock';
 import { MAX_FILE_BYTES } from '@/lib/mapProjects/parseCsv';
@@ -54,8 +58,9 @@ const plant = (
   _id: `plant-P-${n}`,
   _type: 'casestudies',
   plantId: `P-${n}`,
-  plantName: `Plant ${n}`,
+  projectName: `Plant ${n}`,
   projectType: 'Solar',
+  active: true,
   ...fields,
 });
 
@@ -72,23 +77,26 @@ const WEBSITE_ONLY: FakeDocument = {
 
 const ROWS: Cells[] = [
   // Row 2 renames P-1 to the file-only text.
-  { plantId: 'P-1', plantName: FILE_TEXT, projectType: 'Solar' },
-  { plantId: 'P-2', plantName: 'Plant 2', projectType: 'BESS' },
-  { plantId: 'P-6', plantName: 'Plant 6', projectType: 'Wind' },
-  { plantId: 'P-7', plantName: 'Plant 7', projectType: 'Solar', size: 'lots' },
+  { plantId: 'P-1', projectName: FILE_TEXT, projectType: 'Solar' },
+  { plantId: 'P-2', projectName: 'Plant 2', projectType: 'Battery' },
+  { plantId: 'P-6', projectName: 'Plant 6', projectType: 'Wind' },
+  {
+    plantId: 'P-7',
+    projectName: 'Plant 7',
+    projectType: 'Solar',
+    sizeMw: 'lots',
+  },
   // Row 6's Plant ID is not valid, so the reply must not repeat it.
-  { plantId: FILE_TEXT, plantName: 'Plant 8', projectType: 'Solar' },
-  { plantName: 'Plant 9', projectType: 'Solar' },
+  { plantId: FILE_TEXT, projectName: 'Plant 8', projectType: 'Solar' },
+  { projectName: 'Plant 9', projectType: 'Solar' },
 ];
 const FILE = csv(...ROWS);
 
-/** A file with every required column but `key`. */
-function csvWithout(key: string, row: Record<string, string>) {
-  const keys = COLUMN_KEYS.filter(
-    (column) => COLUMNS[column].presence !== 'starter' && column !== key,
-  );
+/** A file with every import column but `key`. */
+function csvWithout(key: ColumnKey, row: Partial<Record<ColumnKey, string>>) {
+  const keys = IMPORT_KEYS.filter((column) => column !== key);
   return [
-    keys.map((column) => COLUMNS[column].header).join(','),
+    keys.map(importHeaderOf).join(','),
     keys.map((column) => row[column] ?? '').join(','),
   ].join('\r\n');
 }
@@ -236,6 +244,69 @@ describe('POST /api/blueiq/plants/', () => {
     ]);
     expect(sanity.get('plant-P-3')?.hiddenAt).toBe(NOW.toISOString());
     expect(sanity.get(LOCK_ID)).toBeUndefined();
+  });
+
+  // The shape of Jason's sample from Nov 12: his header row, the placeholder in Financing
+  // Amount, a quoted name with a comma, blank sizes, and the new type names (D-44).
+  const SAMPLE = [
+    'Plant ID,Latitude,Longitude,Financing Amount ($),Size (MWdc),Technology / Project Type,Project Name',
+    'P-1,42.293300,-71.204700,needs to be decided with BluePath,,Solar,111 Wells',
+    'P-2,34.938369,-91.251852,needs to be decided with BluePath,0.8132,Solar + Battery,"City of Brinkley, AR Water"',
+    'P-3,40.564622,-74.156000,needs to be decided with BluePath,5.0000,Battery,ESS-NY2 Arthur Kill (NLE)',
+  ].join('\r\n');
+
+  it("applies a file shaped like BlueIQ's sample, and skips no row for the placeholder (D-44)", async () => {
+    const reply = await post(SAMPLE);
+
+    expect(reply.status).toBe(200);
+    expect(reply.body).toEqual({
+      result: 'applied',
+      counts: {
+        created: 0,
+        updated: 3,
+        unchanged: 0,
+        skipped: 0,
+        hidden: 0,
+        returned: 0,
+      },
+      skipped: [],
+    });
+    expect(projects()).toEqual([
+      expect.objectContaining({
+        _id: 'plant-P-1',
+        projectName: '111 Wells',
+        projectType: 'Solar',
+        active: true,
+        location: { _type: 'geopoint', lat: 42.2933, lng: -71.2047 },
+      }),
+      expect.objectContaining({
+        _id: 'plant-P-2',
+        projectName: 'City of Brinkley, AR Water',
+        projectType: 'Solar + Battery',
+        sizeMw: 0.8132,
+      }),
+      expect.objectContaining({
+        _id: 'plant-P-3',
+        projectType: 'Battery',
+        sizeMw: 5,
+      }),
+    ]);
+    for (const project of projects()) {
+      expect(project).not.toHaveProperty('financingAmount');
+    }
+  });
+
+  // Numbers on a Mac puts the table's name above the headers when it exports.
+  it("replies 422 naming BlueIQ's 7 columns when a title line sits above the headers", async () => {
+    const reply = await post(`bluepath-website-map-sample\r\n${SAMPLE}`);
+
+    expect(reply.status).toBe(422);
+    expect(reply.body).toEqual({
+      error: 'missing-columns',
+      message:
+        'The file is missing these columns: Plant ID, Latitude, Longitude, Financing Amount ($), Size (MWdc), Technology / Project Type, Project Name.',
+    });
+    expect(touchesProjects()).toBe(false);
   });
 
   it("records the reply as the feed's last file, with the time it was accepted (AC-4.13)", async () => {
@@ -410,14 +481,12 @@ describe('POST /api/blueiq/plants/', () => {
   });
 
   it('replies 422 naming a missing column, and the status shows it (AC-4.10, AC-4.13)', async () => {
-    const reply = await post(
-      csvWithout('state', { plantId: 'P-1', plantName: 'x' }),
-    );
+    const reply = await post(csvWithout('projectName', { plantId: 'P-1' }));
 
     expect(reply.status).toBe(422);
     expect(reply.body).toEqual({
       error: 'missing-columns',
-      message: 'The file is missing these columns: State.',
+      message: 'The file is missing these columns: Project Name.',
     });
     expect(status()).toMatchObject({
       last: { status: 422, reply: reply.body },

@@ -42,17 +42,14 @@ const LINCOLN: FakeDocument = {
   size: 1200000,
 };
 
-/** Lincoln's row renames the plant, clears its status, and leaves Entity Type and Size blank. */
+/** Lincoln's row renames the project and adds a size. The fields it doesn't send stay. */
 const LINCOLN_ROW: Cells = {
   plantId: 'P-1',
-  plantName: 'Lincoln Solar Farm',
-  projectName: 'Lincoln Schools',
+  projectName: 'Lincoln Schools District',
   projectType: 'Solar',
-  active: 'Yes',
   latitude: '40.8',
   longitude: '-96.7',
-  city: 'Lincoln',
-  state: 'NE',
+  sizeMw: '0.8',
 };
 
 /** A website project that the starter load merged with plant P-2. */
@@ -70,8 +67,17 @@ const NEWTON: FakeDocument = {
   entity: ['Commercial'],
 };
 
-/** Newton's row adds a status and gives BlueIQ's own address, which a merged project ignores. */
+/** Newton's row uses BlueIQ's new type name. A listed plant counts as active. */
 const NEWTON_ROW: Cells = {
+  plantId: 'P-2',
+  projectName: '111 Wells',
+  projectType: 'Solar + Battery',
+  latitude: '42.33',
+  longitude: '-71.2',
+};
+
+/** The starter workbook's row for Newton, with the Sept 29 columns. */
+const NEWTON_STARTER_ROW: Cells = {
   plantId: 'P-2',
   plantName: 'Wells Solar',
   projectType: 'Solar + BESS',
@@ -89,7 +95,9 @@ const OMAHA: FakeDocument = {
   _type: 'casestudies',
   plantId: 'P-3',
   plantName: 'Omaha Storage',
+  projectName: 'Omaha Storage',
   projectType: 'BESS',
+  active: true,
   location: { _type: 'geopoint', lat: 41.25, lng: -96 },
   entity: ['Utility'],
   hiddenAt: '2026-10-01T00:00:00.000Z',
@@ -97,7 +105,7 @@ const OMAHA: FakeDocument = {
 
 const OMAHA_ROW: Cells = {
   plantId: 'P-3',
-  plantName: 'Omaha Storage',
+  projectName: 'Omaha Storage',
   projectType: 'BESS',
   latitude: '41.25',
   longitude: '-96',
@@ -122,8 +130,19 @@ const LIBRARY: FakeDocument = {
   projectName: 'Old Library',
 };
 
-/** A new plant. Active is No, which a write must keep as false. */
+/** A new plant. Its Financing Amount holds the sample file's placeholder text. */
 const HASTINGS_ROW: Cells = {
+  plantId: 'P-5',
+  projectName: 'Hastings Solar',
+  projectType: 'Solar',
+  latitude: '40.58',
+  longitude: '-98.39',
+  sizeMw: '2.5',
+  financingAmount: 'needs to be decided with BluePath',
+};
+
+/** The starter workbook's row for Hastings. Active is No, which a write must keep as false. */
+const HASTINGS_STARTER_ROW: Cells = {
   plantId: 'P-5',
   plantName: 'Hastings Solar',
   projectType: 'Solar',
@@ -210,25 +229,27 @@ describe('applyImport', () => {
       },
       problems: [],
     });
-    const { projectStatus: _cleared, ...lincoln } = LINCOLN;
     expect(withoutRev(projects(sanity))).toEqual(
       withoutRev([
-        { ...NEWTON, projectStatus: 'Operating' },
+        {
+          ...NEWTON,
+          projectName: '111 Wells',
+          projectType: 'Solar + Battery',
+          active: true,
+        },
         LIBRARY,
-        { ...lincoln, plantName: 'Lincoln Solar Farm' },
+        { ...LINCOLN, projectName: 'Lincoln Schools District', sizeMw: 0.8 },
         (({ hiddenAt: _returned, ...omaha }) => omaha)(OMAHA),
         { ...KEARNEY, hiddenAt: NOW.toISOString() },
         {
           _id: 'plant-P-5',
           _type: 'casestudies',
           plantId: 'P-5',
-          plantName: 'Hastings Solar',
+          projectName: 'Hastings Solar',
           projectType: 'Solar',
-          active: false,
+          active: true,
           location: { _type: 'geopoint', lat: 40.58, lng: -98.39 },
-          state: 'Nebraska',
-          size: 2500,
-          technologies: ['Solar PV', 'Battery Storage'],
+          sizeMw: 2.5,
         },
       ]),
     );
@@ -321,7 +342,9 @@ describe('applyImport', () => {
       (caught) => caught,
     );
     expect(error).toMatchObject({ stage: 'write' });
-    expect(sanity.get('plant-P-1')?.plantName).toBe('Lincoln Solar Farm');
+    expect(sanity.get('plant-P-1')?.projectName).toBe(
+      'Lincoln Schools District',
+    );
     expect(sanity.get('plant-P-5')).toBeUndefined();
     expect(sanity.get(LOCK_ID)).toBeUndefined();
 
@@ -337,7 +360,7 @@ describe('applyImport', () => {
   it('writes in a few large transactions (NFR-005)', async () => {
     const rows = Array.from({ length: 500 }, (_, n) => ({
       plantId: `N-${n}`,
-      plantName: `Plant ${n}`,
+      projectName: `Plant ${n}`,
     }));
     const sanity = fakeSanity(PROJECTS);
 
@@ -642,7 +665,7 @@ describe('starter load (AC-8.7)', () => {
   /** Merges Wells with plant P-2, keeps the library, and adds plant P-5. */
   const WORKBOOK = starterCsv(
     {
-      ...NEWTON_ROW,
+      ...NEWTON_STARTER_ROW,
       websiteId: '0b5e-newton',
       projectName: '111 Wells',
       address: '111 Wells Ave',
@@ -654,7 +677,7 @@ describe('starter load (AC-8.7)', () => {
       projectName: 'Old Library',
       technologies: 'LED Lighting',
     },
-    HASTINGS_ROW,
+    HASTINGS_STARTER_ROW,
   );
 
   const load = (
@@ -788,7 +811,10 @@ describe('starter load (AC-8.7)', () => {
       await applyStarterLoad(sanity, load('any', { file: FILE })),
     ).toMatchObject({
       status: 'unreadable',
-      error: { reason: 'missing-columns', headers: ['Website ID'] },
+      error: {
+        reason: 'missing-columns',
+        headers: expect.arrayContaining(['Plant Name', 'Website ID']),
+      },
     });
   });
 

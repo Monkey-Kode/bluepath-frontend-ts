@@ -18,7 +18,13 @@ import {
   listedBackup,
   loadBackup,
 } from '@/lib/mapProjects/backups';
-import { COLUMN_KEYS, COLUMNS } from '@/lib/mapProjects/columns';
+import {
+  COLUMN_KEYS,
+  COLUMNS,
+  type ColumnKey,
+  IMPORT_KEYS,
+  importHeaderOf,
+} from '@/lib/mapProjects/columns';
 import { FEED_STATUS_ID, type FeedStatus } from '@/lib/mapProjects/feedStatus';
 import {
   type LinkResult,
@@ -291,16 +297,36 @@ function parseJson(body: Uint8Array): unknown {
   }
 }
 
-const COLUMN_LIST = COLUMN_KEYS.map((key) => ({
-  key,
-  header: COLUMNS[key].header,
-  presence: COLUMNS[key].presence,
-}));
+const IMPORTED = new Set<ColumnKey>(IMPORT_KEYS);
+
+/**
+ * BlueIQ's 7 columns first, in the file's order, as the pane's template (D-44). The starter
+ * workbook's other columns follow, so the pane can name every field that a preview changes.
+ */
+const COLUMN_LIST = [
+  ...IMPORT_KEYS.map((key) => ({
+    key,
+    header: importHeaderOf(key),
+    presence: 'required',
+  })),
+  ...COLUMN_KEYS.filter((key) => !IMPORTED.has(key)).map((key) => ({
+    key,
+    header: COLUMNS[key].header,
+    presence: 'starter',
+  })),
+];
 
 const COLUMNS_REPLY: RouteReply = {
   status: 200,
   body: { columns: COLUMN_LIST },
 };
+
+/** A backup's headers, in the order of `backupRows` cells: the full layout (AC-7.2). */
+const BACKUP_COLUMNS = COLUMN_KEYS.map((key) => ({
+  key,
+  header: COLUMNS[key].header,
+  presence: IMPORTED.has(key) ? 'required' : 'starter',
+}));
 
 const MISSING_BACKUP = errorReply(
   404,
@@ -319,7 +345,7 @@ async function download(
     status: 200,
     body: {
       backup: listedBackup(loaded.backup),
-      columns: COLUMN_LIST,
+      columns: BACKUP_COLUMNS,
       rows: backupRows(loaded.projects),
     },
   };

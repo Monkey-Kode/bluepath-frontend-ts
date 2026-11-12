@@ -107,26 +107,13 @@ const LINCOLN: CurrentProject = {
   technologies: ['Solar PV'],
 };
 
-/** The row that matches LINCOLN exactly. */
+/** BlueIQ's row that matches LINCOLN exactly. It has only the 7 import columns. */
 const LINCOLN_ROW: Cells = {
   plantId: 'P-1',
-  plantName: 'Lincoln Solar',
   projectName: 'Lincoln Schools',
-  projectId: 'J-1',
   projectType: 'Solar',
-  projectStatus: 'Operating',
-  active: 'Yes',
   latitude: '40.8',
   longitude: '-96.7',
-  address: '1 Main St',
-  city: 'Lincoln',
-  state: 'NE',
-  zip: '68508',
-  county: 'Lancaster',
-  entity: 'Municipal',
-  financing: 'PPA',
-  size: '$1,200,000',
-  technologies: 'Solar PV',
 };
 
 /** A website project that the starter load merged with plant P-2. */
@@ -143,22 +130,18 @@ const NEWTON: CurrentProject = {
   city: 'Newton',
   state: 'Massachusetts',
   zip: '02459',
+  active: true,
   entity: ['Commercial'],
   technologies: ['Solar PV', 'Battery Storage'],
 };
 
-/** BlueIQ's row for NEWTON. Its address differs from the website's. */
+/** BlueIQ's row for NEWTON. */
 const NEWTON_ROW: Cells = {
   plantId: 'P-2',
-  plantName: 'Wells Solar',
   projectName: '111 Wells',
   projectType: 'Solar + BESS',
   latitude: '42.33',
   longitude: '-71.2',
-  address: '9 Plant Rd',
-  city: 'Waltham',
-  state: 'MA',
-  zip: '02451',
 };
 
 /** A website-only project. It has no Plant ID. */
@@ -179,7 +162,9 @@ const OMAHA: CurrentProject = {
   _rev: 'rev-omaha',
   plantId: 'P-3',
   plantName: 'Omaha Storage',
+  projectName: 'Omaha Storage',
   projectType: 'BESS',
+  active: true,
   location: { lat: 41.25, lng: -96 },
   entity: ['K-12'],
   hiddenAt: '2026-10-01T06:00:00.000Z',
@@ -187,7 +172,7 @@ const OMAHA: CurrentProject = {
 
 const OMAHA_ROW: Cells = {
   plantId: 'P-3',
-  plantName: 'Omaha Storage',
+  projectName: 'Omaha Storage',
   projectType: 'BESS',
   latitude: '41.25',
   longitude: '-96',
@@ -200,28 +185,28 @@ const plantProject = (
   _id: `plant-P-${n}`,
   _rev: `rev-${n}`,
   plantId: `P-${n}`,
-  plantName: `Plant ${n}`,
+  projectName: `Plant ${n}`,
   projectType: 'Solar',
+  active: true,
   ...fields,
 });
 
 const plantRow = (n: number, cells: Cells = {}): Cells => ({
   plantId: `P-${n}`,
-  plantName: `Plant ${n}`,
+  projectName: `Plant ${n}`,
   projectType: 'Solar',
   ...cells,
 });
 
 describe('planImport rows (AC-4.4)', () => {
-  it('creates a project for a new Plant ID under its own document ID (D-23)', () => {
+  it('creates an active project for a new Plant ID under its own document ID (D-23)', () => {
     const result = planFor(
       [LINCOLN],
       csv(LINCOLN_ROW, {
         plantId: 'P-9',
         projectName: 'Kearney Schools',
         projectType: 'Wind',
-        state: 'ne',
-        entity: 'K-12',
+        sizeMw: '0.25',
       }),
     );
 
@@ -237,17 +222,19 @@ describe('planImport rows (AC-4.4)', () => {
         projectName: 'Kearney Schools',
         projectType: 'Wind',
         projectStatus: null,
-        active: null,
+        active: true,
         location: null,
         address: null,
         city: null,
-        state: 'Nebraska',
+        state: null,
         zip: null,
         county: null,
-        entity: ['K-12'],
+        entity: null,
         financing: null,
         size: null,
         technologies: null,
+        sizeMw: 0.25,
+        financingAmount: null,
       },
       warnings: [
         expect.objectContaining({ reason: 'no-coordinates' }),
@@ -256,7 +243,7 @@ describe('planImport rows (AC-4.4)', () => {
     });
   });
 
-  it('marks a row that matches its project as unchanged, reading a state code as its name', () => {
+  it('marks a row that matches its project as unchanged', () => {
     const result = planFor([LINCOLN], csv(LINCOLN_ROW));
     expect(result.rows).toEqual([
       {
@@ -271,26 +258,22 @@ describe('planImport rows (AC-4.4)', () => {
 
   it('reads a missing, null, or empty stored value as a blank cell', () => {
     const project = plantProject(10, {
-      projectId: null,
-      projectStatus: '',
-      active: undefined,
+      projectType: '',
       location: null,
-      county: '',
+      sizeMw: null,
+      financingAmount: undefined,
     });
-    expect(rowAt(planFor([project], csv(plantRow(10))), 2).action).toBe(
-      'unchanged',
-    );
+    expect(
+      rowAt(planFor([project], csv(plantRow(10, { projectType: '' }))), 2)
+        .action,
+    ).toBe('unchanged');
   });
 
-  it('reads a stored geopoint and a stored state code the way it reads the cells', () => {
+  it('reads a stored geopoint the way it reads the cells', () => {
     // Sanity returns a geopoint with its type and altitude.
     const geopoint = { _type: 'geopoint', lat: 40.8, lng: -96.7, alt: 350 };
-    const project = plantProject(10, { location: geopoint, state: 'ne' });
-    const row = plantRow(10, {
-      latitude: '40.8',
-      longitude: '-96.7',
-      state: 'Nebraska',
-    });
+    const project = plantProject(10, { location: geopoint });
+    const row = plantRow(10, { latitude: '40.8', longitude: '-96.7' });
     expect(rowAt(planFor([project], csv(row)), 2).action).toBe('unchanged');
   });
 
@@ -299,10 +282,10 @@ describe('planImport rows (AC-4.4)', () => {
       [LINCOLN],
       csv({
         ...LINCOLN_ROW,
-        size: '1500000',
-        city: 'Lincoln City',
+        financingAmount: '500000',
         latitude: '40.9',
-        projectStatus: 'Retired',
+        projectType: 'Solar + Battery',
+        sizeMw: '1.5',
       }),
     );
 
@@ -314,105 +297,63 @@ describe('planImport rows (AC-4.4)', () => {
     });
     const changes = changesAt(result, 2);
     expect(changes).toEqual({
-      projectStatus: 'Retired',
+      projectType: 'Solar + Battery',
       location: { lat: 40.9, lng: -96.7 },
-      city: 'Lincoln City',
-      size: 1500000,
+      sizeMw: 1.5,
+      financingAmount: 500000,
     });
     expect(Object.keys(changes)).toEqual([
-      'projectStatus',
+      'projectType',
       'location',
-      'city',
-      'size',
+      'sizeMw',
+      'financingAmount',
     ]);
   });
 
-  it('clears a BlueIQ field when its cell is blank (D-22)', () => {
+  it('clears an imported field when its cell is blank (D-22)', () => {
     const result = planFor(
-      [LINCOLN],
+      [{ ...LINCOLN, sizeMw: 0.5, financingAmount: 250000 }],
       csv({
         ...LINCOLN_ROW,
-        projectName: '',
-        projectId: ' ',
         projectType: '',
-        technologies: 'Solar PV',
-        projectStatus: '',
-        active: '',
         latitude: '',
         longitude: '',
-        address: '',
-        city: '',
-        state: '',
-        zip: '',
-        county: '',
+        sizeMw: '',
+        financingAmount: 'needs to be decided',
       }),
     );
 
     expect(changesAt(result, 2)).toEqual({
-      projectId: null,
-      projectName: null,
       projectType: null,
-      projectStatus: null,
-      active: null,
       location: null,
-      address: null,
-      city: null,
-      state: null,
-      zip: null,
-      county: null,
+      sizeMw: null,
+      financingAmount: null,
     });
   });
 
-  it('keeps a website field on a blank cell and replaces it on a filled one', () => {
-    const blanks = planFor(
-      [LINCOLN],
-      csv({
-        ...LINCOLN_ROW,
-        entity: '',
-        financing: ' ; ',
-        size: '',
-        technologies: '',
-      }),
-    );
-    expect(rowAt(blanks, 2).action).toBe('unchanged');
+  // The file no longer sends these, so the starter load's values stay (D-44, G1).
+  it("leaves every field the file doesn't send as it was", () => {
+    const result = planFor([LINCOLN, NEWTON], csv(LINCOLN_ROW, NEWTON_ROW));
+    expect(result.rows.map(({ action }) => action)).toEqual([
+      'unchanged',
+      'unchanged',
+    ]);
 
-    const filled = planFor(
+    const applied = applyPlan(
       [LINCOLN],
-      csv({
-        ...LINCOLN_ROW,
-        entity: 'K-12; Municipal',
-        financing: 'PPA',
-        size: '0',
-        technologies: 'Battery Storage; Solar PV',
-      }),
+      planFor([LINCOLN], csv({ ...LINCOLN_ROW, sizeMw: '0.8' })),
     );
-    expect(changesAt(filled, 2)).toEqual({
-      entity: ['K-12', 'Municipal'],
-      size: 0,
-      technologies: ['Battery Storage', 'Solar PV'],
+    expect(applied[0]).toEqual({
+      ...LINCOLN,
+      _rev: 'rev-lincoln+',
+      sizeMw: 0.8,
     });
   });
 
-  it('changes address parts only on projects without a Website ID (AC-8.6)', () => {
-    const result = planFor(
-      [LINCOLN, NEWTON],
-      csv(
-        { ...LINCOLN_ROW, address: '2 Oak St', city: 'Omaha', state: 'IA' },
-        { ...NEWTON_ROW, zip: '' },
-      ),
-    );
-    expect(changesAt(result, 2)).toEqual({
-      address: '2 Oak St',
-      city: 'Omaha',
-      state: 'Iowa',
-    });
-    expect(rowAt(result, 3).action).toBe('unchanged');
-
-    const renamed = planFor(
-      [NEWTON],
-      csv({ ...NEWTON_ROW, plantName: 'Wells Solar II', address: '' }),
-    );
-    expect(changesAt(renamed, 2)).toEqual({ plantName: 'Wells Solar II' });
+  // BlueIQ lists only active plants (D-44).
+  it('shows a listed plant that the starter load marked inactive', () => {
+    const result = planFor([{ ...LINCOLN, active: false }], csv(LINCOLN_ROW));
+    expect(changesAt(result, 2)).toEqual({ active: true });
   });
 
   it('skips an error row and leaves its project as it was (D-24)', () => {
@@ -451,7 +392,7 @@ describe('planImport hiding and returning (AC-4.5, FR-013)', () => {
   it('never counts a plant as missing when its row has an error', () => {
     const result = planFor(
       [LINCOLN, NEWTON],
-      csv({ ...LINCOLN_ROW, active: 'maybe' }, NEWTON_ROW),
+      csv({ ...LINCOLN_ROW, sizeMw: 'maybe' }, NEWTON_ROW),
     );
     expect(rowAt(result, 2).action).toBe('error');
     expect(result.hides).toEqual([]);
@@ -465,10 +406,7 @@ describe('planImport hiding and returning (AC-4.5, FR-013)', () => {
       entity: ['Municipal'],
     });
 
-    const back = planFor(
-      hidden,
-      csv({ ...LINCOLN_ROW, entity: '' }, NEWTON_ROW),
-    );
+    const back = planFor(hidden, csv(LINCOLN_ROW, NEWTON_ROW));
     expect(rowAt(back, 2)).toMatchObject({
       action: 'update',
       changes: {},
@@ -488,7 +426,7 @@ describe('planImport hiding and returning (AC-4.5, FR-013)', () => {
   it('keeps a hidden plant hidden when its row has an error', () => {
     const result = planFor(
       [OMAHA, NEWTON],
-      csv({ ...OMAHA_ROW, size: 'lots' }, NEWTON_ROW),
+      csv({ ...OMAHA_ROW, sizeMw: 'lots' }, NEWTON_ROW),
     );
     expect(rowAt(result, 2).action).toBe('error');
     expect(result.returns).toEqual([]);
@@ -610,10 +548,10 @@ describe('planImport summary (AC-4.4)', () => {
       [LINCOLN, NEWTON, LIBRARY, OMAHA, plantProject(20), plantProject(21)],
       csv(
         LINCOLN_ROW,
-        { ...NEWTON_ROW, projectStatus: 'Operating' },
+        { ...NEWTON_ROW, sizeMw: '0.3' },
         OMAHA_ROW,
         plantRow(9),
-        plantRow(20, { active: 'later' }),
+        plantRow(20, { sizeMw: 'later' }),
       ),
     );
 
@@ -692,22 +630,18 @@ describe('planImport idempotence (AC-4.6)', () => {
       'a file that creates, updates, hides, returns, and skips',
       [LINCOLN, NEWTON, LIBRARY, OMAHA, plantProject(20), plantProject(21)],
       csv(
-        { ...LINCOLN_ROW, city: 'Lincoln City', entity: '', size: '1500000' },
-        { ...NEWTON_ROW, projectId: 'J-2', active: 'No', zip: '' },
+        { ...LINCOLN_ROW, latitude: '40.9', sizeMw: '1.5' },
+        { ...NEWTON_ROW, financingAmount: '$250,000' },
         OMAHA_ROW,
-        plantRow(9, {
-          latitude: '41',
-          longitude: '-97',
-          entity: 'K-12; Municipal',
-        }),
-        plantRow(20, { active: 'later' }),
+        plantRow(9, { latitude: '41', longitude: '-97', sizeMw: '0.2' }),
+        plantRow(20, { sizeMw: 'later' }),
       ),
     ],
     [
-      'a file that clears every BlueIQ field it can',
-      [LINCOLN, NEWTON],
+      'a file that clears every imported field it can',
+      [{ ...LINCOLN, sizeMw: 0.5 }, NEWTON],
       csv(
-        { plantId: 'P-1', plantName: 'Lincoln Solar' },
+        { plantId: 'P-1', projectName: 'Lincoln Schools' },
         { plantId: 'P-2', projectName: '111 Wells' },
       ),
     ],
@@ -715,8 +649,8 @@ describe('planImport idempotence (AC-4.6)', () => {
       'a first file on a site with only website projects',
       [LIBRARY],
       csv(
-        plantRow(1, { state: 'ne', technologies: 'Solar PV' }),
-        plantRow(2, { latitude: '40', longitude: '-100', size: '$2,500' }),
+        plantRow(1, { financingAmount: 'TBD' }),
+        plantRow(2, { latitude: '40', longitude: '-100', sizeMw: '2.5' }),
       ),
     ],
   ];
@@ -786,6 +720,9 @@ describe('planStarterLoad (AC-8.7)', () => {
   /** A merged row: BlueIQ's plant P-2 with the website's address and fields. */
   const WELLS_ROW: Cells = {
     ...NEWTON_ROW,
+    plantName: 'Wells Solar',
+    state: 'MA',
+    active: 'Yes',
     websiteId: '0b5e-newton',
     address: '111 Wells Ave',
     city: 'Newton',
@@ -801,8 +738,16 @@ describe('planStarterLoad (AC-8.7)', () => {
     entity: 'Municipal',
     technologies: 'LED Lighting',
   };
+  /** A plant-only row, with the Sept 29 columns that the daily file no longer sends. */
+  const PLANT_9_ROW: Cells = plantRow(9, {
+    plantName: 'Plant 9',
+    projectId: 'J-9',
+    active: 'Yes',
+    city: 'Kearney',
+    state: 'NE',
+  });
   const PROJECTS = [WELLS, OLD_LIBRARY, GONE];
-  const WORKBOOK = starterCsv(WELLS_ROW, LIBRARY_ROW, plantRow(9));
+  const WORKBOOK = starterCsv(WELLS_ROW, LIBRARY_ROW, PLANT_9_ROW);
 
   it('updates a website project from its row and writes every column', () => {
     expect(rowAt(starterPlanFor(PROJECTS, WORKBOOK), 2)).toEqual({
@@ -814,7 +759,8 @@ describe('planStarterLoad (AC-8.7)', () => {
         plantId: 'P-2',
         plantName: 'Wells Solar',
         projectType: 'Solar + BESS',
-        // A blank cell clears a website field, unlike an import.
+        active: true,
+        // A blank cell clears a website field. An import never touches one.
         financing: null,
         technologies: ['Solar PV', 'Battery Storage'],
         websiteId: '0b5e-newton',
@@ -983,9 +929,15 @@ describe('planStarterLoad (AC-8.7)', () => {
     const loaded = applyPlan(PROJECTS, starterPlanFor(PROJECTS, WORKBOOK));
     const result = planFor(loaded, csv(NEWTON_ROW, plantRow(9)));
 
-    // BlueIQ's own address differs, and the merged project keeps the website's (AC-8.6).
+    // The first daily file keeps the places, names, and IDs that only the load has (G1).
     expect(rowAt(result, 2)).toMatchObject({ action: 'unchanged' });
     expect(rowAt(result, 3)).toMatchObject({ action: 'unchanged' });
     expect(result.hides).toEqual([]);
+    expect(loaded.find(({ _id }) => _id === 'plant-P-9')).toMatchObject({
+      plantName: 'Plant 9',
+      projectId: 'J-9',
+      city: 'Kearney',
+      state: 'Nebraska',
+    });
   });
 });

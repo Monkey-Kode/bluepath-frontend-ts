@@ -311,6 +311,8 @@ describe('backupRows', () => {
       financing: ['PPA'],
       size: 1250000,
       technologies: ['Solar', 'Storage'],
+      sizeMw: 0.5465,
+      financingAmount: 1250000,
       websiteId: '0b5e-old-mill',
       title: 'The old name',
     });
@@ -335,6 +337,8 @@ describe('backupRows', () => {
         'PPA',
         1250000,
         'Solar; Storage',
+        0.5465,
+        1250000,
         '0b5e-old-mill',
       ],
     ]);

@@ -66,23 +66,14 @@ const ORCHARD: FakeDocument = {
   size: 750000,
 };
 
-/** Orchard's row in a later file. */
+/** Orchard's row in a later file, with BlueIQ's 7 columns. */
 const ORCHARD_ROW: Cells = {
   plantId: 'P-7',
-  plantName: 'Orchard Solar',
   projectName: 'Old Mill Solar',
-  projectId: 'PRJ-7',
   projectType: 'Solar',
-  projectStatus: 'Operating',
-  active: 'Yes',
   latitude: '42.65',
   longitude: '-71.32',
-  address: '9 Plant Rd',
-  city: 'Billerica',
-  state: 'MA',
-  zip: '01821',
-  financing: 'PPA',
-  size: '750000',
+  sizeMw: '0.5',
 };
 
 /** A plant that left BlueIQ's file. */
@@ -288,14 +279,14 @@ describe('linking a website-only project to its plant (AC-4.15)', () => {
     });
 
     if (preview.status !== 'ready') throw new Error(preview.status);
-    // The row's address differs and changes nothing. Its filled Size replaces the website's.
+    // The row writes only BlueIQ's imported fields. The website's address and fields stay.
     expect(preview.plan.rows).toEqual([
       {
         action: 'update',
         row: 2,
         plantId: 'P-7',
         id: OLD_MILL._id,
-        changes: { size: 750000 },
+        changes: { sizeMw: 0.5 },
         returns: false,
         warnings: [],
       },

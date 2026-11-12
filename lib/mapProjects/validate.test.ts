@@ -19,10 +19,10 @@ function parsedRow(
   return { row, cells: { ...blank, ...cells } };
 }
 
-/** The cells of a row that passes, with a Plant ID, a name, coordinates, and a known type. */
+/** The cells of an import row that passes: a Plant ID, a name, coordinates, and a known type. */
 const VALID: Partial<Record<ColumnKey, string>> = {
   plantId: 'P-1',
-  plantName: 'Lincoln Solar',
+  projectName: 'Lincoln Solar',
   latitude: '40.8',
   longitude: '-96.7',
   projectType: 'Solar',
@@ -40,7 +40,7 @@ function fieldsOf(cells: Partial<Record<ColumnKey, string>>) {
   return result.fields;
 }
 
-function errorsOf(result: ValidatedRow) {
+function errorsOf(result: ValidatedRow | StarterRow) {
   return result.ok ? [] : result.errors.map((error) => error.reason);
 }
 
@@ -50,108 +50,100 @@ function warningsOf(cells: Partial<Record<ColumnKey, string>>) {
   return result.warnings.map((warning) => warning.reason);
 }
 
-describe('validateRows fields (FR-007)', () => {
-  it('turns a row into the fields a map project stores', () => {
+/** A blank value for every field, so a test names only the ones it sets. */
+const BLANK_FIELDS = {
+  plantName: null,
+  projectName: null,
+  projectId: null,
+  projectType: null,
+  projectStatus: null,
+  active: null,
+  location: null,
+  address: null,
+  city: null,
+  state: null,
+  zip: null,
+  county: null,
+  entity: null,
+  financing: null,
+  size: null,
+  technologies: null,
+  sizeMw: null,
+  financingAmount: null,
+  websiteId: null,
+};
+
+describe('validateRows fields (FR-007, D-44)', () => {
+  it("reads BlueIQ's 7 columns and counts a listed plant as active", () => {
     expect(
       fieldsOf({
         plantId: ' P_100-a ',
-        plantName: ' Lincoln Solar ',
-        projectName: 'Lincoln Schools',
-        projectId: 'J-7',
-        projectType: 'Solar + BESS',
-        projectStatus: 'Operating',
-        active: 'Yes',
+        projectName: ' Lincoln Schools ',
+        projectType: 'Solar + Battery',
         latitude: ' 40.80 ',
         longitude: '-96.7',
-        address: '1 Main St\nSuite 2',
-        city: 'Lincoln',
-        state: 'NE',
-        zip: '00123',
-        county: 'Lancaster',
-        entity: 'Municipal; K-12 ;',
-        financing: 'PPA',
-        size: '$1,200,000.50',
-        technologies: 'Solar PV;;Battery Storage',
+        sizeMw: ' 0.5465 ',
+        financingAmount: '$1,250,000',
       }),
     ).toEqual({
+      ...BLANK_FIELDS,
       plantId: 'P_100-a',
-      plantName: 'Lincoln Solar',
       projectName: 'Lincoln Schools',
-      projectId: 'J-7',
-      projectType: 'Solar + BESS',
-      projectStatus: 'Operating',
+      projectType: 'Solar + Battery',
       active: true,
       location: { lat: 40.8, lng: -96.7 },
-      address: '1 Main St\nSuite 2',
-      city: 'Lincoln',
-      state: 'Nebraska',
-      zip: '00123',
-      county: 'Lancaster',
-      entity: ['Municipal', 'K-12'],
-      financing: ['PPA'],
-      size: 1200000.5,
-      technologies: ['Solar PV', 'Battery Storage'],
-      websiteId: null,
+      sizeMw: 0.5465,
+      financingAmount: 1250000,
     });
   });
 
-  it('reads a blank cell as null, including a list with only separators', () => {
+  // The parser leaves these blank in an import. The import never writes them (G1).
+  it("never reads the starter workbook's other columns", () => {
     expect(
       fieldsOf({
-        plantId: 'P-1',
-        projectName: 'Lincoln Schools',
-        entity: ' ; ; ',
-        city: '   ',
+        ...VALID,
+        plantName: 'Lincoln Solar',
+        city: 'Lincoln',
+        state: 'NE',
+        technologies: 'Solar PV',
+        size: '$1,200',
+        active: 'No',
+        websiteId: 'project-7',
       }),
-    ).toEqual({
-      plantId: 'P-1',
+    ).toMatchObject({
       plantName: null,
-      projectName: 'Lincoln Schools',
-      projectId: null,
-      projectType: null,
-      projectStatus: null,
-      active: null,
-      location: null,
-      address: null,
       city: null,
       state: null,
-      zip: null,
-      county: null,
-      entity: null,
-      financing: null,
-      size: null,
       technologies: null,
+      size: null,
+      active: true,
       websiteId: null,
     });
   });
 
-  it('accepts a state code or name in any case, and keeps an unknown state as written', () => {
-    const stateOf = (state: string) => fieldsOf({ ...VALID, state }).state;
-    expect(stateOf('ne')).toBe('Nebraska');
-    expect(stateOf(' new  york ')).toBe('New York');
-    expect(stateOf('District of Columbia')).toBe('District of Columbia');
-    expect(stateOf(' Ontario ')).toBe('Ontario');
+  it('reads a blank cell as null', () => {
+    expect(
+      fieldsOf({
+        ...VALID,
+        sizeMw: '  ',
+        financingAmount: '',
+        projectType: ' ',
+      }),
+    ).toMatchObject({ sizeMw: null, financingAmount: null, projectType: null });
   });
 
-  it('reads Active as Yes, No, or blank in any case', () => {
-    const activeOf = (active: string) => fieldsOf({ ...VALID, active }).active;
-    expect(activeOf(' yes ')).toBe(true);
-    expect(activeOf('NO')).toBe(false);
-    expect(activeOf('')).toBeNull();
+  it('reads Size (MWdc) as a plain number', () => {
+    const sizeOf = (sizeMw: string) => fieldsOf({ ...VALID, sizeMw }).sizeMw;
+    expect(sizeOf('0.5465')).toBe(0.5465);
+    expect(sizeOf('6')).toBe(6);
+    expect(sizeOf('0.0000')).toBe(0);
   });
 
-  it('reads a size with or without a dollar sign and thousands commas', () => {
-    const sizeOf = (size: string) => fieldsOf({ ...VALID, size }).size;
-    expect(sizeOf('1200')).toBe(1200);
-    expect(sizeOf('$ 1,200')).toBe(1200);
-    expect(sizeOf('0')).toBe(0);
-    expect(sizeOf('2500000.75')).toBe(2500000.75);
-  });
-
-  it('keeps the Website ID from the starter load', () => {
-    expect(fieldsOf({ ...VALID, websiteId: ' 0a1b-2c3d ' }).websiteId).toBe(
-      '0a1b-2c3d',
-    );
+  it('reads Financing Amount ($) with or without a dollar sign and thousands commas', () => {
+    const amountOf = (financingAmount: string) =>
+      fieldsOf({ ...VALID, financingAmount }).financingAmount;
+    expect(amountOf('1250000')).toBe(1250000);
+    expect(amountOf('$ 1,250,000.50')).toBe(1250000.5);
   });
 });
 
@@ -199,10 +191,11 @@ describe('validateRows errors (AC-4.3)', () => {
     expect(errorsOf(results[0] as ValidatedRow)).toEqual(['bad-plant-id']);
   });
 
-  it('rejects a row without a Plant Name or a Project Name', () => {
-    const noName = { ...VALID, plantName: '', projectName: ' ' };
-    expect(errorsOf(validateOne(noName))).toEqual(['no-name']);
-    expect(validateOne({ ...noName, projectName: 'Schools' }).ok).toBe(true);
+  it('rejects a row without a Project Name', () => {
+    expect(validateOne({ ...VALID, projectName: ' ' })).toMatchObject({
+      ok: false,
+      errors: [{ reason: 'no-name', message: 'The row has no Project Name.' }],
+    });
   });
 
   it.each([
@@ -232,24 +225,16 @@ describe('validateRows errors (AC-4.3)', () => {
   });
 
   it.each([
-    '12abc',
-    '$',
-    '1,20',
-    '12,3456',
-    '1.2.3',
-    '1e6',
-    'USD 100',
-  ])('rejects the size %j', (size) => {
-    expect(errorsOf(validateOne({ ...VALID, size }))).toEqual(['bad-size']);
-  });
-
-  it.each([
-    'Y',
-    'true',
-    '1',
-    'Inactive',
-  ])('rejects the Active value %j', (active) => {
-    expect(errorsOf(validateOne({ ...VALID, active }))).toEqual(['bad-active']);
+    '0.5 MW',
+    '1,000',
+    '$5',
+    '1e3',
+    'lots',
+  ])('rejects the Size (MWdc) %j', (sizeMw) => {
+    expect(validateOne({ ...VALID, sizeMw })).toMatchObject({
+      ok: false,
+      errors: [{ reason: 'bad-size', message: 'Size (MWdc) is not a number.' }],
+    });
   });
 
   it('lists every problem on a row in the spec order and keeps its Plant ID', () => {
@@ -257,28 +242,18 @@ describe('validateRows errors (AC-4.3)', () => {
       plantId: 'P 1',
       latitude: '91',
       longitude: 'west',
-      size: 'lots',
-      active: 'maybe',
+      sizeMw: 'lots',
     });
 
     expect(result).toMatchObject({ ok: false, row: 2, plantId: 'P 1' });
-    expect(errorsOf(result)).toEqual([
-      'bad-plant-id',
-      'no-name',
-      'bad-coordinates',
-      'bad-coordinates',
-      'bad-size',
-      'bad-active',
-    ]);
     expect(
       result.ok ? [] : result.errors.map((error) => error.message),
     ).toEqual([
       'The Plant ID can hold only letters, digits, "_", and "-", up to 64 characters.',
-      'The row has no Plant Name or Project Name.',
+      'The row has no Project Name.',
       'Latitude must be between -90 and 90.',
       'Longitude is not a number.',
-      'Size ($) is not a number.',
-      'Active must be Yes, No, or blank.',
+      'Size (MWdc) is not a number.',
     ]);
   });
 
@@ -301,20 +276,46 @@ describe('validateRows warnings (AC-4.3)', () => {
     ]);
   });
 
-  it('warns about a Project Type with no map category', () => {
-    expect(warningsOf({ ...VALID, projectType: 'Wind' })).toEqual([
-      'unknown-project-type',
-    ]);
-    expect(
-      warningsOf({ ...VALID, projectType: '', technologies: 'Geothermal' }),
-    ).toEqual(['unknown-project-type']);
-    expect(
-      warningsOf({ ...VALID, projectType: ' ', technologies: 'Solar PV' }),
-    ).toEqual([]);
+  it("warns about a type with no map category, in the import column's words", () => {
+    expect(validateOne({ ...VALID, projectType: 'Wind' })).toMatchObject({
+      warnings: [
+        {
+          reason: 'unknown-project-type',
+          message:
+            'The map has no category for this Technology / Project Type, so the plant stays off the map.',
+        },
+      ],
+    });
+    expect(validateOne({ ...VALID, projectType: '' })).toMatchObject({
+      warnings: [
+        {
+          reason: 'unknown-project-type',
+          message:
+            "Technology / Project Type is blank, so the plant stays off the map unless the website's Technologies give it a category.",
+        },
+      ],
+    });
   });
 
-  it('warns about a row with Active set to No', () => {
-    expect(warningsOf({ ...VALID, active: 'No' })).toEqual(['inactive']);
+  // The sample file holds "needs to be decided with BluePath" in every row.
+  it('warns about text in Financing Amount ($), reads it as blank, and keeps the row', () => {
+    const result = validateOne({
+      ...VALID,
+      financingAmount: 'needs to be decided with BluePath',
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      fields: { financingAmount: null },
+      warnings: [
+        {
+          reason: 'financing-not-number',
+          message:
+            'Financing Amount ($) is not a number, so the website leaves it blank.',
+        },
+      ],
+    });
+    expect(JSON.stringify(result)).not.toContain('needs to be decided');
   });
 
   it('lists every warning on a row', () => {
@@ -324,13 +325,21 @@ describe('validateRows warnings (AC-4.3)', () => {
         latitude: '',
         longitude: '',
         projectType: 'Wind',
-        active: 'no',
+        financingAmount: 'TBD',
       }),
-    ).toEqual(['no-coordinates', 'unknown-project-type', 'inactive']);
+    ).toEqual([
+      'no-coordinates',
+      'unknown-project-type',
+      'financing-not-number',
+    ]);
   });
 
   it('gives an error row no warnings', () => {
-    const result = validateOne({ ...VALID, plantId: '', active: 'No' });
+    const result = validateOne({
+      ...VALID,
+      plantId: '',
+      financingAmount: 'TBD',
+    });
     expect(result).not.toHaveProperty('warnings');
   });
 });
@@ -369,17 +378,157 @@ describe('validateStarterRows (AC-8.7)', () => {
     });
   });
 
-  it('reads the cells of a plant row exactly as an import does', () => {
-    const cells = {
-      ...VALID,
-      state: 'ne',
-      entity: 'K-12; Municipal',
-      size: '$1,200',
-      active: 'No',
-    };
-    const [imported] = validateRows([parsedRow(2, cells)]);
+  it('reads every column of a plant row', () => {
+    expect(
+      starterOne({
+        plantId: ' P_100-a ',
+        plantName: ' Lincoln Solar ',
+        projectName: 'Lincoln Schools',
+        projectId: 'J-7',
+        projectType: 'Solar + BESS',
+        projectStatus: 'Operating',
+        active: 'Yes',
+        latitude: ' 40.80 ',
+        longitude: '-96.7',
+        address: '1 Main St\nSuite 2',
+        city: 'Lincoln',
+        state: 'NE',
+        zip: '00123',
+        county: 'Lancaster',
+        entity: 'Municipal; K-12 ;',
+        financing: 'PPA',
+        size: '$1,200,000.50',
+        technologies: 'Solar PV;;Battery Storage',
+      }),
+    ).toEqual({
+      ok: true,
+      row: 2,
+      plantId: 'P_100-a',
+      websiteId: null,
+      warnings: [],
+      fields: {
+        plantId: 'P_100-a',
+        plantName: 'Lincoln Solar',
+        projectName: 'Lincoln Schools',
+        projectId: 'J-7',
+        projectType: 'Solar + BESS',
+        projectStatus: 'Operating',
+        active: true,
+        location: { lat: 40.8, lng: -96.7 },
+        address: '1 Main St\nSuite 2',
+        city: 'Lincoln',
+        state: 'Nebraska',
+        zip: '00123',
+        county: 'Lancaster',
+        entity: ['Municipal', 'K-12'],
+        financing: ['PPA'],
+        size: 1200000.5,
+        technologies: ['Solar PV', 'Battery Storage'],
+        sizeMw: null,
+        financingAmount: null,
+        websiteId: null,
+      },
+    });
+  });
 
-    expect(starterOne(cells)).toEqual({ ...imported, websiteId: null });
+  it('reads a list with only separators as null', () => {
+    expect(
+      starterOne({ ...VALID, entity: ' ; ; ', city: '   ' }),
+    ).toMatchObject({
+      fields: { entity: null, city: null },
+    });
+  });
+
+  it('accepts a state code or name in any case, and keeps an unknown state as written', () => {
+    const stateOf = (state: string) => {
+      const result = starterOne({ ...VALID, state });
+      return result.ok ? result.fields.state : undefined;
+    };
+    expect(stateOf('ne')).toBe('Nebraska');
+    expect(stateOf(' new  york ')).toBe('New York');
+    expect(stateOf('District of Columbia')).toBe('District of Columbia');
+    expect(stateOf(' Ontario ')).toBe('Ontario');
+  });
+
+  it('reads Active as Yes, No, or blank in any case, and warns about No', () => {
+    const activeOf = (active: string) => {
+      const result = starterOne({ ...VALID, active });
+      return result.ok ? result.fields.active : undefined;
+    };
+    expect(activeOf(' yes ')).toBe(true);
+    expect(activeOf('NO')).toBe(false);
+    expect(activeOf('')).toBeNull();
+    expect(starterOne({ ...VALID, active: 'No' })).toMatchObject({
+      warnings: [{ reason: 'inactive' }],
+    });
+  });
+
+  it.each([
+    'Y',
+    'true',
+    '1',
+    'Inactive',
+  ])('rejects the Active value %j', (active) => {
+    expect(starterErrors(starterOne({ ...VALID, active }))).toEqual([
+      'bad-active',
+    ]);
+  });
+
+  it('reads a size with or without a dollar sign and thousands commas', () => {
+    const sizeOf = (size: string) => {
+      const result = starterOne({ ...VALID, size });
+      return result.ok ? result.fields.size : undefined;
+    };
+    expect(sizeOf('1200')).toBe(1200);
+    expect(sizeOf('$ 1,200')).toBe(1200);
+    expect(sizeOf('0')).toBe(0);
+    expect(sizeOf('2500000.75')).toBe(2500000.75);
+  });
+
+  it.each([
+    '12abc',
+    '$',
+    '1,20',
+    '12,3456',
+    '1.2.3',
+    '1e6',
+    'USD 100',
+  ])('rejects the size %j', (size) => {
+    expect(starterErrors(starterOne({ ...VALID, size }))).toEqual(['bad-size']);
+  });
+
+  it('names Plant Name or Project Name when a row has neither', () => {
+    expect(
+      starterOne({ ...VALID, plantName: '', projectName: ' ' }),
+    ).toMatchObject({
+      ok: false,
+      errors: [
+        {
+          reason: 'no-name',
+          message: 'The row has no Plant Name or Project Name.',
+        },
+      ],
+    });
+    expect(
+      starterOne({ ...VALID, projectName: '', plantName: 'Plant' }).ok,
+    ).toBe(true);
+  });
+
+  it('words the category warning for the Project Type column', () => {
+    expect(
+      starterOne({ ...VALID, projectType: '', technologies: 'Geothermal' }),
+    ).toMatchObject({
+      warnings: [
+        {
+          reason: 'unknown-project-type',
+          message:
+            'Project Type is blank, and Technologies match no map category, so the row stays off the map.',
+        },
+      ],
+    });
+    expect(
+      starterOne({ ...VALID, projectType: ' ', technologies: 'Solar PV' }),
+    ).toMatchObject({ warnings: [] });
   });
 
   it('keeps both IDs on a merged row', () => {

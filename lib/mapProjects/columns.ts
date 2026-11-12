@@ -1,40 +1,71 @@
 /**
- * The one column list for map project files. BlueIQ's daily file, a Google Sheet, an uploaded
- * .xlsx or .csv, the template, and the starter load all use these headers.
+ * The column lists for map project files. BlueIQ's daily file and every manual import use the
+ * import columns. The one-time starter workbook and backups use the full layout.
  */
 
-/** Required columns must be in every file. Starter columns count only in the starter load. */
-export type ColumnPresence = 'required' | 'optional' | 'starter';
-
 export interface Column {
-  /** The header as BlueIQ names it. */
+  /** The header in the starter workbook and in backups. */
   header: string;
-  presence: ColumnPresence;
+  /** The header in BlueIQ's daily file, when it differs. */
+  importHeader?: string;
+  /** The starter workbook must have a `required` column. */
+  starter: 'required' | 'optional';
 }
 
-/** In the starter workbook's order, so the template and backups match its layout. */
+/**
+ * The full layout, in the starter workbook's order, then the fields that only BlueIQ's daily file
+ * sends, then Website ID. Backups write every column in this order.
+ */
 export const COLUMNS = {
-  plantId: { header: 'Plant ID', presence: 'required' },
-  plantName: { header: 'Plant Name', presence: 'required' },
-  projectId: { header: 'Project ID', presence: 'required' },
-  projectName: { header: 'Project Name', presence: 'required' },
-  projectType: { header: 'Project Type', presence: 'required' },
-  projectStatus: { header: 'Project Status', presence: 'required' },
-  active: { header: 'Active', presence: 'required' },
-  latitude: { header: 'Latitude', presence: 'required' },
-  longitude: { header: 'Longitude', presence: 'required' },
-  address: { header: 'Address', presence: 'required' },
-  city: { header: 'City', presence: 'required' },
-  state: { header: 'State', presence: 'required' },
-  zip: { header: 'ZIP', presence: 'required' },
-  county: { header: 'County', presence: 'required' },
-  entity: { header: 'Entity Type', presence: 'optional' },
-  financing: { header: 'Financing Type', presence: 'optional' },
-  size: { header: 'Size ($)', presence: 'optional' },
-  technologies: { header: 'Technologies', presence: 'optional' },
-  websiteId: { header: 'Website ID', presence: 'starter' },
+  plantId: { header: 'Plant ID', starter: 'required' },
+  plantName: { header: 'Plant Name', starter: 'required' },
+  projectId: { header: 'Project ID', starter: 'required' },
+  projectName: { header: 'Project Name', starter: 'required' },
+  projectType: {
+    header: 'Project Type',
+    importHeader: 'Technology / Project Type',
+    starter: 'required',
+  },
+  projectStatus: { header: 'Project Status', starter: 'required' },
+  active: { header: 'Active', starter: 'required' },
+  latitude: { header: 'Latitude', starter: 'required' },
+  longitude: { header: 'Longitude', starter: 'required' },
+  address: { header: 'Address', starter: 'required' },
+  city: { header: 'City', starter: 'required' },
+  state: { header: 'State', starter: 'required' },
+  zip: { header: 'ZIP', starter: 'required' },
+  county: { header: 'County', starter: 'required' },
+  entity: { header: 'Entity Type', starter: 'optional' },
+  financing: { header: 'Financing Type', starter: 'optional' },
+  size: { header: 'Size ($)', starter: 'optional' },
+  technologies: { header: 'Technologies', starter: 'optional' },
+  sizeMw: { header: 'Size (MWdc)', starter: 'optional' },
+  financingAmount: { header: 'Financing Amount ($)', starter: 'optional' },
+  websiteId: { header: 'Website ID', starter: 'required' },
 } as const satisfies Record<string, Column>;
 
 export type ColumnKey = keyof typeof COLUMNS;
 
 export const COLUMN_KEYS = Object.keys(COLUMNS) as ColumnKey[];
+
+/**
+ * BlueIQ's daily file, in its column order (D-44). Every import needs each of these, and imports
+ * ignore every other column.
+ */
+export const IMPORT_KEYS = [
+  'plantId',
+  'latitude',
+  'longitude',
+  'financingAmount',
+  'sizeMw',
+  'projectType',
+  'projectName',
+] as const satisfies readonly ColumnKey[];
+
+export type ImportKey = (typeof IMPORT_KEYS)[number];
+
+/** A column's header in an import file. */
+export const importHeaderOf = (key: ColumnKey) => {
+  const column: Column = COLUMNS[key];
+  return column.importHeader ?? column.header;
+};

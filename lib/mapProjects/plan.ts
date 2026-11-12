@@ -14,10 +14,11 @@ import type {
 } from './validate';
 
 /**
- * Who owns each field that a file sets, in the file's column order.
- * - `blueiq`: the field mirrors the file, so a blank cell clears it (D-22).
+ * Who owns each field, in the full layout's column order. Linking a plant to a website project
+ * follows these owners (AC-4.15).
+ * - `blueiq`: the field comes from BlueIQ (D-22).
  * - `address`: the same, except on a merged project, which keeps the website's address (AC-8.6).
- * - `website`: a filled cell replaces the value, and a blank cell keeps it (AC-4.4).
+ * - `website`: a value replaces the project's own, and a blank keeps it.
  */
 const FIELD_OWNERS = {
   plantName: 'blueiq',
@@ -36,6 +37,8 @@ const FIELD_OWNERS = {
   financing: 'website',
   size: 'website',
   technologies: 'website',
+  sizeMw: 'blueiq',
+  financingAmount: 'blueiq',
 } as const satisfies Partial<
   Record<keyof MapProjectFields, 'blueiq' | 'address' | 'website'>
 >;
@@ -46,6 +49,22 @@ export type PlanField = keyof typeof FIELD_OWNERS;
 export type FieldValues = Pick<MapProjectFields, PlanField>;
 
 const PLAN_FIELDS = Object.keys(FIELD_OWNERS) as PlanField[];
+
+/**
+ * The fields an import writes: BlueIQ's 7 columns, plus Active, because the file lists only
+ * active plants (D-44). Each one mirrors the file, so a blank cell clears it (D-22). Imports
+ * never touch the other fields, which keep the starter load's values (G1).
+ */
+const IMPORT_WRITES = new Set<PlanField>([
+  'projectName',
+  'projectType',
+  'active',
+  'location',
+  'sizeMw',
+  'financingAmount',
+]);
+
+const IMPORT_FIELDS = PLAN_FIELDS.filter((field) => IMPORT_WRITES.has(field));
 
 /** Every field that the starter load writes, in column order, including both IDs (AC-8.7). */
 const STARTER_FIELDS = ['plantId', ...PLAN_FIELDS, 'websiteId'] as const;
@@ -63,6 +82,8 @@ export interface CurrentProject extends MapProject {
   address?: string | null;
   zip?: string | null;
   county?: string | null;
+  sizeMw?: number | null;
+  financingAmount?: number | null;
   websiteId?: string | null;
 }
 
@@ -175,6 +196,8 @@ function storedValue(project: CurrentProject, field: StarterField) {
     }
     case 'active':
     case 'size':
+    case 'sizeMw':
+    case 'financingAmount':
     case 'entity':
     case 'financing':
     case 'technologies':
@@ -203,7 +226,7 @@ function diff<Field extends StarterField>(
   return changes;
 }
 
-/** An import's changes, which follow each field's owner. */
+/** A link's changes, which follow each field's owner. */
 function changesFor(project: CurrentProject, fields: FieldValues) {
   const merged = Boolean(project.websiteId);
   const owned = PLAN_FIELDS.filter((field) => {
@@ -452,7 +475,7 @@ export function planImport({
       row.row,
       plantId,
       project,
-      changesFor(project, fields),
+      diff(project, fields, IMPORT_FIELDS),
       warnings,
       returns,
     );

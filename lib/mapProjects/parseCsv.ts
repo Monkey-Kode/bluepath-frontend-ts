@@ -1,6 +1,12 @@
 import { CsvError, parse } from 'csv-parse/sync';
 
-import { COLUMN_KEYS, COLUMNS, type ColumnKey } from './columns';
+import {
+  COLUMN_KEYS,
+  COLUMNS,
+  type ColumnKey,
+  IMPORT_KEYS,
+  importHeaderOf,
+} from './columns';
 
 /** The largest file the website reads: 5 MB. */
 export const MAX_FILE_BYTES = 5 * 1024 * 1024;
@@ -29,15 +35,42 @@ export type ParseCsvResult =
   | { ok: false; error: ParseCsvError; message: string };
 
 export interface ParseCsvOptions {
-  /** The one-time starter load also needs and reads the Website ID column. */
+  /** The one-time starter load reads the starter workbook's layout instead of the import columns. */
   starter?: boolean;
 }
 
 const normalize = (header: string) =>
   header.trim().replace(/\s+/g, ' ').toLowerCase();
 
-const KEY_BY_HEADER = new Map(
-  COLUMN_KEYS.map((key) => [normalize(COLUMNS[key].header), key]),
+interface Layout {
+  /** The columns the layout reads, in the order messages name them. */
+  keys: readonly ColumnKey[];
+  /** The header of each column the layout reads. */
+  headerOf: (key: ColumnKey) => string;
+  keyByHeader: Map<string, ColumnKey>;
+  /** The keys a file must have, in the order a rejection names them. */
+  required: readonly ColumnKey[];
+}
+
+function layoutOf(
+  keys: readonly ColumnKey[],
+  headerOf: (key: ColumnKey) => string,
+  required: readonly ColumnKey[],
+): Layout {
+  const keyByHeader = new Map(
+    keys.map((key) => [normalize(headerOf(key)), key] as const),
+  );
+  return { keys, headerOf, keyByHeader, required };
+}
+
+/** An import reads only BlueIQ's 7 columns, and it needs every one (D-44). */
+const IMPORT_LAYOUT = layoutOf(IMPORT_KEYS, importHeaderOf, IMPORT_KEYS);
+
+/** The starter load reads every column of the starter workbook (AC-8.7). */
+const STARTER_LAYOUT = layoutOf(
+  COLUMN_KEYS,
+  (key) => COLUMNS[key].header,
+  COLUMN_KEYS.filter((key) => COLUMNS[key].starter === 'required'),
 );
 
 const isBlank = (cells: string[]) => cells.every((cell) => cell.trim() === '');
@@ -84,23 +117,19 @@ export function parseCsv(
   }
 
   const [header = [], ...body] = records;
+  const layout = starter ? STARTER_LAYOUT : IMPORT_LAYOUT;
   const indexes = new Map<ColumnKey, number>();
   const repeated = new Set<ColumnKey>();
   header.forEach((name, index) => {
-    const key = KEY_BY_HEADER.get(normalize(name));
+    const key = layout.keyByHeader.get(normalize(name));
     if (!key) return;
-    if (COLUMNS[key].presence === 'starter' && !starter) return;
     if (indexes.has(key)) repeated.add(key);
     else indexes.set(key, index);
   });
 
-  // The starter load matches rows to website projects by Website ID, so it needs that column.
-  const needed = (key: ColumnKey) =>
-    COLUMNS[key].presence === 'required' ||
-    (starter && COLUMNS[key].presence === 'starter');
-  const missing = COLUMN_KEYS.filter(
-    (key) => needed(key) && !indexes.has(key),
-  ).map((key) => COLUMNS[key].header);
+  const missing = layout.required
+    .filter((key) => !indexes.has(key))
+    .map(layout.headerOf);
   if (missing.length > 0) {
     return fail(
       { reason: 'missing-columns', headers: missing },
@@ -109,9 +138,9 @@ export function parseCsv(
   }
 
   if (repeated.size > 0) {
-    const headers = COLUMN_KEYS.filter((key) => repeated.has(key)).map(
-      (key) => COLUMNS[key].header,
-    );
+    const headers = layout.keys
+      .filter((key) => repeated.has(key))
+      .map(layout.headerOf);
     return fail(
       { reason: 'repeated-columns', headers },
       `The file has these columns more than once: ${headers.join(', ')}.`,

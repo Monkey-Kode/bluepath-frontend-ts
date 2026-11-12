@@ -3296,6 +3296,20 @@
         },
         "optional": true
       },
+      "sizeMw": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "number"
+        },
+        "optional": true
+      },
+      "financingAmount": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "number"
+        },
+        "optional": true
+      },
       "content": {
         "type": "objectAttribute",
         "value": {

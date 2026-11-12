@@ -1,6 +1,7 @@
 import { categoryOf } from '@/lib/categories';
 import { stateName } from '@/utils/extractState';
 
+import { COLUMN_KEYS, type ColumnKey, IMPORT_KEYS } from './columns';
 import type { ParsedRow } from './parseCsv';
 
 /** The six reasons in AC-4.3. A row with any of them writes nothing. */
@@ -12,11 +13,12 @@ export type RowErrorReason =
   | 'bad-size'
   | 'bad-active';
 
-/** Warnings don't stop a row. Each one keeps the project off the map. */
+/** Warnings don't stop a row. Each one but the last keeps the project off the map. */
 export type RowWarningReason =
   | 'no-coordinates'
   | 'unknown-project-type'
-  | 'inactive';
+  | 'inactive'
+  | 'financing-not-number';
 
 export interface RowIssue<Reason extends string> {
   reason: Reason;
@@ -44,6 +46,10 @@ export interface MapProjectFields {
   financing: string[] | null;
   size: number | null;
   technologies: string[] | null;
+  /** Megawatts DC, each plant's own. */
+  sizeMw: number | null;
+  /** Dollars, blank until BluePath decides what BlueIQ sends here. */
+  financingAmount: number | null;
   websiteId: string | null;
 }
 
@@ -210,6 +216,37 @@ function readSize(cell: string, errors: RowIssue<RowErrorReason>[]) {
   return Number(size.replace(/[$,\s]/g, ''));
 }
 
+function readSizeMw(cell: string, errors: RowIssue<RowErrorReason>[]) {
+  const size = cell.trim();
+  if (!size) return null;
+  if (!DECIMAL.test(size)) {
+    errors.push({
+      reason: 'bad-size',
+      message: 'Size (MWdc) is not a number.',
+    });
+    return null;
+  }
+  return Number(size);
+}
+
+/** Text such as "needs to be decided" warns and reads as blank, so the plant still updates. */
+function readFinancingAmount(
+  cell: string,
+  notes: RowIssue<RowWarningReason>[],
+) {
+  const amount = cell.trim();
+  if (!amount) return null;
+  if (!SIZE.test(amount)) {
+    notes.push({
+      reason: 'financing-not-number',
+      message:
+        'Financing Amount ($) is not a number, so the website leaves it blank.',
+    });
+    return null;
+  }
+  return Number(amount.replace(/[$,\s]/g, ''));
+}
+
 function readActive(cell: string, errors: RowIssue<RowErrorReason>[]) {
   const active = cell.trim().toLowerCase();
   if (!active) return null;
@@ -222,7 +259,40 @@ function readActive(cell: string, errors: RowIssue<RowErrorReason>[]) {
   return null;
 }
 
-function warningsFor(fields: Omit<MapProjectFields, 'plantId'>) {
+/**
+ * An import reads BlueIQ's 7 columns (D-44). It never reads the starter workbook's other
+ * columns, and BlueIQ lists only active plants, so a listed plant counts as active.
+ */
+type RowKind = 'import' | 'starter';
+
+const IMPORTED = new Set<ColumnKey>(IMPORT_KEYS);
+
+const importCells = (cells: ParsedRow['cells']) =>
+  Object.fromEntries(
+    COLUMN_KEYS.map((key) => [key, IMPORTED.has(key) ? cells[key] : '']),
+  ) as ParsedRow['cells'];
+
+/** An import can't see the website's Technologies, which still give a blank type its category. */
+const UNKNOWN_TYPE = {
+  import: {
+    unknown:
+      'The map has no category for this Technology / Project Type, so the plant stays off the map.',
+    blank:
+      "Technology / Project Type is blank, so the plant stays off the map unless the website's Technologies give it a category.",
+  },
+  starter: {
+    unknown:
+      'The map has no category for this Project Type, so the row stays off the map.',
+    blank:
+      'Project Type is blank, and Technologies match no map category, so the row stays off the map.',
+  },
+} as const;
+
+function warningsFor(
+  fields: Omit<MapProjectFields, 'plantId'>,
+  notes: RowIssue<RowWarningReason>[],
+  kind: RowKind,
+) {
   const warnings: RowIssue<RowWarningReason>[] = [];
   if (!fields.location) {
     warnings.push({
@@ -234,8 +304,8 @@ function warningsFor(fields: Omit<MapProjectFields, 'plantId'>) {
     warnings.push({
       reason: 'unknown-project-type',
       message: fields.projectType
-        ? 'The map has no category for this Project Type, so the row stays off the map.'
-        : 'Project Type is blank, and Technologies match no map category, so the row stays off the map.',
+        ? UNKNOWN_TYPE[kind].unknown
+        : UNKNOWN_TYPE[kind].blank,
     });
   }
   if (fields.active === false) {
@@ -244,25 +314,32 @@ function warningsFor(fields: Omit<MapProjectFields, 'plantId'>) {
       message: 'Active is No, so the project stays off the map and ticker.',
     });
   }
-  return warnings;
+  return [...warnings, ...notes];
 }
 
 /** Reads every cell but the Plant ID. A cell that can't be read adds an error. */
-function readCells(cells: ParsedRow['cells']) {
+function readCells(rowCells: ParsedRow['cells'], kind: RowKind) {
+  const cells = kind === 'import' ? importCells(rowCells) : rowCells;
   const errors: RowIssue<RowErrorReason>[] = [];
+  const notes: RowIssue<RowWarningReason>[] = [];
   const plantName = text(cells.plantName);
   const projectName = text(cells.projectName);
   if (!plantName && !projectName) {
     errors.push({
       reason: 'no-name',
-      message: 'The row has no Plant Name or Project Name.',
+      message:
+        kind === 'import'
+          ? 'The row has no Project Name.'
+          : 'The row has no Plant Name or Project Name.',
     });
   }
 
-  // Errors follow column order: name, coordinates, size, then Active.
+  // Errors follow column order: name, coordinates, sizes, then Active.
   const location = readLocation(cells.latitude, cells.longitude, errors);
   const size = readSize(cells.size, errors);
-  const active = readActive(cells.active, errors);
+  const sizeMw = readSizeMw(cells.sizeMw, errors);
+  const financingAmount = readFinancingAmount(cells.financingAmount, notes);
+  const active = kind === 'import' ? true : readActive(cells.active, errors);
 
   const fields: Omit<MapProjectFields, 'plantId'> = {
     plantName,
@@ -281,14 +358,16 @@ function readCells(cells: ParsedRow['cells']) {
     financing: list(cells.financing),
     size,
     technologies: list(cells.technologies),
+    sizeMw,
+    financingAmount,
     websiteId: text(cells.websiteId),
   };
-  return { fields, errors };
+  return { fields, errors, notes };
 }
 
 /**
- * Checks each parsed row and reads its cells into map project fields (AC-4.3). Lists split on
- * semicolons, and State becomes the full name. Every row gets a result, in file order.
+ * Checks each row of an import and reads BlueIQ's 7 columns into map project fields (AC-4.3).
+ * The other fields read as blank, and Active reads as Yes. Every row gets a result, in file order.
  */
 export function validateRows(rows: readonly ParsedRow[]): ValidatedRow[] {
   const byPlantId = rowsById(rows, 'plantId');
@@ -301,20 +380,27 @@ export function validateRows(rows: readonly ParsedRow[]): ValidatedRow[] {
           reason: 'no-plant-id',
           message: 'The row has no Plant ID.',
         } as const);
-    const read = readCells(cells);
+    const read = readCells(cells, 'import');
     const errors = idError ? [idError, ...read.errors] : read.errors;
 
     if (!plantId || errors.length > 0) {
       return { ok: false, row, plantId, errors };
     }
     const fields = { plantId, ...read.fields };
-    return { ok: true, row, plantId, fields, warnings: warningsFor(fields) };
+    return {
+      ok: true,
+      row,
+      plantId,
+      fields,
+      warnings: warningsFor(fields, read.notes, 'import'),
+    };
   });
 }
 
 /**
- * Checks the rows of the one-time starter load (AC-8.7). A row with a Website ID may lack a Plant
- * ID, and no two rows may share a Website ID. Otherwise the rules match `validateRows`.
+ * Checks the rows of the one-time starter load (AC-8.7). It reads every column: lists split on
+ * semicolons, and State becomes the full name. A row with a Website ID may lack a Plant ID, and no
+ * two rows may share a Website ID. Otherwise the rules match `validateRows`.
  */
 export function validateStarterRows(rows: readonly ParsedRow[]): StarterRow[] {
   const byPlantId = rowsById(rows, 'plantId');
@@ -342,13 +428,19 @@ export function validateStarterRows(rows: readonly ParsedRow[]): StarterRow[] {
     const repeat =
       websiteId && repeatMessage('websiteId', websiteId, row, byWebsiteId);
     if (repeat) errors.push({ reason: 'bad-website-id', message: repeat });
-    const read = readCells(cells);
+    const read = readCells(cells, 'starter');
     errors.push(...read.errors);
 
     if (!ids || errors.length > 0) {
       return { ok: false, row, plantId, websiteId, errors };
     }
     const fields = { ...read.fields, plantId: ids.plantId };
-    return { ok: true, row, ...ids, fields, warnings: warningsFor(fields) };
+    return {
+      ok: true,
+      row,
+      ...ids,
+      fields,
+      warnings: warningsFor(fields, read.notes, 'starter'),
+    };
   });
 }

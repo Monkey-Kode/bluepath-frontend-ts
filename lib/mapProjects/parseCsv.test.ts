@@ -1,8 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { MAX_FILE_BYTES, MAX_ROWS, parseCsv } from './parseCsv';
 
-/** The Required headers, as the spec's column table names them. */
-const REQUIRED = [
+/** BlueIQ's daily file, as Jason sent it on Nov 12 (D-44). */
+const IMPORT = [
+  'Plant ID',
+  'Latitude',
+  'Longitude',
+  'Financing Amount ($)',
+  'Size (MWdc)',
+  'Technology / Project Type',
+  'Project Name',
+];
+
+/** The starter workbook's Required headers, as the spec's column table names them. */
+const STARTER = [
   'Plant ID',
   'Plant Name',
   'Project ID',
@@ -17,6 +28,7 @@ const REQUIRED = [
   'State',
   'ZIP',
   'County',
+  'Website ID',
 ];
 
 const encode = (text: string) => new TextEncoder().encode(text);
@@ -27,7 +39,7 @@ const csvText = (header: string[], rows: string[][]) =>
 const file = (header: string[], ...rows: string[][]) =>
   encode(csvText(header, rows));
 
-/** A row with a value in every Required column, such as "Plant Name value". */
+/** A row with a value in every column, such as "Plant ID value". */
 const fullRow = (header: string[], values: Record<string, string> = {}) =>
   header.map((name) => values[name] ?? `${name} value`);
 
@@ -43,117 +55,106 @@ function errorOf(...args: Parameters<typeof parseCsv>) {
   return result;
 }
 
-describe('parseCsv headers (AC-4.2, D-35)', () => {
-  it('matches headers by name in any order, ignoring case and extra spaces', () => {
+describe('parseCsv headers in an import (AC-4.2, D-44)', () => {
+  it("reads BlueIQ's 7 columns, with Technology / Project Type as the Project Type", () => {
+    const [row] = rowsOf(
+      file(IMPORT, [
+        '1149',
+        '32.832423',
+        '-117.135577',
+        '',
+        '0.3240',
+        'Solar + Battery',
+        'Kearny Mesa Court',
+      ]),
+    );
+
+    expect(row?.cells).toMatchObject({
+      plantId: '1149',
+      latitude: '32.832423',
+      longitude: '-117.135577',
+      financingAmount: '',
+      sizeMw: '0.3240',
+      projectType: 'Solar + Battery',
+      projectName: 'Kearny Mesa Court',
+    });
+  });
+
+  it('matches headers in any order, ignoring case and extra spaces', () => {
     const header = [
-      ' zip ',
-      'PLANT  NAME',
-      'size ($)',
-      'Plant id',
-      ...REQUIRED.filter(
-        (name) => !['ZIP', 'Plant Name', 'Plant ID'].includes(name),
+      ' project  name ',
+      'SIZE (MWDC)',
+      ...IMPORT.filter(
+        (name) => !['Project Name', 'Size (MWdc)'].includes(name),
       ),
     ];
     const [row] = rowsOf(
       file(
         header,
         fullRow(header, {
-          ' zip ': '68508',
-          'PLANT  NAME': 'Lincoln Solar',
-          'size ($)': '1200',
-          'Plant id': 'P-1',
+          ' project  name ': 'Wells CSG',
+          'SIZE (MWDC)': '1.5092',
         }),
       ),
     );
 
     expect(row?.cells).toMatchObject({
-      plantId: 'P-1',
-      plantName: 'Lincoln Solar',
-      zip: '68508',
-      size: '1200',
-      projectType: 'Project Type value',
-      county: 'County value',
+      projectName: 'Wells CSG',
+      sizeMw: '1.5092',
+      plantId: 'Plant ID value',
     });
   });
 
-  it('leaves an Optional column blank when the file lacks it', () => {
-    const [row] = rowsOf(file(REQUIRED, fullRow(REQUIRED)));
+  // The file no longer sends these, and imports leave their fields alone (G1).
+  it("ignores the starter workbook's other columns and unknown columns", () => {
+    const header = [...IMPORT, 'Plant Name', 'City', 'Website ID', 'Notes', ''];
+    const [row] = rowsOf(file(header, fullRow(header)));
+
     expect(row?.cells).toMatchObject({
-      entity: '',
-      financing: '',
-      size: '',
-      technologies: '',
+      plantName: '',
+      city: '',
       websiteId: '',
+      projectName: 'Project Name value',
     });
   });
 
-  it('ignores unknown columns and "Technology (BlueIQ value)"', () => {
-    const header = [...REQUIRED, 'Technology (BlueIQ value)', 'Notes', ''];
-    const [row] = rowsOf(
-      file(
-        header,
-        fullRow(header, {
-          'Project Type': 'Solar',
-          'Technology (BlueIQ value)': 'Solar PV',
-          Notes: 'Call back',
-          '': 'stray',
-        }),
-      ),
-    );
-
-    expect(Object.keys(row?.cells ?? {}).sort()).toEqual(
-      [
-        'plantId',
-        'plantName',
-        'projectId',
-        'projectName',
-        'projectType',
-        'projectStatus',
-        'active',
-        'latitude',
-        'longitude',
-        'address',
-        'city',
-        'state',
-        'zip',
-        'county',
-        'entity',
-        'financing',
-        'size',
-        'technologies',
-        'websiteId',
-      ].sort(),
-    );
-    expect(row?.cells.projectType).toBe('Solar');
-  });
-
-  it('rejects a file that lacks a Required column and names each missing header', () => {
-    const header = [
-      'Plant Identifier',
-      ...REQUIRED.filter(
-        (name) => !['Plant ID', 'Project ID', 'County'].includes(name),
-      ),
-      'Entity Type',
-    ];
-    const result = errorOf(file(header, fullRow(header)));
+  it("rejects the old 15-column file and names the columns it lacks, in BlueIQ's order", () => {
+    const old = STARTER.filter((name) => name !== 'Website ID');
+    const result = errorOf(file(old, fullRow(old)));
 
     expect(result.error).toEqual({
       reason: 'missing-columns',
-      headers: ['Plant ID', 'Project ID', 'County'],
+      headers: [
+        'Financing Amount ($)',
+        'Size (MWdc)',
+        'Technology / Project Type',
+      ],
     });
-    expect(result.message).toContain('Plant ID, Project ID, County');
+    expect(result.message).toBe(
+      'The file is missing these columns: Financing Amount ($), Size (MWdc), Technology / Project Type.',
+    );
+  });
+
+  // Numbers on a Mac exports the table's name above the headers.
+  it('rejects a title line above the headers', () => {
+    const text = `bluepath-website-map-sample\r\n${csvText(IMPORT, [fullRow(IMPORT)])}`;
+    const result = errorOf(encode(text));
+
+    expect(result.error).toEqual({
+      reason: 'missing-columns',
+      headers: IMPORT,
+    });
   });
 
   it('rejects an empty file for its missing columns', () => {
-    const result = errorOf(encode(''));
-    expect(result.error).toEqual({
+    expect(errorOf(encode('')).error).toEqual({
       reason: 'missing-columns',
-      headers: REQUIRED,
+      headers: IMPORT,
     });
   });
 
   it('rejects a file that repeats a column', () => {
-    const header = [...REQUIRED, 'plant id'];
+    const header = [...IMPORT, 'plant id'];
     const result = errorOf(file(header, fullRow(header)));
 
     expect(result.error).toEqual({
@@ -162,23 +163,41 @@ describe('parseCsv headers (AC-4.2, D-35)', () => {
     });
     expect(result.message).toContain('Plant ID');
   });
+});
 
-  it('reads Website ID only in the starter load', () => {
-    const header = [...REQUIRED, 'Website ID'];
-    const bytes = file(header, fullRow(header, { 'Website ID': 'project-7' }));
-
-    expect(rowsOf(bytes)[0]?.cells.websiteId).toBe('');
-    expect(rowsOf(bytes, { starter: true })[0]?.cells.websiteId).toBe(
-      'project-7',
+describe('parseCsv headers in the starter load (AC-8.3, AC-8.7)', () => {
+  it("reads the starter workbook's layout, with Project Type under its own name", () => {
+    const header = [...STARTER, 'Entity Type', 'Technology (BlueIQ value)'];
+    const [row] = rowsOf(
+      file(
+        header,
+        fullRow(header, {
+          'Project Type': 'Solar + BESS',
+          'Website ID': 'project-7',
+          'Entity Type': 'Municipal',
+        }),
+      ),
+      { starter: true },
     );
+
+    expect(row?.cells).toMatchObject({
+      projectType: 'Solar + BESS',
+      plantName: 'Plant Name value',
+      county: 'County value',
+      websiteId: 'project-7',
+      entity: 'Municipal',
+      // Optional in the starter workbook, which predates them.
+      sizeMw: '',
+      financingAmount: '',
+      size: '',
+    });
   });
 
   // Without the column, the load would add every plant as a new project and hide every website
   // project. That points to the wrong tab or an import file.
-  it('needs the Website ID column in the starter load (AC-8.3)', () => {
-    const result = errorOf(file(REQUIRED, fullRow(REQUIRED)), {
-      starter: true,
-    });
+  it('needs the Website ID column', () => {
+    const header = STARTER.filter((name) => name !== 'Website ID');
+    const result = errorOf(file(header, fullRow(header)), { starter: true });
 
     expect(result.error).toEqual({
       reason: 'missing-columns',
@@ -188,26 +207,55 @@ describe('parseCsv headers (AC-4.2, D-35)', () => {
       'The file is missing these columns: Website ID.',
     );
   });
+
+  it("rejects BlueIQ's 7-column file, which lacks the starter workbook's columns", () => {
+    const result = errorOf(file(IMPORT, fullRow(IMPORT)), { starter: true });
+
+    expect(result.error).toMatchObject({ reason: 'missing-columns' });
+    expect(result.error).toHaveProperty('headers', [
+      'Plant Name',
+      'Project ID',
+      'Project Type',
+      'Project Status',
+      'Active',
+      'Address',
+      'City',
+      'State',
+      'ZIP',
+      'County',
+      'Website ID',
+    ]);
+  });
+
+  it('names a repeated optional column', () => {
+    const header = [...STARTER, 'Entity Type', 'entity type'];
+    const result = errorOf(file(header, fullRow(header)), { starter: true });
+
+    expect(result.error).toEqual({
+      reason: 'repeated-columns',
+      headers: ['Entity Type'],
+    });
+  });
 });
 
 describe('parseCsv cells and rows (NFR-006)', () => {
   it('reads UTF-8 with or without a byte-order mark', () => {
-    const text = csvText(REQUIRED, [
-      fullRow(REQUIRED, { 'Plant ID': 'P-1', 'Plant Name': 'Niña Solar' }),
+    const text = csvText(IMPORT, [
+      fullRow(IMPORT, { 'Plant ID': 'P-1', 'Project Name': 'Niña Solar' }),
     ]);
     const withMark = encode(`﻿${text}`);
 
     for (const bytes of [encode(text), withMark]) {
       expect(rowsOf(bytes)[0]?.cells).toMatchObject({
         plantId: 'P-1',
-        plantName: 'Niña Solar',
+        projectName: 'Niña Solar',
       });
     }
   });
 
   it('rejects bytes that are not UTF-8', () => {
     const latin1 = Uint8Array.from(
-      `${REQUIRED.join(',')}\r\nNi\xf1a`,
+      `${IMPORT.join(',')}\r\nNi\xf1a`,
       (character) => character.charCodeAt(0),
     );
     expect(errorOf(latin1).error).toEqual({ reason: 'not-utf8' });
@@ -216,29 +264,29 @@ describe('parseCsv cells and rows (NFR-006)', () => {
   it('keeps every cell as written, without evaluating it', () => {
     const [row] = rowsOf(
       file(
-        REQUIRED,
-        fullRow(REQUIRED, {
+        IMPORT,
+        fullRow(IMPORT, {
           'Plant ID': '00123',
-          'Plant Name': '=1+1',
+          'Technology / Project Type': '=1+1',
           'Project Name': '<b>Bold</b>',
           Latitude: '1e5',
-          City: ' Lincoln ',
+          'Size (MWdc)': ' 0.5 ',
         }),
       ),
     );
     expect(row?.cells).toMatchObject({
       plantId: '00123',
-      plantName: '=1+1',
+      projectType: '=1+1',
       projectName: '<b>Bold</b>',
       latitude: '1e5',
-      city: ' Lincoln ',
+      sizeMw: ' 0.5 ',
     });
   });
 
   it('reads quoted cells and numbers rows as a spreadsheet does', () => {
     const header = [
-      'Plant Name',
-      ...REQUIRED.filter((name) => name !== 'Plant Name'),
+      'Project Name',
+      ...IMPORT.filter((name) => name !== 'Project Name'),
     ];
     const text = [
       header.join(','),
@@ -249,24 +297,24 @@ describe('parseCsv cells and rows (NFR-006)', () => {
 
     expect(rows.map(({ row }) => row)).toEqual([2, 3]);
     expect(rows[0]?.cells).toMatchObject({
-      plantName: 'Lincoln, "North"\nSolar',
+      projectName: 'Lincoln, "North"\nSolar',
       plantId: 'P-1',
     });
     expect(rows[1]?.cells).toMatchObject({
-      plantName: 'Short Row',
+      projectName: 'Short Row',
       plantId: 'P-2',
-      county: '',
+      sizeMw: '',
     });
   });
 
   it('skips blank rows but keeps the row numbers', () => {
     const text = [
-      REQUIRED.join(','),
-      fullRow(REQUIRED, { 'Plant ID': 'P-1' }).join(','),
+      IMPORT.join(','),
+      fullRow(IMPORT, { 'Plant ID': 'P-1' }).join(','),
       '',
       ',,,',
       ' , ',
-      fullRow(REQUIRED, { 'Plant ID': 'P-2' }).join(','),
+      fullRow(IMPORT, { 'Plant ID': 'P-2' }).join(','),
     ].join('\n');
     const rows = rowsOf(encode(text));
 
@@ -278,13 +326,13 @@ describe('parseCsv cells and rows (NFR-006)', () => {
 
   it('rejects malformed CSV with its row, without quoting the cell', () => {
     for (const bad of ['"Secret plant,P-1', 'Secret "plant",P-1']) {
-      const result = errorOf(encode(`${REQUIRED.join(',')}\n${bad}\n`));
+      const result = errorOf(encode(`${IMPORT.join(',')}\n${bad}\n`));
       expect(result.error).toEqual({ reason: 'malformed', row: 2 });
       expect(result.message).toContain('row 2');
       expect(result.message).not.toContain('Secret');
     }
     const afterMultiLineCell = errorOf(
-      encode(`${REQUIRED.join(',')}\n"Two\nlines",P-1\nBad "quote",P-2\n`),
+      encode(`${IMPORT.join(',')}\n"Two\nlines",P-1\nBad "quote",P-2\n`),
     );
     expect(afterMultiLineCell.error).toEqual({ reason: 'malformed', row: 3 });
   });
@@ -305,10 +353,8 @@ describe('parseCsv limits (NFR-006)', () => {
     const rows = (count: number) =>
       Array.from({ length: count }, (_, index) => [`P-${index}`]);
 
-    expect(rowsOf(file(REQUIRED, ...rows(5000), [''], ['']))).toHaveLength(
-      5000,
-    );
-    expect(errorOf(file(REQUIRED, ...rows(5001))).error).toEqual({
+    expect(rowsOf(file(IMPORT, ...rows(5000), [''], ['']))).toHaveLength(5000);
+    expect(errorOf(file(IMPORT, ...rows(5001))).error).toEqual({
       reason: 'too-many-rows',
     });
   });
