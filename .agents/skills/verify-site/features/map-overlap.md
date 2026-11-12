@@ -1,22 +1,23 @@
 # Map overlap (AC-2.9)
 
-Checks that the map, key, legend, and panel never overlap each other or Google's branding at six widths.
+Checks that the search, key, legend, and panel never overlap each other or Google's branding and zoom buttons at six widths.
 
 - **Prerequisites:** the map loads without Google's error box. Locally, that needs the key to allow `http://localhost:3000/*`.
 - **Entry point:** `scripts/overlap.sh --url /projects/`.
-- **Actions:** run the helper twice with the regions that `components/Projects.tsx` renders.
-  Below 800 px, the key sits under the map, so the narrow run allows no overlap.
-  From 800 px, the key sits inside the map, so the wide run allows `key:map`.
+- **Actions:** the map fills the screen, and every other region sits on top of it. So leave the map out of the regions.
+  The resting panel is empty or screen-reader-only on small screens, so the rest run leaves it out too.
 
   ```sh
   EVIDENCE=../.claude/specs/feat/case-studies/.mk-goal/evidence/map-overlap
-  REGIONS=(header=header map='[data-map-root]' key='[data-map-key]' legend='[data-map-legend]'
-    panel='[data-map-panel]' --min-target '[data-map-legend] button' --min-size 24)
-  scripts/overlap.sh --url /projects/ --out "$EVIDENCE/narrow" \
-    --viewports "320x568 375x667 768x1024" "${REGIONS[@]}"
-  scripts/overlap.sh --url /projects/ --out "$EVIDENCE/wide" \
-    --viewports "1024x768 1280x720 1440x900" --allow key:map "${REGIONS[@]}"
+  scripts/overlap.sh --url /projects/ --out "$EVIDENCE/rest" \
+    search='[data-map-search]' key='[data-map-key]' legend='[data-map-legend]' \
+    zoom='.gm-style button[aria-label="Zoom in"], .gm-style button[aria-label="Zoom out"]' \
+    --min-target '[data-map-legend] button' --min-size 24
   ```
+
+  To check the panel, pick a project first. `overlap.sh` has no pick step, so drive `agent-browser` by hand at each viewport.
+  Fill `[data-map-search] [role=combobox]` with a project name, click the first `[role=option]`, and wait 2.5 s for the flight.
+  Then pipe `const CONFIG = {...};` and `scripts/overlap.js` to `agent-browser eval --stdin`, with `panel='[data-map-panel]'` added to the items.
 
   When the map shows Google's error box, add `--wait '[data-map-panel]'`. The run then still measures the other regions.
 
@@ -34,4 +35,8 @@ Checks that the map, key, legend, and panel never overlap each other or Google's
   - The header, map, key, legend, and panel never overlapped at the six viewports. Nothing scrolled sideways, and every legend button measured at least 24×24 px.
   - Each viewport failed only on `google-logo` and `google-attribution`, because Google drew no map.
   - Evidence is in `../.claude/specs/feat/case-studies/.mk-goal/evidence/story-2/t036/`.
+- **Run on 2026-11-12 for T155**, local server on port 3000 with a working map and the full-screen layout:
+  - The rest run passed at all six viewports.
+  - A Menifee pick passed at all six viewports with the panel included. The panel showed the project each time.
+  - Evidence is in `../.claude/specs/feat/case-studies/.mk-goal/evidence/map-overlap/phase14-rest/` and `phase14-pick/`. The pick script is `phase14-pick/pick-overlap.sh`.
 - **Limits:** the helper measures the first screen after a full scroll. It does not test one-finger scrolling or two-finger zoom over the map. Check those by hand on a touch device or in device emulation.
