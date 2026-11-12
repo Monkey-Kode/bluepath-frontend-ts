@@ -82,8 +82,6 @@ export interface CurrentProject extends MapProject {
   address?: string | null;
   zip?: string | null;
   county?: string | null;
-  sizeMw?: number | null;
-  financingAmount?: number | null;
   websiteId?: string | null;
 }
 

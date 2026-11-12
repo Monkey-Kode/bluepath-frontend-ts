@@ -62,7 +62,18 @@ export const IMPORT_KEYS = [
   'projectName',
 ] as const satisfies readonly ColumnKey[];
 
-export type ImportKey = (typeof IMPORT_KEYS)[number];
+/**
+ * How the Studio's pane treats a column. Every import needs a `required` column. Only the starter
+ * workbook and backups have a `starter` column.
+ */
+export type ColumnPresence = 'required' | 'starter';
+
+/** A column as the map projects route lists it for the Studio. */
+export interface ColumnEntry {
+  key: ColumnKey;
+  header: string;
+  presence: ColumnPresence;
+}
 
 /** A column's header in an import file. */
 export const importHeaderOf = (key: ColumnKey) => {

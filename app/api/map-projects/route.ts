@@ -21,6 +21,7 @@ import {
 import {
   COLUMN_KEYS,
   COLUMNS,
+  type ColumnEntry,
   type ColumnKey,
   IMPORT_KEYS,
   importHeaderOf,
@@ -304,16 +305,20 @@ const IMPORTED = new Set<ColumnKey>(IMPORT_KEYS);
  * workbook's other columns follow, so the pane can name every field that a preview changes.
  */
 const COLUMN_LIST = [
-  ...IMPORT_KEYS.map((key) => ({
-    key,
-    header: importHeaderOf(key),
-    presence: 'required',
-  })),
-  ...COLUMN_KEYS.filter((key) => !IMPORTED.has(key)).map((key) => ({
-    key,
-    header: COLUMNS[key].header,
-    presence: 'starter',
-  })),
+  ...IMPORT_KEYS.map(
+    (key): ColumnEntry => ({
+      key,
+      header: importHeaderOf(key),
+      presence: 'required',
+    }),
+  ),
+  ...COLUMN_KEYS.filter((key) => !IMPORTED.has(key)).map(
+    (key): ColumnEntry => ({
+      key,
+      header: COLUMNS[key].header,
+      presence: 'starter',
+    }),
+  ),
 ];
 
 const COLUMNS_REPLY: RouteReply = {
@@ -322,11 +327,13 @@ const COLUMNS_REPLY: RouteReply = {
 };
 
 /** A backup's headers, in the order of `backupRows` cells: the full layout (AC-7.2). */
-const BACKUP_COLUMNS = COLUMN_KEYS.map((key) => ({
-  key,
-  header: COLUMNS[key].header,
-  presence: IMPORTED.has(key) ? 'required' : 'starter',
-}));
+const BACKUP_COLUMNS = COLUMN_KEYS.map(
+  (key): ColumnEntry => ({
+    key,
+    header: COLUMNS[key].header,
+    presence: IMPORTED.has(key) ? 'required' : 'starter',
+  }),
+);
 
 const MISSING_BACKUP = errorReply(
   404,
