@@ -37,6 +37,8 @@ const blank: CaseStudy = {
   financing: null,
   size: null,
   technologies: null,
+  sizeMw: null,
+  financingAmount: null,
   content: null,
   address: null,
   city: null,
@@ -160,7 +162,7 @@ describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
     expect(within(panel()).getByText('Cell Bank')).toBeVisible();
     expect(fake.marker('Cell Bank').look).toBe('selected');
     expect(fake.marker('Sun Farm').look).toBe('dimmed');
-    expect(legendEntry('BESS')).toHaveAttribute('data-look', 'match');
+    expect(legendEntry('Battery')).toHaveAttribute('data-look', 'match');
     expect(legendEntry('Solar')).toHaveAttribute('data-look', 'faded');
   });
 
@@ -177,9 +179,9 @@ describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
   it('filters by a legend category and shows its description', async () => {
     const user = userEvent.setup();
     await show();
-    await user.click(legendEntry('BESS'));
+    await user.click(legendEntry('Battery'));
 
-    expect(legendEntry('BESS')).toHaveAttribute('aria-pressed', 'true');
+    expect(legendEntry('Battery')).toHaveAttribute('aria-pressed', 'true');
     expect(fake.marker('Cell Bank').map).toBe(fake.map());
     expect(fake.marker('Sun Farm').map).toBeNull();
     expect(fake.marker('Isle Array').map).toBeNull();
@@ -202,11 +204,11 @@ describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
   it('returns to the resting prompt on Escape', async () => {
     const user = userEvent.setup();
     await show();
-    await user.click(legendEntry('BESS'));
+    await user.click(legendEntry('Battery'));
     await user.keyboard('{Escape}');
 
     expect(panel()).toHaveTextContent(copy.restingPrompt);
-    expect(legendEntry('BESS')).toHaveAttribute('aria-pressed', 'false');
+    expect(legendEntry('Battery')).toHaveAttribute('aria-pressed', 'false');
     for (const marker of fake.markers) expect(marker.map).toBe(fake.map());
   });
 
@@ -387,7 +389,7 @@ describe('Projects map loading', () => {
         failure,
       ),
     );
-    expect(legendEntry('BESS')).toBeVisible();
+    expect(legendEntry('Battery')).toBeVisible();
     expect(panel()).toHaveTextContent(copy.restingPrompt);
   });
 

@@ -22,6 +22,8 @@ const project = {
   financing: ['PPA'],
   size: 1234567,
   technologies: ['Solar'],
+  sizeMw: 1.5092,
+  financingAmount: 1250000,
 };
 
 describe('isPlotted (AC-2.1, AC-4.5)', () => {
@@ -117,22 +119,45 @@ describe('locationOf', () => {
   });
 });
 
-describe('panelOf (AC-2.4)', () => {
-  it('shows the name, the project name, and every field in order', () => {
+describe('panelOf (AC-2.4, G2)', () => {
+  // Status and the website's old Entity type, Technologies, Financing, and Size ($) stay off.
+  it("shows the name, the project name, and BlueIQ's fields in order", () => {
     expect(panelOf(project)).toEqual({
       name: 'Newton High School',
       projectName: 'Newton Public Schools',
       category: 'solar',
       fields: [
         { label: 'Category', value: 'Solar' },
-        { label: 'Status', value: 'Operating' },
         { label: 'Location', value: 'Newton, Massachusetts' },
-        { label: 'Entity type', value: 'K-12' },
-        { label: 'Technologies', value: 'Solar' },
-        { label: 'Financing', value: 'PPA' },
-        { label: 'Size', value: '$1,234,567' },
+        { label: 'Technology / Project Type', value: 'Solar' },
+        { label: 'Financing', value: '$1,250,000' },
+        { label: 'Size', value: '1.5092 MWdc' },
       ],
     });
+  });
+
+  it("shows BlueIQ's Other beside the category that Technologies give", () => {
+    expect(
+      panelOf({
+        ...project,
+        projectType: ' Other ',
+        technologies: ['Solar and EV Chargers'],
+      }).fields.slice(0, 3),
+    ).toEqual([
+      { label: 'Category', value: 'Solar' },
+      { label: 'Location', value: 'Newton, Massachusetts' },
+      { label: 'Technology / Project Type', value: 'Other' },
+    ]);
+  });
+
+  it('writes large sizes and cents in full', () => {
+    const { fields } = panelOf({
+      ...project,
+      sizeMw: 1234.5678,
+      financingAmount: 99.5,
+    });
+    expect(fields).toContainEqual({ label: 'Size', value: '1,234.5678 MWdc' });
+    expect(fields).toContainEqual({ label: 'Financing', value: '$99.50' });
   });
 
   it('leaves out the project name when it matches the name', () => {
@@ -146,36 +171,26 @@ describe('panelOf (AC-2.4)', () => {
     ).toBeNull();
   });
 
+  // A website-only project has none of BlueIQ's fields (G3).
   it('drops blank fields', () => {
     expect(
       panelOf({
         ...project,
-        projectStatus: null,
+        projectType: ' ',
         city: null,
         state: ' ',
-        entity: ['  '],
-        financing: null,
-        size: null,
-        technologies: [null, ' '],
+        sizeMw: null,
+        financingAmount: undefined,
       }).fields,
     ).toEqual([{ label: 'Category', value: 'Solar' }]);
   });
 
-  it('trims each value and lists each list value once', () => {
-    const { fields } = panelOf({
-      ...project,
-      entity: ['Commercial & Industrial  ', 'University '],
-      financing: ['PPA', '', 'PPA ', 'Lease'],
-      technologies: ['Solar', 'Battery Storage ', 'Solar '],
-    });
-    expect(fields).toContainEqual({
-      label: 'Entity type',
-      value: 'Commercial & Industrial, University',
-    });
-    expect(fields).toContainEqual({ label: 'Financing', value: 'PPA, Lease' });
-    expect(fields).toContainEqual({
-      label: 'Technologies',
-      value: 'Solar, Battery Storage',
+  it('trims the Technology / Project Type', () => {
+    expect(
+      panelOf({ ...project, projectType: ' Solar  +  Battery ' }).fields,
+    ).toContainEqual({
+      label: 'Technology / Project Type',
+      value: 'Solar + Battery',
     });
   });
 });

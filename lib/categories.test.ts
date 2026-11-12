@@ -6,8 +6,8 @@ describe('CATEGORIES', () => {
     expect(CATEGORIES.map(({ label }) => label)).toEqual([
       'Energy Efficiency',
       'Solar',
-      'Solar + BESS',
-      'BESS',
+      'Solar + Battery',
+      'Battery',
     ]);
   });
 
@@ -45,6 +45,18 @@ describe('categoryOf (AC-2.11)', () => {
 
   it('gives no category for a Project Type that names an object key', () => {
     expect(categoryOf({ projectType: 'constructor' })).toBeNull();
+  });
+
+  // BlueIQ's final file folds every other technology into Other (G4).
+  it('treats an Other Project Type like a blank one', () => {
+    expect(
+      categoryOf({
+        projectType: ' other ',
+        technologies: ['Solar and EV Chargers'],
+      }),
+    ).toBe('solar');
+    expect(categoryOf({ projectType: 'Other', technologies: [] })).toBeNull();
+    expect(categoryOf({ projectType: 'Other' })).toBeNull();
   });
 
   it('never infers a category for an unrecognized Project Type', () => {

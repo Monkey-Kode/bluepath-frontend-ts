@@ -27,6 +27,8 @@ const newton: MapProject = {
   technologies: ['Solar PV', 'Carports'],
   financing: ['PPA'],
   size: 1250000,
+  sizeMw: 0.5465,
+  financingAmount: 1250000,
 };
 
 const resting: PanelView = { kind: 'resting' };
@@ -70,10 +72,8 @@ describe('MapPanel project view (AC-2.4)', () => {
     expect(within(region).getByText('Newton Rooftop Solar')).toBeVisible();
     expect(terms()).toEqual([
       'Category',
-      'Status',
       'Location',
-      'Entity type',
-      'Technologies',
+      'Technology / Project Type',
       'Financing',
       'Size',
     ]);
@@ -83,12 +83,10 @@ describe('MapPanel project view (AC-2.4)', () => {
         .map((value) => value.textContent),
     ).toEqual([
       'Solar',
-      'Operating',
       'Newton, Massachusetts',
-      'K-12',
-      'Solar PV, Carports',
-      'PPA',
+      'Solar',
       '$1,250,000',
+      '0.5465 MWdc',
     ]);
     expect(region).not.toHaveTextContent(copy.restingPrompt);
   });
@@ -97,11 +95,15 @@ describe('MapPanel project view (AC-2.4)', () => {
     render(
       <MapPanel
         view={picked}
-        project={{ ...newton, financing: [' '], size: null, entity: [] }}
+        project={{ ...newton, financingAmount: null, sizeMw: null }}
         copy={copy}
       />,
     );
-    expect(terms()).toEqual(['Category', 'Status', 'Location', 'Technologies']);
+    expect(terms()).toEqual([
+      'Category',
+      'Location',
+      'Technology / Project Type',
+    ]);
   });
 
   it('falls back to the resting prompt when the picked project is gone', () => {
@@ -122,8 +124,8 @@ describe('MapPanel category view (AC-2.5)', () => {
 
   it.each([
     ['a null description', 'energyEfficiency', copy, 'Energy Efficiency'],
-    ['an empty description', 'solarBess', copy, 'Solar + BESS'],
-    ['a blank description', 'bess', copy, 'BESS'],
+    ['an empty description', 'solarBess', copy, 'Solar + Battery'],
+    ['a blank description', 'bess', copy, 'Battery'],
     ['no Project Map item', 'solar', null, 'Solar'],
   ] as const)('shows only the category for %s', (_case, category, projectMap, label) => {
     render(

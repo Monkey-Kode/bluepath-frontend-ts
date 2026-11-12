@@ -8,7 +8,6 @@ import {
   categoryOf,
 } from '@/lib/categories';
 import { stateName } from '@/utils/extractState';
-import formatNumber from '@/utils/formatNumber';
 
 type Text = string | null | undefined;
 type List = readonly (string | null)[] | null | undefined;
@@ -28,6 +27,10 @@ export interface MapProject {
   financing?: List;
   size?: number | null;
   technologies?: List;
+  /** Megawatts DC, from BlueIQ's daily file. */
+  sizeMw?: number | null;
+  /** Dollars, from BlueIQ's daily file. */
+  financingAmount?: number | null;
 }
 
 export interface PanelField {
@@ -51,8 +54,6 @@ export const clean = (value: Text) => value?.trim().replace(/\s+/g, ' ') ?? '';
 export const distinct = (values: List) => [
   ...new Set((values ?? []).map(clean).filter(Boolean)),
 ];
-
-const list = (values: List) => distinct(values).join(', ');
 
 /**
  * A blank Active counts as Yes. A project hides once it leaves BlueIQ's latest file (AC-4.5).
@@ -95,25 +96,35 @@ export function locationOf(project: Pick<MapProject, 'city' | 'state'>) {
   );
 }
 
-/** What the panel shows for a picked marker (AC-2.4). */
+const megawatts = new Intl.NumberFormat('en-US', { maximumFractionDigits: 4 });
+
+/** Whole dollars without cents, and any other amount with them. */
+const dollars = (amount: number) =>
+  amount.toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+  });
+
+const numberOf = (value: number | null | undefined) =>
+  typeof value === 'number' && Number.isFinite(value) ? value : null;
+
+/**
+ * What the panel shows for a picked marker (AC-2.4). After the category and location, it shows
+ * the fields from BlueIQ's daily file, each only when filled (G2, G3).
+ */
 export function panelOf(project: MapProject): ProjectPanel {
   const name = displayName(project);
   const projectName = clean(project.projectName);
   const category = categoryOf(project);
-  const { size } = project;
+  const sizeMw = numberOf(project.sizeMw);
+  const financingAmount = numberOf(project.financingAmount);
   const fields: [string, string | null][] = [
     ['Category', category && CATEGORY_BY_KEY[category].label],
-    ['Status', clean(project.projectStatus)],
     ['Location', locationOf(project)],
-    ['Entity type', list(project.entity)],
-    ['Technologies', list(project.technologies)],
-    ['Financing', list(project.financing)],
-    [
-      'Size',
-      typeof size === 'number' && Number.isFinite(size)
-        ? `$${formatNumber(size)}`
-        : null,
-    ],
+    ['Technology / Project Type', clean(project.projectType)],
+    ['Financing', financingAmount === null ? null : dollars(financingAmount)],
+    ['Size', sizeMw === null ? null : `${megawatts.format(sizeMw)} MWdc`],
   ];
   return {
     name,

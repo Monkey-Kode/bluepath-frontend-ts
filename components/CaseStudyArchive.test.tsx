@@ -154,8 +154,8 @@ describe('CaseStudyArchive', () => {
       .getAllByRole('article')
       .map((card) => card.querySelector('time + span')?.textContent ?? null);
     expect(labels).toEqual([
-      'Solar + BESS',
-      'BESS · Newton, Massachusetts',
+      'Solar + Battery',
+      'Battery · Newton, Massachusetts',
       'Lincoln, Nebraska',
       null,
     ]);

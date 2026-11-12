@@ -15,8 +15,8 @@ export interface Category {
 export const CATEGORIES: readonly Category[] = [
   { key: 'energyEfficiency', label: 'Energy Efficiency', color: '#00FFFF' },
   { key: 'solar', label: 'Solar', color: '#F5A623' },
-  { key: 'solarBess', label: 'Solar + BESS', color: '#39FF14' },
-  { key: 'bess', label: 'BESS', color: '#FF1493' },
+  { key: 'solarBess', label: 'Solar + Battery', color: '#39FF14' },
+  { key: 'bess', label: 'Battery', color: '#FF1493' },
 ];
 
 export const CATEGORY_BY_KEY = Object.fromEntries(
@@ -58,15 +58,27 @@ function inferFromTechnologies(
 }
 
 /**
- * A project's category comes from its Project Type. Only a blank Project Type falls back to
- * Technologies, so inference never overrides BlueIQ. Anything else has no category and stays
- * off the map (AC-2.11).
+ * True for a blank Project Type and for BlueIQ's "Other" (G4). Both take their category from
+ * Technologies.
+ */
+export function fallsBackToTechnologies(
+  projectType: string | null | undefined,
+) {
+  const type = normalize(projectType ?? '');
+  return type === '' || type === 'other';
+}
+
+/**
+ * A project's category comes from its Project Type. Only a blank or "Other" Project Type falls
+ * back to Technologies, so inference never overrides BlueIQ. Anything else has no category and
+ * stays off the map (AC-2.11).
  */
 export function categoryOf(project: {
   projectType?: string | null;
   technologies?: readonly (string | null)[] | null;
 }): CategoryKey | null {
-  const projectType = normalize(project.projectType ?? '');
-  if (projectType) return PROJECT_TYPES.get(projectType) ?? null;
-  return inferFromTechnologies(project.technologies ?? []);
+  if (fallsBackToTechnologies(project.projectType)) {
+    return inferFromTechnologies(project.technologies ?? []);
+  }
+  return PROJECT_TYPES.get(normalize(project.projectType ?? '')) ?? null;
 }

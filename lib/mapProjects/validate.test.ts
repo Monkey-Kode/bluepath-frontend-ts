@@ -295,6 +295,16 @@ describe('validateRows warnings (AC-4.3)', () => {
         },
       ],
     });
+    // G4: Other falls back to the website's Technologies, as a blank cell does.
+    expect(validateOne({ ...VALID, projectType: 'Other' })).toMatchObject({
+      warnings: [
+        {
+          reason: 'unknown-project-type',
+          message:
+            "Technology / Project Type is Other, so the plant stays off the map unless the website's Technologies give it a category.",
+        },
+      ],
+    });
   });
 
   // The sample file holds "needs to be decided with BluePath" in every row.
@@ -528,6 +538,24 @@ describe('validateStarterRows (AC-8.7)', () => {
     });
     expect(
       starterOne({ ...VALID, projectType: ' ', technologies: 'Solar PV' }),
+    ).toMatchObject({ warnings: [] });
+    expect(
+      starterOne({
+        ...VALID,
+        projectType: 'Other',
+        technologies: 'Geothermal',
+      }),
+    ).toMatchObject({
+      warnings: [
+        {
+          reason: 'unknown-project-type',
+          message:
+            'Project Type is Other, and Technologies match no map category, so the row stays off the map.',
+        },
+      ],
+    });
+    expect(
+      starterOne({ ...VALID, projectType: 'Other', technologies: 'Solar PV' }),
     ).toMatchObject({ warnings: [] });
   });
 

@@ -233,6 +233,8 @@ export const casestudiesQuery = defineQuery(`
     financing,
     size,
     technologies,
+    sizeMw,
+    financingAmount,
     content,
     address,
     city,

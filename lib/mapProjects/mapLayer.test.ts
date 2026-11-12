@@ -152,7 +152,7 @@ describe('markers (AC-2.1, AC-2.8)', () => {
     create();
     expect(fake.markers.map((marker) => marker.title)).toEqual([
       'Sun Farm, Solar',
-      'Cell Bank, BESS',
+      'Cell Bank, Battery',
       'Bulb Works, Energy Efficiency',
       'Isle Array, Solar',
     ]);

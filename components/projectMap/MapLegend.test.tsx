@@ -24,7 +24,7 @@ const show = (selection: Selection, onPick = vi.fn()) => {
 describe('MapLegend entries (AC-2.3)', () => {
   it('lists the four categories in legend order, each as a button', () => {
     show(idle);
-    const names = ['Energy Efficiency', 'Solar', 'Solar + BESS', 'BESS'];
+    const names = ['Energy Efficiency', 'Solar', 'Solar + Battery', 'Battery'];
     expect(entries()).toHaveLength(names.length);
     for (const [i, button] of entries().entries()) {
       expect(button).toHaveAccessibleName(names[i]);
@@ -53,7 +53,7 @@ describe('MapLegend states (AC-2.4, AC-2.5, AC-2.8)', () => {
     show({ filter: 'solar', project: null });
     expect(entry('Solar')).toHaveAttribute('aria-pressed', 'true');
     expect(entry('Solar')).toHaveAttribute('data-look', 'filter');
-    for (const name of ['Energy Efficiency', 'Solar + BESS', 'BESS']) {
+    for (const name of ['Energy Efficiency', 'Solar + Battery', 'Battery']) {
       expect(entry(name)).toHaveAttribute('aria-pressed', 'false');
       expect(entry(name)).toHaveAttribute('data-look', 'faded');
     }
@@ -61,7 +61,7 @@ describe('MapLegend states (AC-2.4, AC-2.5, AC-2.8)', () => {
 
   it("bolds a picked project's category without pressing it", () => {
     show({ filter: null, project: { id: 'a', category: 'bess' } });
-    expect(entry('BESS')).toHaveAttribute('data-look', 'match');
+    expect(entry('Battery')).toHaveAttribute('data-look', 'match');
     expect(entry('Solar')).toHaveAttribute('data-look', 'faded');
     for (const button of entries()) {
       expect(button).toHaveAttribute('aria-pressed', 'false');
@@ -81,7 +81,7 @@ describe('MapLegend states (AC-2.4, AC-2.5, AC-2.8)', () => {
     await user.keyboard(' ');
     expect(onPick).toHaveBeenLastCalledWith('solar');
 
-    await user.click(entry('Solar + BESS'));
+    await user.click(entry('Solar + Battery'));
     expect(onPick).toHaveBeenLastCalledWith('solarBess');
     expect(onPick).toHaveBeenCalledTimes(3);
   });

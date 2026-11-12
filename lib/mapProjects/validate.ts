@@ -1,4 +1,4 @@
-import { categoryOf } from '@/lib/categories';
+import { categoryOf, fallsBackToTechnologies } from '@/lib/categories';
 import { stateName } from '@/utils/extractState';
 
 import { COLUMN_KEYS, type ColumnKey, IMPORT_KEYS } from './columns';
@@ -272,19 +272,22 @@ const importCells = (cells: ParsedRow['cells']) =>
     COLUMN_KEYS.map((key) => [key, IMPORTED.has(key) ? cells[key] : '']),
   ) as ParsedRow['cells'];
 
-/** An import can't see the website's Technologies, which still give a blank type its category. */
+/**
+ * An import can't see the website's Technologies, which still give a blank or "Other" type its
+ * category (G4). `open` names that type as "blank" or "Other".
+ */
 const UNKNOWN_TYPE = {
   import: {
     unknown:
       'The map has no category for this Technology / Project Type, so the plant stays off the map.',
-    blank:
-      "Technology / Project Type is blank, so the plant stays off the map unless the website's Technologies give it a category.",
+    open: (type: string) =>
+      `Technology / Project Type is ${type}, so the plant stays off the map unless the website's Technologies give it a category.`,
   },
   starter: {
     unknown:
       'The map has no category for this Project Type, so the row stays off the map.',
-    blank:
-      'Project Type is blank, and Technologies match no map category, so the row stays off the map.',
+    open: (type: string) =>
+      `Project Type is ${type}, and Technologies match no map category, so the row stays off the map.`,
   },
 } as const;
 
@@ -301,11 +304,12 @@ function warningsFor(
     });
   }
   if (!categoryOf(fields)) {
+    const { unknown, open } = UNKNOWN_TYPE[kind];
     warnings.push({
       reason: 'unknown-project-type',
-      message: fields.projectType
-        ? UNKNOWN_TYPE[kind].unknown
-        : UNKNOWN_TYPE[kind].blank,
+      message: fallsBackToTechnologies(fields.projectType)
+        ? open(fields.projectType ? 'Other' : 'blank')
+        : unknown,
     });
   }
   if (fields.active === false) {

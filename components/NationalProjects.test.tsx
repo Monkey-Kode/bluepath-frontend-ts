@@ -144,6 +144,8 @@ const blank: MapProject = {
   financing: null,
   size: null,
   technologies: null,
+  sizeMw: null,
+  financingAmount: null,
   content: null,
   address: null,
   city: null,
