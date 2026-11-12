@@ -119,7 +119,7 @@ describe('tickerEntries (AC-4.7, D-13)', () => {
   });
 
   // BlueIQ's daily file has no Project ID, so a plant added after the starter load lacks one.
-  it('groups plants without a Project ID by their Project Name, but never website projects', () => {
+  it("puts a plant without a Project ID in its Project Name's entry, but never a website project", () => {
     const entries = tickerEntries([
       plant('plant-1', {
         plantId: '1161',
@@ -141,10 +141,62 @@ describe('tickerEntries (AC-4.7, D-13)', () => {
     ]);
 
     expect(entries.map(({ key, ids }) => ({ key, ids }))).toEqual([
-      { key: 'name:michigan dnr - 30', ids: ['plant-1', 'plant-2'] },
-      { key: 'project:J-30', ids: ['plant-3'] },
+      { key: 'project:J-30', ids: ['plant-1', 'plant-2', 'plant-3'] },
       { key: 'document:website-1', ids: ['website-1'] },
       { key: 'document:plant-4', ids: ['plant-4'] },
+    ]);
+  });
+
+  it('groups plants without a Project ID by name alone', () => {
+    const entries = tickerEntries([
+      plant('plant-1', {
+        plantId: '1171',
+        projectId: null,
+        projectName: 'Orchard',
+      }),
+      plant('plant-2', {
+        plantId: '1172',
+        projectId: null,
+        projectName: 'orchard',
+      }),
+      // A hidden plant's Project ID doesn't count.
+      plant('plant-3', {
+        plantId: '1173',
+        projectId: 'J-40',
+        projectName: 'Orchard',
+        hiddenAt: '2026-11-01',
+      }),
+    ]);
+
+    expect(entries.map(({ key, ids }) => ({ key, ids }))).toEqual([
+      { key: 'name:orchard', ids: ['plant-1', 'plant-2'] },
+    ]);
+  });
+
+  // Two projects can share a name, and the plant could belong to either one.
+  it('keeps a plant out of both entries when two Project IDs share its name', () => {
+    const entries = tickerEntries([
+      plant('plant-1', {
+        plantId: '1181',
+        projectId: 'J-1',
+        projectName: 'Main St',
+      }),
+      plant('plant-2', {
+        plantId: '1182',
+        projectId: 'J-2',
+        projectName: 'Main St',
+      }),
+      plant('plant-3', {
+        plantId: '1183',
+        projectId: null,
+        projectName: 'Main St',
+      }),
+    ]);
+
+    expect(entries.map(({ key, ids }) => ({ key, ids }))).toEqual([
+      { key: 'project:J-1', ids: ['plant-1'] },
+      { key: 'project:J-2', ids: ['plant-2'] },
+      { key: 'name:main st', ids: ['plant-3'] },
     ]);
   });
 
