@@ -1,5 +1,6 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { flushSync } from 'react-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   type StateOutlines,
@@ -10,7 +11,6 @@ import type {
   CasestudiesQueryResult,
   ProjectMapQueryResult,
 } from '@/sanity.types';
-import { CITY_ZOOM } from '@/lib/mapProjects/mapLayer';
 import { fakeMaps } from '@/test/fakeMaps';
 import Projects from './Projects';
 
@@ -201,6 +201,45 @@ describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
     for (const marker of fake.markers) expect(marker.look).toBe('normal');
   });
 
+  // The legend has no "all" entry, so a click anywhere else turns a filter off.
+  it('returns to the resting prompt after a click outside the map and its UI', async () => {
+    const user = userEvent.setup();
+    await show();
+    await user.click(legendEntry('Battery'));
+    await user.click(document.querySelector('[data-map-key]') as Element);
+
+    expect(panel()).toHaveTextContent(copy.restingPrompt);
+    expect(legendEntry('Battery')).toHaveAttribute('aria-pressed', 'false');
+
+    act(() => fake.marker('Cell Bank').pick());
+    await user.click(document.body);
+    expect(panel()).toHaveTextContent(copy.restingPrompt);
+  });
+
+  it('keeps the selection on a click in the panel, the legend, or the search', async () => {
+    const user = userEvent.setup();
+    await show();
+    act(() => fake.marker('Cell Bank').pick());
+    await user.click(within(panel()).getByText('Cell Bank'));
+    await user.click(screen.getByRole('combobox', { name: 'Search' }));
+    await user.click(
+      screen.getByRole('list', { name: 'Filter the map by category' }),
+    );
+
+    expect(within(panel()).getByText('Cell Bank')).toBeVisible();
+    expect(fake.marker('Cell Bank').look).toBe('selected');
+  });
+
+  // Google reports map clicks itself, and skips the click at the end of a drag.
+  it('leaves clicks on the map to Google', async () => {
+    const user = userEvent.setup();
+    await show();
+    act(() => fake.marker('Cell Bank').pick());
+    await user.click(fake.map().element);
+
+    expect(fake.marker('Cell Bank').look).toBe('selected');
+  });
+
   it('returns to the resting prompt on Escape', async () => {
     const user = userEvent.setup();
     await show();
@@ -248,10 +287,31 @@ describe('Projects map search (AC-9.3, AC-9.9)', () => {
 
     expect(within(panel()).getByText('Cell Bank')).toBeVisible();
     expect(fake.marker('Cell Bank').look).toBe('selected');
-    expect(fake.map().center).toEqual({ lat: 35, lng: -90 });
-    expect(fake.map().zoom).toBe(CITY_ZOOM);
+    // With no size in the test DOM, nothing covers the map, so the marker lands in the middle.
+    expect(fake.map().center?.lat).toBeCloseTo(35, 9);
+    expect(fake.map().center?.lng).toBeCloseTo(-90, 9);
     // Google gets plain coordinates, without the geopoint's `_type`.
     expect(fake.marker('Cell Bank').position).toEqual({ lat: 35, lng: -90 });
+  });
+
+  // A browser runs React's update between listeners for a real click, so the list is gone
+  // before the click reaches the page. The body listener does the same here.
+  it('keeps a pick from the list, which closes before the click reaches the page', async () => {
+    await show();
+    await searchFor('cell');
+    const row = within(
+      screen.getByRole('option', { name: /Cell Bank/ }),
+    ).getByText('Cell Bank');
+    const flush = () => flushSync(() => {});
+    document.body.addEventListener('click', flush, { once: true });
+
+    row.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(row.isConnected).toBe(false);
+
+    await waitFor(() =>
+      expect(within(panel()).getByText('Cell Bank')).toBeVisible(),
+    );
+    expect(fake.marker('Cell Bank').look).toBe('selected');
   });
 
   it('clears a legend filter that hides the picked project', async () => {

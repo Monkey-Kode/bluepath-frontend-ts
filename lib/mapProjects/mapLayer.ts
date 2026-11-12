@@ -8,6 +8,14 @@
  */
 import { CATEGORY_BY_KEY, categoryOf } from '@/lib/categories';
 import { MAP_ID, type MapsLibraries } from '@/lib/mapsLoader';
+import {
+  type Camera,
+  cameraAlong,
+  cameraForBounds,
+  centerFor,
+  type Padding,
+  zoomForSpan,
+} from './camera';
 import { displayName, isPlotted, type MapProject } from './display';
 import { boundsOf, type StateOutlines } from './outlines';
 import { markerLook, type PickedProject, type Selection } from './selection';
@@ -25,6 +33,8 @@ export interface MapLayerOptions {
   onPickMarker: (project: PickedProject) => void;
   /** A click on the map that hits no marker. */
   onClickMap: () => void;
+  /** How far the search, panel, key, and legend reach over each edge of the map, in pixels. */
+  padding: () => Padding;
 }
 
 /** Where a search pick moves the map (AC-9.3 to AC-9.5). */
@@ -35,16 +45,25 @@ export type FocusTarget =
 
 export interface MapLayer {
   show(selection: Selection): void;
-  /** Jumps without animation, so it suits reduced motion (NFR-002). */
+  /** Flies to the target. Under reduced motion, it jumps (NFR-002). */
   focus(target: FocusTarget): void;
   destroy(): void;
 }
 
-/** About city level, for a picked project (D-43). */
-export const CITY_ZOOM = 11;
+/**
+ * About one large state's width in degrees of longitude, across the open area's typical side. A
+ * picked project then shows with the markers around it on any screen (D-43).
+ */
+export const STATE_SPAN = 12;
 
 /** A searched ZIP with the towns around it (AC-9.5). */
-export const ZIP_ZOOM = 9;
+export const ZIP_SPAN = 5;
+
+/** A small state, such as Rhode Island, stops at this zoom. */
+const STATE_MAX_ZOOM = 9;
+
+/** How long a search pick's flight takes. */
+const FLIGHT_MS = 1200;
 
 /** The first view (AC-2.10). */
 const LOWER_48: google.maps.LatLngBoundsLiteral = {
@@ -57,16 +76,28 @@ const LOWER_48: google.maps.LatLngBoundsLiteral = {
 /**
  * Panning and zooming stay inside this region (AC-2.10). Alaska's Aleutians cross the
  * antimeridian, so west is greater than east. The mask reaches past every edge, so the white
- * surround never ends. The south edge leaves room to center the lower 48 on a tall map.
+ * surround never ends. The south edge leaves room to center the lower 48 above a phone's legend,
+ * where the map's middle sits far south of the lower 48.
  */
 const US_REGION: google.maps.LatLngBoundsLiteral = {
-  south: 0,
+  south: -35,
   west: 150,
   north: 80,
   east: -40,
 };
 
 const SURROUND = '#ffffff';
+
+const reducedMotion = () =>
+  typeof window.matchMedia === 'function' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/** Whether two cameras match, give or take rounding in Google's own copy. */
+const sameCamera = (a: Camera, b: Camera | null) =>
+  b !== null &&
+  Math.abs(a.zoom - b.zoom) < 1e-6 &&
+  Math.abs(a.center.lat - b.center.lat) < 1e-6 &&
+  Math.abs(a.center.lng - b.center.lng) < 1e-6;
 
 /** A selected marker draws above every other marker. */
 const SELECTED_Z = 1000;
@@ -78,7 +109,7 @@ const DOT_CLASSES =
 export function createMapLayer(
   element: HTMLElement,
   { Map, AdvancedMarkerElement }: MapsLibraries,
-  { projects, outlines, onPickMarker, onClickMap }: MapLayerOptions,
+  { projects, outlines, onPickMarker, onClickMap, padding }: MapLayerOptions,
 ): MapLayer {
   const map = new Map(element, {
     mapId: MAP_ID,
@@ -89,8 +120,66 @@ export function createMapLayer(
     disableDefaultUI: true,
     zoomControl: true,
     restriction: { latLngBounds: US_REGION, strictBounds: true },
+    // The lower 48 fill the open area exactly, and a flight moves smoothly.
+    isFractionalZoomEnabled: true,
   });
-  map.fitBounds(LOWER_48);
+  const sizeOf = () => ({
+    width: element.clientWidth,
+    height: element.clientHeight,
+  });
+
+  const cameraNow = (): Camera | null => {
+    const center = map.getCenter()?.toJSON();
+    const zoom = map.getZoom();
+    return center && zoom !== undefined ? { center, zoom } : null;
+  };
+
+  let flight: number | null = null;
+  const stopFlight = () => {
+    if (flight !== null) cancelAnimationFrame(flight);
+    flight = null;
+  };
+
+  // The first view follows the map's size until the visitor or a search moves the map. Only a drag
+  // fires an event. The zoom buttons, the keyboard, and Ctrl with the wheel show up as a camera
+  // that differs from the last refit's.
+  let moved = false;
+  let framed: Camera | null = null;
+  const frame = () => {
+    const size = sizeOf();
+    if (moved || size.width === 0 || size.height === 0) return;
+    if (framed && !sameCamera(framed, cameraNow())) {
+      moved = true;
+      return;
+    }
+    map.moveCamera(cameraForBounds(LOWER_48, size, padding()));
+    framed = cameraNow();
+  };
+  frame();
+  const resizes =
+    typeof ResizeObserver === 'function' ? new ResizeObserver(frame) : null;
+  resizes?.observe(element);
+  const drags = map.addListener('dragstart', () => {
+    moved = true;
+    stopFlight();
+  });
+  const fly = (to: Camera) => {
+    moved = true;
+    stopFlight();
+    const from = cameraNow();
+    if (reducedMotion() || !from) {
+      map.moveCamera(to);
+      return;
+    }
+    let start: number | null = null;
+    const step = (time: number) => {
+      start ??= time;
+      const t = Math.min(1, (time - start) / FLIGHT_MS);
+      map.moveCamera(t < 1 ? cameraAlong(from, to, t, sizeOf()) : to);
+      flight = t < 1 ? requestAnimationFrame(step) : null;
+    };
+    flight = requestAnimationFrame(step);
+  };
 
   if (outlines) drawOutlines(map, outlines, projects);
 
@@ -145,21 +234,28 @@ export function createMapLayer(
     focus(target) {
       if (target.kind === 'state') {
         const bounds = outlines && boundsOf(outlines, target.name);
-        if (bounds) map.fitBounds(bounds);
+        if (bounds)
+          fly(cameraForBounds(bounds, sizeOf(), padding(), STATE_MAX_ZOOM));
         return;
       }
-      const center =
+      const point =
         target.kind === 'point'
           ? target.point
           : markers.find(({ picked }) => picked.id === target.id)?.position;
-      if (!center) return;
-      // One move, so the map's bounds never clamp the center at the old zoom first.
-      map.moveCamera({
-        center,
-        zoom: target.kind === 'point' ? ZIP_ZOOM : CITY_ZOOM,
-      });
+      if (!point) return;
+      const zoom = zoomForSpan(
+        target.kind === 'point' ? ZIP_SPAN : STATE_SPAN,
+        sizeOf(),
+        padding(),
+      );
+      // Each move sets the center and the zoom together, so the map's bounds never clamp the
+      // center at the old zoom first.
+      fly({ center: centerFor(point, zoom, padding()), zoom });
     },
     destroy() {
+      stopFlight();
+      resizes?.disconnect();
+      drags.remove();
       clicks.remove();
       for (const { marker } of markers) marker.map = null;
     },

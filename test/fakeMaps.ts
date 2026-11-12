@@ -34,7 +34,6 @@ export class FakeMap {
   readonly element: HTMLElement;
   readonly options: google.maps.MapOptions;
   readonly data = new FakeData();
-  bounds: google.maps.LatLngBoundsLiteral | null = null;
   center: google.maps.LatLngLiteral | null = null;
   zoom: number | null = null;
   /** Camera moves that set the center and the zoom together. */
@@ -52,16 +51,21 @@ export class FakeMap {
     return { remove: () => void handlers.delete(handler) };
   }
 
-  fitBounds(bounds: google.maps.LatLngBoundsLiteral) {
-    this.bounds = bounds;
-  }
-
   setCenter(center: google.maps.LatLngLiteral) {
     this.center = center;
   }
 
   setZoom(zoom: number) {
     this.zoom = zoom;
+  }
+
+  getCenter() {
+    const { center } = this;
+    return center ? { toJSON: () => center } : undefined;
+  }
+
+  getZoom() {
+    return this.zoom ?? undefined;
   }
 
   /** Sets the center and the zoom in one step, as Google does. */

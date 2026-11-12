@@ -6,6 +6,7 @@ import MapKey from '@/components/projectMap/MapKey';
 import MapLegend from '@/components/projectMap/MapLegend';
 import MapPanel from '@/components/projectMap/MapPanel';
 import MapSearch from '@/components/projectMap/MapSearch';
+import { NO_PADDING, type Padding } from '@/lib/mapProjects/camera';
 import {
   createMapLayer,
   type FocusTarget,
@@ -32,8 +33,35 @@ interface ProjectsProps {
   fullHeight?: boolean;
 }
 
+/** The map's open area keeps this gap from the map's sides. */
+const SIDE_GAP = 16;
+
 /**
- * The projects map with its legend and panel (FR-002 to FR-006). This component owns the
+ * How far the search, panel, key, and legend reach over the map's top and bottom. A part in the
+ * map's upper half covers the top, and a part in the lower half covers the bottom. An empty
+ * panel has no size, so it covers nothing.
+ */
+function overlayPadding(map: HTMLElement, overlay: HTMLElement): Padding {
+  const frame = map.getBoundingClientRect();
+  let top = 0;
+  let bottom = 0;
+  for (const part of overlay.children) {
+    const box = part.getBoundingClientRect();
+    if (box.width === 0 || box.height === 0) continue;
+    if (box.top + box.height / 2 < frame.top + frame.height / 2)
+      top = Math.max(top, box.bottom - frame.top);
+    else bottom = Math.max(bottom, frame.bottom - box.top);
+  }
+  return { top, right: SIDE_GAP, bottom, left: SIDE_GAP };
+}
+
+/** Clicks here keep the selection. Google reports clicks on the map itself (AC-2.6). */
+const KEEPS_SELECTION =
+  '[data-map-root], [data-map-legend], [data-map-panel], [data-map-search]';
+
+/**
+ * The projects map with its search, panel, key, and legend on top (FR-002 to FR-006). The map
+ * fills the screen under the header, as in the design (AC-2.9). This component owns the
  * selection. The map layer draws it on Google's map.
  */
 function Projects({
@@ -43,6 +71,7 @@ function Projects({
   fullHeight = false,
 }: ProjectsProps) {
   const mapRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const [layer, setLayer] = useState<MapLayer | null>(null);
   const [outlines, setOutlines] = useState<StateOutlines | null>(null);
   const [selection, dispatch] = useReducer(select, idle);
@@ -69,6 +98,10 @@ function Projects({
           outlines: stateOutlines,
           onPickMarker: (project) => dispatch({ type: 'pickMarker', project }),
           onClickMap: () => dispatch({ type: 'clickMap' }),
+          padding: () =>
+            overlayRef.current
+              ? overlayPadding(element, overlayRef.current)
+              : NO_PADDING,
         });
         setLayer(created);
       })
@@ -89,26 +122,42 @@ function Projects({
       if (event.key === 'Escape' && !event.defaultPrevented)
         dispatch({ type: 'escape' });
     };
+    // The legend has no "all" entry, so a click anywhere else turns a filter off (AC-2.6).
+    // The path is the one the click took. React may already have removed the clicked element,
+    // such as a search result, by the time the click reaches the document.
+    const onClick = (event: MouseEvent) => {
+      const kept = event
+        .composedPath()
+        .some(
+          (node) => node instanceof Element && node.matches(KEEPS_SELECTION),
+        );
+      if (!kept) dispatch({ type: 'clickAway' });
+    };
     document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
+    document.addEventListener('click', onClick);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('click', onClick);
+    };
   }, []);
 
   useEffect(() => {
     layer?.show(selection);
   }, [layer, selection]);
 
-  // Without the map, a search pick still selects the project and fills the panel (AC-9.3).
-  const focus = useCallback(
-    (target: FocusTarget) => layer?.focus(target),
-    [layer],
-  );
-  const pickResult = useCallback(
-    ({ id, category }: ProjectResult) => {
-      dispatch({ type: 'pickResult', project: { id, category } });
-      focus({ kind: 'project', id });
-    },
-    [focus],
-  );
+  // A search moves the map after the panel renders, so the map frames the pick in the area that
+  // the panel leaves open. Without the map, a pick still selects the project and fills the panel
+  // (AC-9.3).
+  const [target, setTarget] = useState<FocusTarget | null>(null);
+  useEffect(() => {
+    if (!layer || !target) return;
+    layer.focus(target);
+    setTarget(null);
+  }, [layer, target]);
+  const pickResult = useCallback(({ id, category }: ProjectResult) => {
+    dispatch({ type: 'pickResult', project: { id, category } });
+    setTarget({ kind: 'project', id });
+  }, []);
 
   const view = panelView(selection);
   const picked =
@@ -120,39 +169,45 @@ function Projects({
     <section
       id={page.id}
       className={twMerge(
-        'w-full px-5',
-        // Off home (/projects), the section clears the fixed header. A home box needs no offset.
-        !fullHeight && 'header-offset mx-auto max-w-7xl pb-16',
+        'relative h-svh min-h-[32rem] w-full',
+        // Off home (/projects), the map starts under the fixed header. A home box needs no offset.
+        !fullHeight && 'pt-[var(--header-height,100px)]',
       )}
     >
-      {/*
-       * The frame keeps the lower 48's shape, about 9:5 in Google's projection. Its width follows
-       * the screen's height, so the map, legend, and panel fit on one 1440×900 screen (AC-2.9).
-       * 25.5rem covers the header gap, the search row, the legend and its gaps, the panel's 14rem,
-       * and a margin.
-       * It never gets narrower than 40rem, or the screen width when that is less.
-       */}
-      <div className="relative mx-auto w-full min-w-[min(100%,40rem)] max-w-[calc((100svh-var(--header-height,100px)-25.5rem)*9/5)]">
+      <div className="relative size-full">
+        <div ref={mapRef} data-map-root className="absolute inset-0" />
         {/*
-         * The search sits above the map: full width below 800 px, and in one row over the map's
-         * top-right corner from 800 px (AC-9.1). Over the map, it would cover the Northeast's markers.
+         * The UI sits on top of the map in a grid that lets clicks through its gaps. Below 800 px,
+         * the search runs across the top and the rest stacks at the bottom, clear of Google's zoom
+         * buttons in the right column. From 800 px, the
+         * search sits top right, the key bottom left, and the legend bottom center, as in the
+         * design. The panel sits under the search until 1280 px, then beside it. The bottom row
+         * clears Google's logo and attribution (AC-2.9).
          */}
-        <MapSearch
-          projects={casestudies}
-          onPickProject={pickResult}
-          outlines={outlines}
-          onFocus={focus}
-          className="mb-3 tablet:ml-auto tablet:w-fit"
-        />
-        <div ref={mapRef} data-map-root className="aspect-[9/5] w-full" />
-        <MapKey />
-      </div>
-      <div className="mt-6 space-y-4">
-        <MapLegend
-          selection={selection}
-          onPick={(category) => dispatch({ type: 'pickLegend', category })}
-        />
-        <MapPanel view={view} project={picked} copy={projectMap} />
+        <div
+          ref={overlayRef}
+          className="pointer-events-none absolute inset-0 grid grid-cols-[minmax(0,1fr)_2.75rem] grid-rows-[auto_1fr_auto_auto_auto] gap-2 p-3 pb-8 [grid-template-areas:'search_search'_'._.'_'panel_.'_'key_.'_'legend_.'] tablet:grid-cols-[minmax(0,1fr)_auto] tablet:gap-3 tablet:grid-rows-[auto_auto_1fr_auto_auto] tablet:p-4 tablet:pb-8 tablet:[grid-template-areas:'._search'_'panel_.'_'._.'_'key_.'_'legend_legend'] xl:grid-rows-[auto_1fr_auto_auto] xl:[grid-template-areas:'panel_search'_'._.'_'key_.'_'legend_legend']"
+        >
+          <MapSearch
+            projects={casestudies}
+            onPickProject={pickResult}
+            outlines={outlines}
+            onFocus={setTarget}
+            className="pointer-events-auto [grid-area:search] tablet:justify-self-end"
+          />
+          <MapPanel
+            view={view}
+            project={picked}
+            copy={projectMap}
+            className="pointer-events-auto [grid-area:panel] tablet:justify-self-start"
+          />
+          <MapKey className="pointer-events-auto [grid-area:key] justify-self-start" />
+          <MapLegend
+            selection={selection}
+            onPick={(category) => dispatch({ type: 'pickLegend', category })}
+            className="pointer-events-auto [grid-area:legend] justify-self-center"
+          />
+        </div>
       </div>
     </section>
   );

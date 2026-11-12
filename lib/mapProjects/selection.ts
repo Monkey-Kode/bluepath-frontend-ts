@@ -23,6 +23,8 @@ export type Action =
   | { readonly type: 'pickResult'; readonly project: PickedProject }
   /** A click on the map that hits no marker. */
   | { readonly type: 'clickMap' }
+  /** A click outside the map, the legend, the panel, and the search. */
+  | { readonly type: 'clickAway' }
   | { readonly type: 'escape' };
 
 export const idle: Selection = { filter: null, project: null };
@@ -45,6 +47,7 @@ export function select(state: Selection, action: Action): Selection {
         ? idle
         : { filter: action.category, project: null };
     case 'clickMap':
+    case 'clickAway':
     case 'escape':
       return idle;
   }

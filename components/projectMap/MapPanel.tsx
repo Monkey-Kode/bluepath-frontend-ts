@@ -1,7 +1,9 @@
+import { twMerge } from 'tailwind-merge';
 import { CATEGORY_BY_KEY, type CategoryKey } from '@/lib/categories';
 import { type MapProject, panelOf } from '@/lib/mapProjects/display';
 import type { PanelView } from '@/lib/mapProjects/selection';
 import type { ProjectMapQueryResult } from '@/sanity.types';
+import { MAP_OVERLAY } from './overlay';
 import Swatch from './Swatch';
 
 interface MapPanelProps {
@@ -10,16 +12,21 @@ interface MapPanelProps {
   project?: MapProject;
   /** The Studio's Project Map item. It is null until an editor publishes one. */
   copy: ProjectMapQueryResult;
+  className?: string;
 }
 
 /**
- * The panel under the legend (FR-004, FR-006). It keeps one live region and one fixed height
- * through every switch, so screen readers hear each change and the content below never moves
- * (AC-2.7, AC-2.8). The height fits a project with every field at today's longest value.
- * At 320 px, that project needs 340 of the 384 px. A longer project scrolls. The panel takes
- * focus, so a keyboard user can scroll it too (WCAG 2.1.1).
+ * The panel on the map (FR-004, FR-006). It keeps one live region through every switch, so screen
+ * readers hear each change (AC-2.7, AC-2.8). It sits apart from the key and the legend, so its
+ * size never moves them. A long project scrolls inside it. The panel takes focus, so a keyboard
+ * user can scroll it too (WCAG 2.1.1). With nothing to show, it has no size.
  */
-export default function MapPanel({ view, project, copy }: MapPanelProps) {
+export default function MapPanel({
+  view,
+  project,
+  copy,
+  className,
+}: MapPanelProps) {
   return (
     <div
       role="region"
@@ -28,7 +35,14 @@ export default function MapPanel({ view, project, copy }: MapPanelProps) {
       aria-live="polite"
       aria-atomic="true"
       data-map-panel
-      className="mx-auto h-96 max-w-3xl overflow-y-auto text-center text-base text-gray-3 tablet:h-56"
+      data-view={view.kind}
+      className={twMerge(
+        MAP_OVERLAY,
+        'max-h-[35svh] w-full overflow-y-auto p-3 text-center text-gray-3 text-sm tablet:text-base empty:p-0 empty:shadow-none empty:backdrop-blur-none tablet:max-h-80 tablet:max-w-sm tablet:text-left empty:bg-transparent',
+        // On a phone, the resting prompt would cover the map, so only screen readers get it.
+        'max-tablet:data-[view=resting]:bg-transparent max-tablet:data-[view=resting]:p-0 max-tablet:data-[view=resting]:shadow-none max-tablet:data-[view=resting]:backdrop-blur-none',
+        className,
+      )}
     >
       <PanelContent view={view} project={project} copy={copy} />
     </div>
@@ -46,7 +60,9 @@ function PanelContent({ view, project, copy }: MapPanelProps) {
       />
     );
   const prompt = copy?.restingPrompt?.trim();
-  return prompt ? <p className="whitespace-pre-line">{prompt}</p> : null;
+  return prompt ? (
+    <p className="whitespace-pre-line max-tablet:sr-only">{prompt}</p>
+  ) : null;
 }
 
 function ProjectDetails({ project }: { project: MapProject }) {
@@ -56,7 +72,7 @@ function ProjectDetails({ project }: { project: MapProject }) {
       <p className="font-semibold text-blue text-h4">{name}</p>
       {projectName && <p className="text-fine">{projectName}</p>}
       {/* The fields wrap and center, one "Label: value" pair at a time, as in the design. */}
-      <dl className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-1 text-fine">
+      <dl className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-1 text-fine tablet:justify-start">
         {fields.map(({ label, value }) => (
           <div key={label} className="flex gap-1">
             <dt className="text-legend after:content-[':']">{label}</dt>
@@ -78,7 +94,7 @@ function CategoryDetails({
   const text = description?.trim();
   return (
     <>
-      <p className="flex items-center justify-center gap-2 font-semibold text-blue text-h4">
+      <p className="flex items-center justify-center gap-2 font-semibold text-blue text-h4 tablet:justify-start">
         <Swatch category={category} />
         {CATEGORY_BY_KEY[category].label}
       </p>

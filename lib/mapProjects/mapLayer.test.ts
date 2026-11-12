@@ -1,12 +1,14 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CATEGORY_BY_KEY } from '@/lib/categories';
 import { MAP_ID } from '@/lib/mapsLoader';
 import { fakeMaps } from '@/test/fakeMaps';
+import { screenPoint } from '@/test/mercator';
+import type { Padding } from './camera';
 import {
-  CITY_ZOOM,
   createMapLayer,
   type LayerProject,
-  ZIP_ZOOM,
+  STATE_SPAN,
+  ZIP_SPAN,
 } from './mapLayer';
 import type { StateOutlines } from './outlines';
 import { idle } from './selection';
@@ -129,6 +131,17 @@ let element: HTMLElement;
 const onPickMarker = vi.fn();
 const onClickMap = vi.fn();
 
+/** The search and the panel cover the top, and the key and the legend the bottom. */
+const OPEN: Padding = { top: 120, right: 16, bottom: 110, left: 16 };
+let padding = OPEN;
+let size = { width: 1440, height: 780 };
+let reduceMotion = false;
+/** Animation frames that the layer asked for and that haven't run yet. */
+let frames = new Map<number, FrameRequestCallback>();
+let nextFrame = 1;
+/** Reports a new size, as Google's map element does through a ResizeObserver. */
+let resize: (() => void) | null = null;
+
 const create = (
   projects: readonly LayerProject[] = [...plotted, ...notPlotted],
   withOutlines: StateOutlines | null = outlines,
@@ -138,13 +151,94 @@ const create = (
     outlines: withOutlines,
     onPickMarker,
     onClickMap,
+    padding: () => padding,
   });
+
+function resizeTo(width: number, height: number) {
+  size = { width, height };
+  resize?.();
+}
+
+/** Runs the waiting frames at each time, in milliseconds. */
+function runFrames(...times: number[]) {
+  for (const time of times) {
+    const waiting = [...frames.values()];
+    frames.clear();
+    for (const frame of waiting) frame(time);
+  }
+}
+
+const camera = () => {
+  const { center, zoom } = fake.map();
+  if (!center || zoom === null) throw new Error('The map has no camera.');
+  return { center, zoom };
+};
+
+/** True when the point shows inside the part of the map that the UI leaves open. */
+const inOpenArea = (point: google.maps.LatLngLiteral) => {
+  const { x, y } = screenPoint(point, camera(), size);
+  return (
+    x >= OPEN.left - 1e-6 &&
+    x <= size.width - OPEN.right + 1e-6 &&
+    y >= OPEN.top - 1e-6 &&
+    y <= size.height - OPEN.bottom + 1e-6
+  );
+};
+
+/** The degrees of longitude that the open area's typical side spans at the camera's zoom. */
+const span = () =>
+  (Math.sqrt(
+    (size.width - OPEN.left - OPEN.right) *
+      (size.height - OPEN.top - OPEN.bottom),
+  ) *
+    360) /
+  (256 * 2 ** camera().zoom);
+
+/** The middle of the open area, where a search pick lands. */
+const openMiddle = () => ({
+  x: (OPEN.left + size.width - OPEN.right) / 2,
+  y: (OPEN.top + size.height - OPEN.bottom) / 2,
+});
 
 beforeEach(() => {
   fake = fakeMaps();
   element = document.createElement('div');
+  Object.defineProperties(element, {
+    clientWidth: { get: () => size.width },
+    clientHeight: { get: () => size.height },
+  });
+  padding = OPEN;
+  size = { width: 1440, height: 780 };
+  reduceMotion = false;
+  frames = new Map();
+  nextFrame = 1;
+  resize = null;
   onPickMarker.mockReset();
   onClickMap.mockReset();
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: query === '(prefers-reduced-motion: reduce)' && reduceMotion,
+  }));
+  vi.stubGlobal('requestAnimationFrame', (frame: FrameRequestCallback) => {
+    frames.set(nextFrame, frame);
+    return nextFrame++;
+  });
+  vi.stubGlobal('cancelAnimationFrame', (id: number) => frames.delete(id));
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      constructor(report: () => void) {
+        resize = report;
+      }
+      observe() {}
+      disconnect() {
+        resize = null;
+      }
+    },
+  );
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 describe('markers (AC-2.1, AC-2.8)', () => {
@@ -271,10 +365,14 @@ describe('the map (AC-2.9, AC-2.10)', () => {
     expect(fake.map().options.gestureHandling).toBe('cooperative');
   });
 
-  it('frames the lower 48 states first', () => {
+  // Whole zoom levels would leave the lower 48 too small or cut off on most screens.
+  it('allows fractional zoom', () => {
     create();
-    const { bounds } = fake.map();
-    if (!bounds) throw new Error('The map set no first view.');
+    expect(fake.map().options.isFractionalZoomEnabled).toBe(true);
+  });
+
+  it('frames the lower 48 states first, in the part of the map that the UI leaves open', () => {
+    create();
     for (const place of [
       places.maine,
       places.keyWest,
@@ -282,10 +380,47 @@ describe('the map (AC-2.9, AC-2.10)', () => {
       places.sanDiego,
       places.northDakota,
     ]) {
-      expect(holds(bounds, place)).toBe(true);
+      expect(inOpenArea(place)).toBe(true);
     }
-    expect(holds(bounds, places.honolulu)).toBe(false);
-    expect(holds(bounds, places.anchorage)).toBe(false);
+    expect(inOpenArea(places.honolulu)).toBe(false);
+    expect(inOpenArea(places.anchorage)).toBe(false);
+  });
+
+  it('frames the lower 48 again after a resize, until the visitor drags the map', () => {
+    create();
+    resizeTo(390, 600);
+    expect(inOpenArea(places.maine)).toBe(true);
+    expect(inOpenArea(places.seattle)).toBe(true);
+
+    fake.map().trigger('dragstart');
+    const dragged = camera();
+    resizeTo(1440, 780);
+    expect(camera()).toEqual(dragged);
+  });
+
+  // The zoom buttons, the keyboard, and Ctrl with the wheel move the map without a drag event.
+  it('keeps the view after the visitor zooms without a drag', () => {
+    create();
+    fake.map().setZoom(7);
+    const zoomed = camera();
+    resizeTo(390, 600);
+    expect(camera()).toEqual(zoomed);
+  });
+
+  it('keeps the view after the visitor pans without a drag', () => {
+    create();
+    fake.map().setCenter({ lat: 40, lng: -80 });
+    const panned = camera();
+    resizeTo(1024, 700);
+    expect(camera()).toEqual(panned);
+  });
+
+  it('waits until the map has a size', () => {
+    size = { width: 0, height: 0 };
+    create();
+    expect(fake.map().cameraMoves).toBe(0);
+    resizeTo(1440, 780);
+    expect(inOpenArea(places.keyWest)).toBe(true);
   });
 
   it('keeps panning and zooming within a region that holds every state', () => {
@@ -351,6 +486,14 @@ describe('outlines and mask (AC-2.1, AC-2.2)', () => {
 });
 
 describe('destroy', () => {
+  it('stops a flight and stops framing on resize', () => {
+    const layer = create();
+    layer.focus({ kind: 'project', id: 'cell' });
+    layer.destroy();
+    expect(frames.size).toBe(0);
+    expect(resize).toBeNull();
+  });
+
   it('takes the markers off the map and stops reporting clicks', () => {
     const layer = create();
     layer.destroy();
@@ -362,55 +505,112 @@ describe('destroy', () => {
   });
 });
 
-describe('the camera for a search pick (AC-9.3 to AC-9.5)', () => {
-  it("centers on a project's marker at about city level", () => {
+describe('the camera for a search pick (AC-9.3 to AC-9.5, NFR-002)', () => {
+  const cellBank = { lat: 35, lng: -90 };
+
+  it("flies to a project's marker at state level, so nearby markers show", () => {
+    const layer = create();
+    const before = fake.map().cameraMoves;
+    layer.focus({ kind: 'project', id: 'cell' });
+    runFrames(1000, 1300, 1600, 2500);
+
+    expect(fake.map().cameraMoves - before).toBeGreaterThan(2);
+    expect(span()).toBeCloseTo(STATE_SPAN, 6);
+    const landed = screenPoint(cellBank, camera(), size);
+    expect(landed.x).toBeCloseTo(openMiddle().x, 6);
+    expect(landed.y).toBeCloseTo(openMiddle().y, 6);
+  });
+
+  it('jumps in one move when the visitor prefers reduced motion', () => {
+    reduceMotion = true;
+    const layer = create();
+    const before = fake.map().cameraMoves;
+    layer.focus({ kind: 'project', id: 'cell' });
+
+    expect(fake.map().cameraMoves - before).toBe(1);
+    expect(frames.size).toBe(0);
+    expect(span()).toBeCloseTo(STATE_SPAN, 6);
+  });
+
+  it('stops a flight in progress for a new pick', () => {
     const layer = create();
     layer.focus({ kind: 'project', id: 'cell' });
-    expect(fake.map().center).toEqual({ lat: 35, lng: -90 });
-    expect(fake.map().zoom).toBe(CITY_ZOOM);
-    // One move, so Google never clamps the center at the old zoom first.
-    expect(fake.map().cameraMoves).toBe(1);
+    runFrames(1000, 1200);
+    layer.focus({ kind: 'project', id: 'sun' });
+    // Only the new flight waits for a frame.
+    expect(frames.size).toBe(1);
+    runFrames(2000, 2200, 4000);
+
+    const landed = screenPoint({ lat: 40, lng: -100 }, camera(), size);
+    expect(landed.x).toBeCloseTo(openMiddle().x, 6);
+    expect(landed.y).toBeCloseTo(openMiddle().y, 6);
+  });
+
+  it('stops a flight when the visitor drags the map', () => {
+    const layer = create();
+    layer.focus({ kind: 'project', id: 'cell' });
+    runFrames(1000, 1200);
+    fake.map().trigger('dragstart');
+    expect(frames.size).toBe(0);
+    const dragged = camera();
+    runFrames(1400, 2500);
+    expect(camera()).toEqual(dragged);
   });
 
   it('leaves the camera alone for a project without a marker', () => {
     const layer = create();
-    const before = fake.map().bounds;
+    const before = camera();
     layer.focus({ kind: 'project', id: 'hidden' });
-    expect(fake.map().center).toBeNull();
-    expect(fake.map().zoom).toBeNull();
-    expect(fake.map().bounds).toBe(before);
+    runFrames(1000, 3000);
+    expect(camera()).toEqual(before);
   });
 
-  it("fits a state's outline", () => {
+  it("fits a state's outline in the open area", () => {
+    reduceMotion = true;
     const layer = create();
     layer.focus({ kind: 'state', name: 'Westland' });
-    expect(fake.map().bounds).toEqual({
-      west: -105,
-      south: 35,
-      east: -95,
-      north: 45,
-    });
+    for (const corner of [
+      { lat: 45, lng: -105 },
+      { lat: 35, lng: -95 },
+    ]) {
+      expect(inOpenArea(corner)).toBe(true);
+    }
+    expect(camera().zoom).toBeGreaterThan(4);
   });
 
   it('leaves the camera alone for a state when the outlines failed to load', () => {
     const layer = create(undefined, null);
-    const before = fake.map().bounds;
+    const before = camera();
     layer.focus({ kind: 'state', name: 'Westland' });
-    expect(fake.map().bounds).toBe(before);
+    runFrames(1000, 3000);
+    expect(camera()).toEqual(before);
   });
 
   it('centers on a ZIP with its nearby towns in view', () => {
+    reduceMotion = true;
     const layer = create();
-    layer.focus({ kind: 'point', point: { lat: 33.45, lng: -112.07 } });
-    expect(fake.map().center).toEqual({ lat: 33.45, lng: -112.07 });
-    expect(fake.map().zoom).toBe(ZIP_ZOOM);
-    expect(ZIP_ZOOM).toBeLessThan(CITY_ZOOM);
+    const phoenix = { lat: 33.45, lng: -112.07 };
+    layer.focus({ kind: 'point', point: phoenix });
+    expect(span()).toBeCloseTo(ZIP_SPAN, 6);
+    const landed = screenPoint(phoenix, camera(), size);
+    expect(landed.x).toBeCloseTo(openMiddle().x, 6);
+    expect(landed.y).toBeCloseTo(openMiddle().y, 6);
+  });
+
+  it('stops framing the lower 48 on resize once a search moves the map', () => {
+    reduceMotion = true;
+    const layer = create();
+    layer.focus({ kind: 'project', id: 'cell' });
+    const picked = camera();
+    resizeTo(1024, 700);
+    expect(camera()).toEqual(picked);
   });
 
   it('moves the camera without touching the selection', () => {
     const layer = create();
     layer.focus({ kind: 'project', id: 'sun' });
     layer.focus({ kind: 'point', point: { lat: 40, lng: -100 } });
+    runFrames(1000, 3000);
     expect(onPickMarker).not.toHaveBeenCalled();
     expect(onClickMap).not.toHaveBeenCalled();
   });

@@ -81,6 +81,7 @@ describe('select (AC-2.6)', () => {
 
   it.each([
     'clickMap',
+    'clickAway',
     'escape',
   ] as const)('clears a project and a filter on %s', (type) => {
     expect(run(pick(solarA), { type })).toEqual(idle);

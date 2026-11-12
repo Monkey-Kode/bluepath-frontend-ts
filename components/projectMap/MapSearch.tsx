@@ -29,6 +29,7 @@ import {
   lookupZip as siteLookupZip,
   type ZipLookup,
 } from '@/lib/mapProjects/zipLookup';
+import { MAP_OVERLAY } from './overlay';
 import Swatch from './Swatch';
 
 type Mode = 'plain' | 'zip' | 'state';
@@ -270,7 +271,8 @@ export default function MapSearch({
     <div
       data-map-search
       className={twMerge(
-        'text-sm text-legend tablet:flex tablet:items-end tablet:gap-4',
+        MAP_OVERLAY,
+        'p-2 text-sm text-legend tablet:flex tablet:items-end tablet:gap-4 tablet:p-3',
         className,
       )}
     >
