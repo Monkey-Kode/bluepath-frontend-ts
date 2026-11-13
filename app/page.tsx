@@ -10,6 +10,7 @@ import {
   settingsQuery,
   teamQuery,
 } from '@/sanity/lib/queries';
+import { withCleanBoxLocation } from '@/utils/boxAlignClass';
 
 export default async function HomePage() {
   const [
@@ -37,10 +38,10 @@ export default async function HomePage() {
       settings={settings}
       navigation={navigation}
       addresses={addresses}
-      sections={sections}
+      sections={sections.map(withCleanBoxLocation)}
       caseStudies={caseStudies}
       videos={videos}
-      slides={slides}
+      slides={slides.map(withCleanBoxLocation)}
       team={team}
     />
   );

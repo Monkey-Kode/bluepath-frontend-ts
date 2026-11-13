@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-/** Vitest's React has no ViewTransition. This stub shows the names a component passes. */
+/** Stands in for React's ViewTransition in tests. It shows the names a component passes. */
 export default function ViewTransitionStub({
   name,
   share,

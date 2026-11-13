@@ -5,7 +5,7 @@
 
 ## Stack
 
-Next.js 16 (App Router) + next-sanity 12, backed by Sanity project `qwwmf79r`
+Next.js 16 (App Router) + next-sanity 13, backed by Sanity project `qwwmf79r`
 (dataset `production`). Hosted on Netlify — the Next.js Runtime is declared
 explicitly in `netlify.toml` (`[[plugins]] @netlify/plugin-nextjs`); it is
 NOT auto-detected because this was an existing Gatsby site. Migrated in-place

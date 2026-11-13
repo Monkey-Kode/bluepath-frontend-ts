@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { stegaClean } from 'next-sanity';
 
 import Contact from '@/components/Contact';
 import Form from '@/components/Form';
@@ -19,6 +20,7 @@ import {
   projectMapQuery,
   teamQuery,
 } from '@/sanity/lib/queries';
+import { withCleanBoxLocation } from '@/utils/boxAlignClass';
 
 // Slugs owned by hand-built static routes (mirrors gatsby-node STATIC_PAGE_SLUGS).
 const STATIC_PAGE_SLUGS = new Set([
@@ -62,14 +64,16 @@ export default async function DynamicPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const { data: page } = await sanityFetch({
+  const { data } = await sanityFetch({
     query: pageBySlugQuery,
     params: { slug },
   });
 
-  if (!page) notFound();
+  if (!data) notFound();
 
-  const contentType = page.contentType?.name;
+  const page = withCleanBoxLocation(data);
+  // `sanityFetch` types the name as a stega string, so clean it before matching the literal cases.
+  const contentType = stegaClean(data.contentType?.name);
 
   let inner: React.ReactNode;
   switch (contentType) {
