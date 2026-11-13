@@ -1,6 +1,6 @@
 # Design Updates 2026 — Rough Plan
 
-Source: [Monkey-Kode/bluepath-trackers#1](https://github.com/Monkey-Kode/bluepath-trackers/issues/1) ("April 2026 website updates — Brent Consulting scope") + design comps in `.claude/assets/`.
+Source: [Monkey-Kode/bluepath-trackers#1](https://github.com/Monkey-Kode/bluepath-trackers/issues/1) ("April 2026 website updates — Brent Consulting scope") + design comps in `.agents/specs/assets/`.
 
 Stakeholders: Jocelyn Brent (scope owner), William Brent, Richard Bronshvag (Fika, design), Sarah Starbird (BluePath, billing).
 

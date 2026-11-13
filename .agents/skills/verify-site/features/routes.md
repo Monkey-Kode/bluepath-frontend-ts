@@ -11,7 +11,7 @@ Calls the BlueIQ feed route and the Studio's map-projects route on the local ser
   scripts/route.sh GET /api/blueiq/plants --expect 308
   scripts/route.sh POST /api/blueiq/plants/ --file FEED.csv --content-type text/csv \
     --secret-header X-API-Key=BLUEIQ_FEED_KEY --expect 200 \
-    --out ../.claude/specs/feat/case-studies/.mk-goal/evidence/routes
+    --out ../.agents/specs/feat/case-studies/.mk-goal/evidence/routes
   scripts/route.sh OPTIONS /api/map-projects/ --origin http://localhost:3333 --expect 204
   PROOF_UUID=$(python3 -c 'import uuid; print(uuid.uuid4())') scripts/route.sh POST \
     /api/map-projects/ --file BODY.json --content-type application/json \

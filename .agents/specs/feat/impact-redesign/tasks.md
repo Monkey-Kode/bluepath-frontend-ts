@@ -21,7 +21,7 @@ Confirm the runtime, then gather the migration source-of-truth from the
 mockups. No story labels.
 
 - [x] T001 [P] Confirm `framer-motion@12` is present and no new animation/runtime dependency is added in `bluepath-frontend-ts/package.json` (NFR-003)
-- [x] T002 [P] Transcribe the mockups in `bluepath-frontend-ts/.claude/prompts/feat/impact-redesign/assets/` into a migration reference note at `bluepath-frontend-ts/.claude/prompts/feat/impact-redesign/migration-content.md`: the 3 carbon tabs (PROJECT LIFE / USEFUL LIFE / AS OF TODAY) × 5 value+label pairs in left-to-right icon order (coal, forest, oil, smartphone, recycle), and the 4 environmental categories (SOLAR PROJECTS / BUILDING ENERGY / WATER CONSERVATION / CO2 REDUCTION) with summary + 3 stats each — sentence-case summaries, corrected "generating" wording, exact `WATER CONSERVATION` label (supports FR-024)
+- [x] T002 [P] Transcribe the mockups in `bluepath-frontend-ts/.agents/specs/feat/impact-redesign/assets/` into a migration reference note at `bluepath-frontend-ts/.agents/specs/feat/impact-redesign/migration-content.md`: the 3 carbon tabs (PROJECT LIFE / USEFUL LIFE / AS OF TODAY) × 5 value+label pairs in left-to-right icon order (coal, forest, oil, smartphone, recycle), and the 4 environmental categories (SOLAR PROJECTS / BUILDING ENERGY / WATER CONSERVATION / CO2 REDUCTION) with summary + 3 stats each — sentence-case summaries, corrected "generating" wording, exact `WATER CONSERVATION` label (supports FR-024)
 - [x] T003 Query the existing `impact` and `carbonoffsets` documents in Sanity dataset `production` and record each reusable icon asset `_ref`/`_id` in the migration note, mapped to its target metric/category (FR-023, FR-024)
 
 ## Phase 2: Foundational

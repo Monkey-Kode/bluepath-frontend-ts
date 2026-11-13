@@ -8,7 +8,7 @@ Checks that the search, key, legend, and panel never overlap each other or Googl
   The resting panel is empty or screen-reader-only on small screens, so the rest run leaves it out too.
 
   ```sh
-  EVIDENCE=../.claude/specs/feat/case-studies/.mk-goal/evidence/map-overlap
+  EVIDENCE=../.agents/specs/feat/case-studies/.mk-goal/evidence/map-overlap
   scripts/overlap.sh --url /projects/ --out "$EVIDENCE/rest" \
     search='[data-map-search]' key='[data-map-key]' legend='[data-map-legend]' \
     zoom='.gm-style button[aria-label="Zoom in"], .gm-style button[aria-label="Zoom out"]' \
@@ -32,17 +32,17 @@ Checks that the search, key, legend, and panel never overlap each other or Googl
   - `header=header` against Google's buttons failed at 375×667. Today's site header covers the map's top controls.
   - `legend='[data-map-legend]'` failed with `nothing visible matches`.
   - The same run against the local server failed because the map never loaded.
-  - Evidence is in `../.claude/specs/feat/case-studies/.mk-goal/evidence/map-overlap-tool-proof/`.
+  - Evidence is in `../.agents/specs/feat/case-studies/.mk-goal/evidence/map-overlap-tool-proof/`.
 - **Run on 2026-11-04 for T036**, local server on port 3100 with Google's error box:
   - The header, map, key, legend, and panel never overlapped at the six viewports. Nothing scrolled sideways, and every legend button measured at least 24×24 px.
   - Each viewport failed only on `google-logo` and `google-attribution`, because Google drew no map.
-  - Evidence is in `../.claude/specs/feat/case-studies/.mk-goal/evidence/story-2/t036/`.
+  - Evidence is in `../.agents/specs/feat/case-studies/.mk-goal/evidence/story-2/t036/`.
 - **Run on 2026-11-12 for T155**, local server on port 3000 with a working map and the full-screen layout:
   - The rest run passed at all six viewports.
   - A Menifee pick passed at all six viewports with the panel included. The panel showed the project each time.
-  - Evidence is in `../.claude/specs/feat/case-studies/.mk-goal/evidence/map-overlap/phase14-rest/` and `phase14-pick/`. The pick script is `phase14-pick/pick-overlap.sh`.
+  - Evidence is in `../.agents/specs/feat/case-studies/.mk-goal/evidence/map-overlap/phase14-rest/` and `phase14-pick/`. The pick script is `phase14-pick/pick-overlap.sh`.
 - **Run on 2026-11-12 for T158**, local server on port 3000, after the Maps key's daily quota ran out:
   - The rest run and a Menifee pick run passed at all six viewports, apart from Google's missing logo and attribution.
   - Framing and Google's zoom buttons still need a run with a working map.
-  - Evidence is in `../.claude/specs/feat/case-studies/.mk-goal/evidence/map-overlap/panel-final-rest-nomap/` and `panel-final-pick-nomap/`.
+  - Evidence is in `../.agents/specs/feat/case-studies/.mk-goal/evidence/map-overlap/panel-final-rest-nomap/` and `panel-final-pick-nomap/`.
 - **Limits:** the helper measures the first screen after a full scroll. It does not test one-finger scrolling or two-finger zoom over the map. Check those by hand on a touch device or in device emulation.

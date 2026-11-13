@@ -89,7 +89,7 @@ The selectors above are examples. Use the ones that the map component actually r
 
 ## Evidence
 
-For the case-studies work, evidence goes in `../.claude/specs/feat/case-studies/.mk-goal/evidence/<journey>/`.
+For the case-studies work, evidence goes in `../.agents/specs/feat/case-studies/.mk-goal/evidence/<journey>/`.
 Never point `--out` at the run directory. The run directory is disposable.
 
 | Helper | Files |

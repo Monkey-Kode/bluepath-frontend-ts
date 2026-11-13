@@ -15,9 +15,9 @@ This is the most drastic change and may require changing/simplifying the schema 
 
 ### Design
 
-Landing Page: @.claude/prompts/feat/impact-redesign/assets/IMPACT-ICONS .jpg
-Clicking on first text tab: @.claude/prompts/feat/impact-redesign/assets/IMPACT-tab-data-under-icons-project-life-tab.jpg
-Clicking on second text tab: @.claude/prompts/feat/impact-redesign/assets/IMPACT-tab-data-under-icons-useful-life-tab.jpg
+Landing Page: @.agents/specs/feat/impact-redesign/assets/IMPACT-ICONS .jpg
+Clicking on first text tab: @.agents/specs/feat/impact-redesign/assets/IMPACT-tab-data-under-icons-project-life-tab.jpg
+Clicking on second text tab: @.agents/specs/feat/impact-redesign/assets/IMPACT-tab-data-under-icons-useful-life-tab.jpg
 
 ## Environmental Impact
 
