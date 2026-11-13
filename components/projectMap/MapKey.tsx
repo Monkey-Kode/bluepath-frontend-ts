@@ -13,11 +13,12 @@ export default function MapKey({ className }: { className?: string }) {
       data-map-key
       className={twMerge(
         MAP_OVERLAY,
-        'flex items-center gap-2 whitespace-nowrap px-2 py-1 text-legend text-micro tablet:grid tablet:grid-cols-2 tablet:gap-x-0 tablet:gap-y-1 tablet:p-2',
+        // tailwind-merge reads text-micro as a color, so the text color sits on the title.
+        'flex items-center gap-2 whitespace-nowrap px-2 py-1 text-micro tablet:grid tablet:grid-cols-2 tablet:gap-x-0 tablet:gap-y-1 tablet:p-2',
         className,
       )}
     >
-      <p className="tablet:col-span-2">Plants per state</p>
+      <p className="text-legend tablet:col-span-2">Plants per state</p>
       <span className="sr-only">
         Darker states have fewer plants, from 1 at the darkest to 100 at the
         lightest.

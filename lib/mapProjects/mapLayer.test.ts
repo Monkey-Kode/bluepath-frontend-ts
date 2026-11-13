@@ -439,6 +439,7 @@ describe('the map (AC-2.9, AC-2.10)', () => {
     { width: 1280, height: 600 },
     // A 1440 px window with the map at its 30rem minimum height.
     { width: 1440, height: 480 },
+    { width: 1920, height: 480 },
   ])('leaves the first view room inside the region on a short, wide $width×$height map', (short) => {
     // The search at the top and the resting prompt, key, and legend at the bottom leave a low,
     // wide open area. A region that is too narrow makes Google clamp the first view, and the UI

@@ -23,6 +23,35 @@ export interface Camera {
 
 export const NO_PADDING: Padding = { top: 0, right: 0, bottom: 0, left: 0 };
 
+/** A box on the screen, as `getBoundingClientRect` gives it. */
+export interface Box {
+  top: number;
+  bottom: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * How far the UI parts reach over the map's top and bottom. A part that ends above the map's
+ * middle covers the top. Every other part covers the bottom, even a tall panel whose middle rises
+ * past the map's middle. A part with no size covers nothing. The sides keep a fixed gap.
+ */
+export function paddingAround(
+  frame: Box,
+  parts: readonly Box[],
+  side: number,
+): Padding {
+  const middle = frame.top + frame.height / 2;
+  let top = 0;
+  let bottom = 0;
+  for (const part of parts) {
+    if (part.width === 0 || part.height === 0) continue;
+    if (part.bottom < middle) top = Math.max(top, part.bottom - frame.top);
+    else bottom = Math.max(bottom, frame.bottom - part.top);
+  }
+  return { top, right: side, bottom, left: side };
+}
+
 /** One world tile at zoom 0, in pixels. */
 const TILE = 256;
 

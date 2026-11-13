@@ -4,6 +4,12 @@ import { SHADES } from '@/lib/mapProjects/shading';
 import MapKey from './MapKey';
 
 describe('MapKey (FR-003, AC-2.2)', () => {
+  it("colors its title with the legend's text color", () => {
+    // tailwind-merge reads the theme's text-micro size as a color, so the color sits apart.
+    render(<MapKey />);
+    expect(screen.getByText('Plants per state')).toHaveClass('text-legend');
+  });
+
   it('runs the map shades from the "1" end to the "100" end', () => {
     const { container } = render(<MapKey />);
     expect(screen.getByText('Plants per state')).toBeVisible();

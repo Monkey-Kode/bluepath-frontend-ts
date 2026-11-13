@@ -5,6 +5,7 @@ import {
   cameraForBounds,
   centerFor,
   NO_PADDING,
+  paddingAround,
   zoomForSpan,
 } from './camera';
 
@@ -179,5 +180,49 @@ describe('zoomForSpan (AC-9.3)', () => {
   it('stays between zoom 3 and 12', () => {
     expect(zoomForSpan(12, { width: 0, height: 0 }, padding)).toBe(3);
     expect(zoomForSpan(0.001, { width: 1440, height: 780 }, padding)).toBe(12);
+  });
+});
+
+describe('paddingAround (AC-2.10, AC-9.3)', () => {
+  const frame = { top: 100, bottom: 580, width: 1024, height: 480 };
+  const box = (top: number, bottom: number) => ({
+    top,
+    bottom,
+    width: 300,
+    height: bottom - top,
+  });
+
+  it('counts the search as top cover, and the panel, key, and legend as bottom cover', () => {
+    const parts = [box(116, 202), box(400, 440), box(452, 522), box(534, 574)];
+    expect(paddingAround(frame, parts, 16)).toEqual({
+      top: 102,
+      right: 16,
+      bottom: 180,
+      left: 16,
+    });
+  });
+
+  it('keeps a tall panel at the bottom when its middle rises past the map middle', () => {
+    // A four-line description on a short tablet: the panel runs from 262 to 414.
+    const parts = [box(116, 202), box(262, 414), box(426, 496), box(508, 548)];
+    expect(paddingAround(frame, parts, 16)).toEqual({
+      top: 102,
+      right: 16,
+      bottom: 318,
+      left: 16,
+    });
+  });
+
+  it('skips a part with no size, such as an empty panel', () => {
+    const parts = [
+      box(116, 202),
+      { top: 300, bottom: 300, width: 576, height: 0 },
+    ];
+    expect(paddingAround(frame, parts, 16)).toEqual({
+      top: 102,
+      right: 16,
+      bottom: 0,
+      left: 16,
+    });
   });
 });

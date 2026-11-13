@@ -6,7 +6,7 @@ import MapKey from '@/components/projectMap/MapKey';
 import MapLegend from '@/components/projectMap/MapLegend';
 import MapPanel from '@/components/projectMap/MapPanel';
 import MapSearch from '@/components/projectMap/MapSearch';
-import { NO_PADDING, type Padding } from '@/lib/mapProjects/camera';
+import { NO_PADDING, paddingAround } from '@/lib/mapProjects/camera';
 import {
   createMapLayer,
   type FocusTarget,
@@ -36,24 +36,13 @@ interface ProjectsProps {
 /** The map's open area keeps this gap from the map's sides. */
 const SIDE_GAP = 16;
 
-/**
- * How far the search, panel, key, and legend reach over the map's top and bottom. A part in the
- * map's upper half covers the top, and a part in the lower half covers the bottom. An empty
- * panel has no size, so it covers nothing.
- */
-function overlayPadding(map: HTMLElement, overlay: HTMLElement): Padding {
-  const frame = map.getBoundingClientRect();
-  let top = 0;
-  let bottom = 0;
-  for (const part of overlay.children) {
-    const box = part.getBoundingClientRect();
-    if (box.width === 0 || box.height === 0) continue;
-    if (box.top + box.height / 2 < frame.top + frame.height / 2)
-      top = Math.max(top, box.bottom - frame.top);
-    else bottom = Math.max(bottom, frame.bottom - box.top);
-  }
-  return { top, right: SIDE_GAP, bottom, left: SIDE_GAP };
-}
+/** How far the search, panel, key, and legend reach over the map's top and bottom. */
+const overlayPadding = (map: HTMLElement, overlay: HTMLElement) =>
+  paddingAround(
+    map.getBoundingClientRect(),
+    [...overlay.children].map((part) => part.getBoundingClientRect()),
+    SIDE_GAP,
+  );
 
 /** Clicks here keep the selection. Google reports clicks on the map itself (AC-2.6). */
 const KEEPS_SELECTION =
@@ -202,7 +191,9 @@ function Projects({
           <MapLegend
             selection={selection}
             onPick={(category) => dispatch({ type: 'pickLegend', category })}
-            className="pointer-events-auto [grid-area:legend] justify-self-center"
+            // From 1280 px, the taller key spans the panel's row and this one. Sitting at the row's
+            // bottom keeps the legend still when the panel empties (AC-2.7).
+            className="pointer-events-auto self-end [grid-area:legend] justify-self-center"
           />
           {/*
            * The panel sits above the legend but follows it in the page, so Tab moves from a legend
@@ -212,7 +203,7 @@ function Projects({
             view={view}
             project={picked}
             copy={projectMap}
-            className="pointer-events-auto [grid-area:panel] justify-self-center"
+            className="pointer-events-auto self-end [grid-area:panel] justify-self-center"
           />
         </div>
       </div>
