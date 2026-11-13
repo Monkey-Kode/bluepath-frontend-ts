@@ -131,7 +131,7 @@ let element: HTMLElement;
 const onPickMarker = vi.fn();
 const onClickMap = vi.fn();
 
-/** The search covers the top, and the key, the legend, and the panel the bottom. */
+/** The search covers the top, and the key and the legend cover the bottom, with no panel shown. */
 const OPEN: Padding = { top: 120, right: 16, bottom: 110, left: 16 };
 let padding = OPEN;
 let size = { width: 1440, height: 780 };

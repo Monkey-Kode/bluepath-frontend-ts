@@ -182,10 +182,9 @@ function Projects({
          * The UI sits on top of the map in a grid that lets clicks through its gaps. The search
          * sits at the top, full width below 800 px and top right from 800 px. The panel, the key,
          * and the legend stack at the bottom. The panel sits above them and grows up over the map,
-         * so the legend never moves and the panel needs no reserved height. Below 800 px, the parts
-         * stay clear of Google's zoom buttons in the right column. From 1280 px, the key moves
-         * beside the panel and the legend, to leave the map more height. The bottom row clears
-         * Google's logo and attribution (AC-2.9).
+         * so the legend never moves. Below 800 px, the parts stay clear of Google's zoom buttons in
+         * the right column. From 1280 px, the key moves beside the panel and the legend, to leave
+         * the map more height. The bottom row clears Google's logo and attribution (AC-2.9).
          */}
         <div
           ref={overlayRef}
