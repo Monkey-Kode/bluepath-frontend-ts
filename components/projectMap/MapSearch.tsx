@@ -32,8 +32,6 @@ import {
 import { MAP_OVERLAY } from './overlay';
 import Swatch from './Swatch';
 
-type Mode = 'plain' | 'zip' | 'state';
-
 type Option =
   | { readonly kind: 'project'; readonly result: ProjectResult }
   | { readonly kind: 'state'; readonly state: StateResult };
@@ -50,29 +48,15 @@ type ZipAnswer = { readonly zip: string; readonly answer: ZipLookup | null };
 const CLOSED: View = { options: [], message: null };
 const NO_MATCH = 'No projects match.';
 
-const MODES: readonly { mode: Exclude<Mode, 'plain'>; label: string }[] = [
-  { mode: 'zip', label: 'ZIP Code' },
-  { mode: 'state', label: 'State' },
-];
-
-const PLACEHOLDERS: Record<Mode, string> = {
-  plain: 'Name or place',
-  zip: 'Five-digit ZIP code',
-  state: 'State name or code',
-};
-
 const projectOptions = (results: readonly ProjectResult[]): Option[] =>
   results.map((result) => ({ kind: 'project', result }));
 
+/** Five digits look up the ZIP and list the nearest projects (AC-9.5). */
 function zipView(
-  text: string,
+  typed: string,
   zip: ZipAnswer | null,
   projects: readonly SearchProject[],
 ): View {
-  const typed = text.trim();
-  if (!typed) return CLOSED;
-  if (!isZip(typed))
-    return { options: [], message: 'Type a five-digit ZIP code.' };
   const answer = zip?.zip === typed ? zip.answer : null;
   if (!answer) return { options: [], message: `Looking up ${typed}…` };
   if (answer.kind === 'unknown')
@@ -88,9 +72,15 @@ function zipView(
     : { options: [], message: NO_MATCH };
 }
 
-function stateView(
+/**
+ * One box searches names, states, and ZIP codes (AC-9.2, AC-9.4, AC-9.5). A picked state lists
+ * its projects. Five digits are a ZIP. Other text lists the matching states first, then the
+ * matching projects.
+ */
+function searchView(
   text: string,
   chosen: StateResult | null,
+  zip: ZipAnswer | null,
   projects: readonly SearchProject[],
   stateOf: StateOf,
 ): View {
@@ -100,21 +90,17 @@ function stateView(
       ? { options: projectOptions(inState), message: null }
       : { options: [], message: `No projects in ${chosen.name} yet.` };
   }
-  if (text.trim().length < MIN_QUERY_LENGTH) return CLOSED;
-  const states = matchStates(projects, text, stateOf);
-  return states.length
-    ? {
-        options: states.map((state) => ({ kind: 'state', state })),
-        message: null,
-      }
-    : { options: [], message: 'No states match.' };
-}
-
-function plainView(text: string, projects: readonly SearchProject[]): View {
-  if (text.trim().length < MIN_QUERY_LENGTH) return CLOSED;
-  const results = matchProjects(projects, text);
-  return results.length
-    ? { options: projectOptions(results), message: null }
+  const typed = text.trim();
+  if (typed.length < MIN_QUERY_LENGTH) return CLOSED;
+  if (isZip(typed)) return zipView(typed, zip, projects);
+  const options: Option[] = [
+    ...matchStates(projects, typed, stateOf).map(
+      (state): Option => ({ kind: 'state', state }),
+    ),
+    ...projectOptions(matchProjects(projects, typed)),
+  ];
+  return options.length
+    ? { options, message: null }
     : { options: [], message: NO_MATCH };
 }
 
@@ -148,7 +134,6 @@ export default function MapSearch({
 }: MapSearchProps) {
   const id = useId();
   const listId = `${id}-list`;
-  const [mode, setMode] = useState<Mode>('plain');
   const [text, setText] = useState('');
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
@@ -163,7 +148,8 @@ export default function MapSearch({
   const focusRef = useRef(onFocus);
   focusRef.current = onFocus;
 
-  const typedZip = mode === 'zip' && isZip(text) ? text.trim() : null;
+  // A picked state fills the box with its name, never with digits.
+  const typedZip = !chosenState && isZip(text) ? text.trim() : null;
   useEffect(() => {
     if (!typedZip) return;
     let live = true;
@@ -179,12 +165,11 @@ export default function MapSearch({
     };
   }, [typedZip, lookupZip]);
 
-  const view = useMemo(() => {
-    if (mode === 'zip') return zipView(text, zip, projects);
-    if (mode === 'state')
-      return stateView(text, chosenState, projects, stateByOutlines(outlines));
-    return plainView(text, projects);
-  }, [mode, text, zip, chosenState, projects, outlines]);
+  const view = useMemo(
+    () =>
+      searchView(text, chosenState, zip, projects, stateByOutlines(outlines)),
+    [text, chosenState, zip, projects, outlines],
+  );
 
   // A message shows outside the listbox, so the listbox only ever holds options.
   const listShown = open && view.options.length > 0;
@@ -204,13 +189,6 @@ export default function MapSearch({
     setChosenState(null);
     setActive(-1);
     setOpen(true);
-  }
-
-  // The typed text stays, so switching never erases it without a word.
-  function changeMode(next: Exclude<Mode, 'plain'>) {
-    setMode(mode === next ? 'plain' : next);
-    setChosenState(null);
-    setActive(-1);
   }
 
   function pick(option: Option) {
@@ -268,139 +246,128 @@ export default function MapSearch({
         : countText(count, 'result', 'results');
 
   return (
+    // The list hangs under the whole bar, over the map.
     <div
       data-map-search
       className={twMerge(
         MAP_OVERLAY,
-        'p-2 text-sm text-legend tablet:flex tablet:items-end tablet:gap-4 tablet:p-3',
+        'relative flex items-center gap-3 p-2 text-sm text-legend tablet:p-3',
         className,
       )}
     >
-      {/* The list hangs under the box, over the map. */}
-      <div className="relative tablet:w-72">
-        <label
-          htmlFor={`${id}-input`}
-          className="block text-xs uppercase tracking-wide"
+      <label
+        htmlFor={`${id}-input`}
+        className="shrink-0 text-xs uppercase tracking-wide"
+      >
+        Search by
+      </label>
+      <input
+        ref={inputRef}
+        id={`${id}-input`}
+        type="search"
+        role="combobox"
+        // The name starts with the visible label (WCAG 2.5.3) and says what the box takes. The
+        // hint's slashes stay visual.
+        aria-label="Search by name, state, or ZIP code"
+        autoComplete="off"
+        aria-autocomplete="list"
+        aria-expanded={listShown}
+        aria-controls={listId}
+        aria-activedescendant={
+          listShown && active >= 0 ? optionId(active) : undefined
+        }
+        placeholder="Name / State / ZIP code"
+        value={text}
+        onChange={(event) => changeText(event.target.value)}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+        onKeyDown={onKeyDown}
+        className="block min-h-10 w-full min-w-0 flex-1 rounded-sm border border-legend-faded bg-white px-3 text-base text-black placeholder:text-legend-faded placeholder:text-xs placeholder:uppercase placeholder:tracking-wide focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent tablet:w-64 tablet:flex-none"
+      />
+      {messageShown && (
+        // The status below speaks the message, so screen readers skip this copy.
+        <p
+          data-search-message
+          aria-hidden="true"
+          className="absolute inset-x-0 top-full z-20 mt-1 rounded-sm border border-legend/30 bg-white px-3 py-2 text-gray-2 shadow-lg"
         >
-          Search
-        </label>
-        <input
-          ref={inputRef}
-          id={`${id}-input`}
-          type="search"
-          role="combobox"
-          autoComplete="off"
-          inputMode={mode === 'zip' ? 'numeric' : undefined}
-          aria-autocomplete="list"
-          aria-expanded={listShown}
-          aria-controls={listId}
-          aria-activedescendant={
-            listShown && active >= 0 ? optionId(active) : undefined
-          }
-          placeholder={PLACEHOLDERS[mode]}
-          value={text}
-          onChange={(event) => changeText(event.target.value)}
-          onFocus={() => setOpen(true)}
-          onBlur={() => setOpen(false)}
-          onKeyDown={onKeyDown}
-          className="mt-1 block min-h-10 w-full rounded-sm border border-legend-faded bg-white px-3 text-base text-black placeholder:text-legend-faded focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-        />
-        {messageShown && (
-          // The status below speaks the message, so screen readers skip this copy.
-          <p
-            data-search-message
-            aria-hidden="true"
-            className="absolute inset-x-0 top-full z-20 mt-1 rounded-sm border border-legend/30 bg-white px-3 py-2 text-gray-2 shadow-lg"
-          >
-            {view.message}
-          </p>
-        )}
-        {listShown && (
-          <ul
-            id={listId}
-            role="listbox"
-            aria-label="Search results"
-            // Keeps focus in the box, so a click or tap on a row isn't lost to the blur.
-            onMouseDown={(event) => event.preventDefault()}
-            onPointerDown={(event) => {
-              pointer.current = event.pointerType;
-            }}
-            className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-sm border border-legend/30 bg-white shadow-lg"
-          >
-            {view.options.map((option, index) => (
-              <li
-                key={
-                  option.kind === 'state'
-                    ? `state-${option.state.code}`
-                    : option.result.id
-                }
-                id={optionId(index)}
-                role="option"
-                aria-selected={index === active}
-                onClick={() => pick(option)}
-                className="flex min-h-11 cursor-pointer items-center gap-2 px-3 py-2 hover:bg-surface aria-selected:bg-surface aria-selected:outline aria-selected:outline-2 aria-selected:-outline-offset-2 aria-selected:outline-accent"
-              >
-                {option.kind === 'state' ? (
-                  <>
-                    <span className="font-semibold text-blue">
+          {view.message}
+        </p>
+      )}
+      {listShown && (
+        <ul
+          id={listId}
+          role="listbox"
+          aria-label="Search results"
+          // Keeps focus in the box, so a click or tap on a row isn't lost to the blur.
+          onMouseDown={(event) => event.preventDefault()}
+          onPointerDown={(event) => {
+            pointer.current = event.pointerType;
+          }}
+          className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-sm border border-legend/30 bg-white shadow-lg"
+        >
+          {view.options.map((option, index) => (
+            <li
+              key={
+                option.kind === 'state'
+                  ? `state-${option.state.code}`
+                  : option.result.id
+              }
+              id={optionId(index)}
+              role="option"
+              aria-selected={index === active}
+              onClick={() => pick(option)}
+              className="flex min-h-11 cursor-pointer items-center gap-2 px-3 py-2 hover:bg-surface aria-selected:bg-surface aria-selected:outline aria-selected:outline-2 aria-selected:-outline-offset-2 aria-selected:outline-accent"
+            >
+              {option.kind === 'state' ? (
+                <>
+                  {/* An empty ring lines states up with the projects' swatches. */}
+                  <span
+                    aria-hidden="true"
+                    className="size-3 shrink-0 rounded-full border border-legend"
+                  />
+                  <span className="min-w-0">
+                    <span className="block font-semibold text-blue">
                       {option.state.name}
                     </span>
-                    <span className="ml-auto text-xs">
-                      {option.state.count
-                        ? countText(option.state.count, 'project', 'projects')
-                        : 'No projects'}
+                    <span className="block text-xs">
+                      {[
+                        'State',
+                        option.state.count
+                          ? countText(option.state.count, 'project', 'projects')
+                          : 'No projects',
+                      ].join(' · ')}
                     </span>
-                  </>
-                ) : (
-                  <>
-                    <Swatch category={option.result.category} />
-                    <span className="min-w-0">
-                      <span className="block font-semibold text-blue">
-                        {option.result.name}
-                      </span>
-                      {/* The category shows as words too, never by color alone. */}
-                      <span className="block text-xs">
-                        {[
-                          CATEGORY_BY_KEY[option.result.category].label,
-                          option.result.place,
-                        ]
-                          .filter(Boolean)
-                          .join(' · ')}
-                      </span>
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Swatch category={option.result.category} />
+                  <span className="min-w-0">
+                    <span className="block font-semibold text-blue">
+                      {option.result.name}
                     </span>
-                    {option.result.miles !== undefined && (
-                      <span className="ml-auto shrink-0 text-xs">
-                        {Math.round(option.result.miles)} mi
-                      </span>
-                    )}
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <div
-        role="group"
-        aria-labelledby={`${id}-by`}
-        className="mt-2 flex flex-wrap items-center gap-2 tablet:mt-0 tablet:min-h-10"
-      >
-        {/* The design says "Category", but the legend's categories are project types. */}
-        <span id={`${id}-by`} className="text-xs uppercase tracking-wide">
-          Search by
-        </span>
-        {MODES.map(({ mode: option, label }) => (
-          <button
-            key={option}
-            type="button"
-            aria-pressed={mode === option}
-            onClick={() => changeMode(option)}
-            className="min-h-8 cursor-pointer rounded-sm border border-legend-faded bg-white px-2 text-xs uppercase tracking-wide focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent aria-pressed:border-blue aria-pressed:bg-blue aria-pressed:text-white"
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+                    {/* The category shows as words too, never by color alone. */}
+                    <span className="block text-xs">
+                      {[
+                        CATEGORY_BY_KEY[option.result.category].label,
+                        option.result.place,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </span>
+                  </span>
+                  {option.result.miles !== undefined && (
+                    <span className="ml-auto shrink-0 text-xs">
+                      {Math.round(option.result.miles)} mi
+                    </span>
+                  )}
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
       <p role="status" className="sr-only">
         {announcement}
       </p>

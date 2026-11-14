@@ -8,6 +8,7 @@
  */
 import { CATEGORY_BY_KEY, categoryOf } from '@/lib/categories';
 import { MAP_ID, type MapsLibraries } from '@/lib/mapsLoader';
+import { prefersReducedMotion } from '@/lib/reducedMotion';
 import {
   type Camera,
   cameraAlong,
@@ -91,10 +92,6 @@ const US_REGION: google.maps.LatLngBoundsLiteral = {
 
 const SURROUND = '#ffffff';
 
-const reducedMotion = () =>
-  typeof window.matchMedia === 'function' &&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
 /** Whether two cameras match, give or take rounding in Google's own copy. */
 const sameCamera = (a: Camera, b: Camera | null) =>
   b !== null &&
@@ -105,9 +102,13 @@ const sameCamera = (a: Camera, b: Camera | null) =>
 /** A selected marker draws above every other marker. */
 const SELECTED_Z = 1000;
 
-/** `data-look` holds the look from `markerLook`. Reduced motion skips the scale and the fade. */
+/**
+ * `data-look` holds the look from `markerLook`. A dot grows a little under the pointer or with
+ * keyboard focus on its marker, and a selected dot grows more. Reduced motion skips the
+ * transitions, so the size and the fade change at once (NFR-002).
+ */
 const DOT_CLASSES =
-  'block size-2.5 rounded-full ring-1 ring-white/60 motion-safe:transition data-[look=dimmed]:opacity-30 data-[look=selected]:scale-160';
+  'block size-2.5 rounded-full ring-1 ring-white/60 motion-safe:transition hover:scale-130 in-focus-visible:scale-130 data-[look=dimmed]:opacity-30 data-[look=selected]:scale-160';
 
 export function createMapLayer(
   element: HTMLElement,
@@ -170,7 +171,7 @@ export function createMapLayer(
     moved = true;
     stopFlight();
     const from = cameraNow();
-    if (reducedMotion() || !from) {
+    if (prefersReducedMotion() || !from) {
       map.moveCamera(to);
       return;
     }

@@ -7,7 +7,10 @@ import { MAP_OVERLAY } from './overlay';
 import Swatch from './Swatch';
 
 interface MapLegendProps {
+  /** The selection. It sets each entry's pressed state. */
   selection: Selection;
+  /** What the entries look like, when the category preview differs from the selection. */
+  shown?: Selection;
   onPick: (category: CategoryKey) => void;
   className?: string;
 }
@@ -19,6 +22,7 @@ interface MapLegendProps {
  */
 export default function MapLegend({
   selection,
+  shown = selection,
   onPick,
   className,
 }: MapLegendProps) {
@@ -34,12 +38,12 @@ export default function MapLegend({
       )}
     >
       {CATEGORIES.map(({ key, label }) => {
-        const look = legendLook(selection, key);
+        const look = legendLook(shown, key);
         return (
           <li key={key}>
             <button
               type="button"
-              aria-pressed={look === 'filter'}
+              aria-pressed={legendLook(selection, key) === 'filter'}
               data-look={look}
               onClick={() => onPick(key)}
               className="group inline-flex min-h-7 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-sm px-1 py-0.5 text-left text-legend text-xs uppercase tablet:min-h-8 tablet:gap-2 tablet:px-2 tablet:py-1 tablet:text-sm tablet:tracking-wide focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent data-[look=faded]:text-legend-faded data-[look=filter]:scale-110 motion-safe:transition"

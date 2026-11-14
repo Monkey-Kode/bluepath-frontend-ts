@@ -1,11 +1,23 @@
 'use client';
 
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 import { twMerge } from 'tailwind-merge';
 import MapKey from '@/components/projectMap/MapKey';
 import MapLegend from '@/components/projectMap/MapLegend';
 import MapPanel from '@/components/projectMap/MapPanel';
+import MapPreviewStop from '@/components/projectMap/MapPreviewStop';
 import MapSearch from '@/components/projectMap/MapSearch';
+import {
+  previewCategories,
+  useCategoryPreview,
+} from '@/components/projectMap/useCategoryPreview';
 import { NO_PADDING, paddingAround } from '@/lib/mapProjects/camera';
 import {
   createMapLayer,
@@ -17,7 +29,12 @@ import {
   type StateOutlines,
 } from '@/lib/mapProjects/outlines';
 import type { ProjectResult } from '@/lib/mapProjects/search';
-import { idle, panelView, select } from '@/lib/mapProjects/selection';
+import {
+  idle,
+  panelView,
+  previewOf,
+  select,
+} from '@/lib/mapProjects/selection';
 import { loadMaps } from '@/lib/mapsLoader';
 import type {
   CasestudiesQueryResult,
@@ -28,7 +45,7 @@ import type {
 interface ProjectsProps {
   page: Pick<NonNullable<PageBySlugQueryResult>, 'id'>;
   casestudies: CasestudiesQueryResult;
-  /** The category descriptions and the resting prompt. A home section passes none. */
+  /** The Studio's Project Map item, with the resting prompt. A home section passes none. */
   projectMap?: ProjectMapQueryResult;
   fullHeight?: boolean;
 }
@@ -43,6 +60,12 @@ const overlayPadding = (map: HTMLElement, overlay: HTMLElement) =>
     [...overlay.children].map((part) => part.getBoundingClientRect()),
     SIDE_GAP,
   );
+
+/** Moves keyboard focus to the legend's first entry, when the control that held it goes away. */
+const focusLegend = (overlay: HTMLElement | null) =>
+  overlay
+    ?.querySelector<HTMLButtonElement>('[data-map-legend] button')
+    ?.focus();
 
 /** Clicks here keep the selection. Google reports clicks on the map itself (AC-2.6). */
 const KEEPS_SELECTION =
@@ -59,6 +82,7 @@ function Projects({
   projectMap = null,
   fullHeight = false,
 }: ProjectsProps) {
+  const sectionRef = useRef<HTMLElement>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const [layer, setLayer] = useState<MapLayer | null>(null);
@@ -108,8 +132,14 @@ function Projects({
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       // The search's first Escape only closes its list (AC-9.7).
-      if (event.key === 'Escape' && !event.defaultPrevented)
-        dispatch({ type: 'escape' });
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      // An emptied panel takes no Tab stop, so focus on it would fall to the page.
+      if (
+        document.activeElement instanceof Element &&
+        document.activeElement.closest('[data-map-panel]')
+      )
+        focusLegend(overlayRef.current);
+      dispatch({ type: 'escape' });
     };
     // The legend has no "all" entry, so a click anywhere else turns a filter off (AC-2.6).
     // The path is the one the click took. React may already have removed the clicked element,
@@ -130,9 +160,28 @@ function Projects({
     };
   }, []);
 
+  const categories = useMemo(
+    () => previewCategories(casestudies),
+    [casestudies],
+  );
+  const { preview, stop: stopPreview } = useCategoryPreview(
+    sectionRef,
+    categories,
+    layer !== null,
+  );
+  // The preview only changes the look. The selection stays idle under it.
+  const shown = useMemo(
+    () => (preview ? previewOf(preview) : selection),
+    [preview, selection],
+  );
   useEffect(() => {
-    layer?.show(selection);
-  }, [layer, selection]);
+    layer?.show(shown);
+  }, [layer, shown]);
+  const onStopPreview = (byKeyboard: boolean) => {
+    stopPreview();
+    // The button leaves with the preview, so keyboard focus moves to the legend it previewed.
+    if (byKeyboard) focusLegend(overlayRef.current);
+  };
 
   // A search moves the map after the panel renders, so the map frames the pick in the area that
   // the panel leaves open. Without the map, a pick still selects the project and fills the panel
@@ -156,6 +205,7 @@ function Projects({
 
   return (
     <section
+      ref={sectionRef}
       id={page.id}
       className={twMerge(
         // From 800 px, the map always holds the stacked UI and some open map. A shorter screen
@@ -190,14 +240,22 @@ function Projects({
           <MapKey className="pointer-events-auto [grid-area:key] justify-self-start xl:self-end" />
           <MapLegend
             selection={selection}
+            shown={shown}
             onPick={(category) => dispatch({ type: 'pickLegend', category })}
             // From 1280 px, the taller key spans the panel's row and this one. Sitting at the row's
             // bottom keeps the legend still when the panel empties (AC-2.7).
             className="pointer-events-auto self-end [grid-area:legend] justify-self-center"
           />
+          {/* While the preview runs, the panel is empty, so its stop button takes the panel's place. */}
+          {preview && (
+            <MapPreviewStop
+              onStop={onStopPreview}
+              className="pointer-events-auto self-end [grid-area:panel] justify-self-center"
+            />
+          )}
           {/*
            * The panel sits above the legend but follows it in the page, so Tab moves from a legend
-           * entry to its description.
+           * entry to the picked project.
            */}
           <MapPanel
             view={view}

@@ -1,4 +1,11 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { flushSync } from 'react-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -11,7 +18,13 @@ import type {
   CasestudiesQueryResult,
   ProjectMapQueryResult,
 } from '@/sanity.types';
+import {
+  destroyIntersectionMocking,
+  mockAllIsIntersecting,
+  setupIntersectionMocking,
+} from 'react-intersection-observer/test-utils';
 import { fakeMaps } from '@/test/fakeMaps';
+import { PREVIEW_STEP_MS } from './projectMap/useCategoryPreview';
 import Projects from './Projects';
 
 vi.mock('@/lib/mapsLoader', async (importOriginal) => ({
@@ -82,12 +95,6 @@ const casestudies: CaseStudy[] = [
 
 const copy = {
   restingPrompt: 'Pick a marker or a category to learn more.',
-  categoryDescriptions: {
-    energyEfficiency: null,
-    solar: null,
-    solarBess: null,
-    bess: 'Batteries store power for later.',
-  },
 } satisfies ProjectMapQueryResult;
 
 const outlines = {
@@ -138,6 +145,9 @@ const panel = () => {
 
 const legendEntry = (name: string) => screen.getByRole('button', { name });
 
+const searchBox = () =>
+  screen.getByRole('combobox', { name: 'Search by name, state, or ZIP code' });
+
 /** Renders the map and waits until the layer shows the first selection. */
 const show = async () => {
   const view = render(
@@ -176,17 +186,18 @@ describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
     expect(InfoWindow).not.toHaveBeenCalled();
   });
 
-  it('puts the panel right after the legend, so Tab goes from a legend entry to its description (AC-2.8)', async () => {
+  it('puts the panel right after the legend, so Tab goes from a legend entry to the picked project (AC-2.8)', async () => {
     const user = userEvent.setup();
     await show();
-    await user.click(legendEntry('Battery'));
+    act(() => fake.marker('Cell Bank').pick());
     // Battery is the legend's last entry.
+    act(() => legendEntry('Battery').focus());
     await user.tab();
 
     expect(panel()).toHaveFocus();
   });
 
-  it('filters by a legend category and shows its description', async () => {
+  it('filters by a legend category and leaves the panel at rest (AC-2.5)', async () => {
     const user = userEvent.setup();
     await show();
     await user.click(legendEntry('Battery'));
@@ -195,9 +206,9 @@ describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
     expect(fake.marker('Cell Bank').map).toBe(fake.map());
     expect(fake.marker('Sun Farm').map).toBeNull();
     expect(fake.marker('Isle Array').map).toBeNull();
-    expect(
-      within(panel()).getByText('Batteries store power for later.'),
-    ).toBeVisible();
+    // Only a picked project opens the panel.
+    expect(panel()).toHaveAttribute('data-view', 'resting');
+    expect(panel().textContent).toBe(copy.restingPrompt);
   });
 
   it('returns to the resting prompt after a click on empty map', async () => {
@@ -231,7 +242,7 @@ describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
     await show();
     act(() => fake.marker('Cell Bank').pick());
     await user.click(within(panel()).getByText('Cell Bank'));
-    await user.click(screen.getByRole('combobox', { name: 'Search' }));
+    await user.click(searchBox());
     await user.click(
       screen.getByRole('list', { name: 'Filter the map by category' }),
     );
@@ -248,6 +259,19 @@ describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
     await user.click(fake.map().element);
 
     expect(fake.marker('Cell Bank').look).toBe('selected');
+  });
+
+  it('moves focus to the legend when Escape empties a focused panel', async () => {
+    const user = userEvent.setup();
+    await show();
+    act(() => fake.marker('Cell Bank').pick());
+    act(() => panel().focus());
+    expect(panel()).toHaveFocus();
+
+    await user.keyboard('{Escape}');
+
+    expect(panel()).toHaveAttribute('data-view', 'resting');
+    expect(legendEntry('Energy Efficiency')).toHaveFocus();
   });
 
   it('returns to the resting prompt on Escape', async () => {
@@ -285,7 +309,7 @@ describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
 describe('Projects map search (AC-9.3, AC-9.9)', () => {
   const searchFor = async (text: string) => {
     const user = userEvent.setup();
-    await user.type(screen.getByRole('combobox', { name: 'Search' }), text);
+    await user.type(searchBox(), text);
     return user;
   };
 
@@ -374,12 +398,10 @@ describe('Projects map search (AC-9.3, AC-9.9)', () => {
       } satisfies StateOutlines),
     );
     await show();
-    const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: 'State' }));
     await searchFor('kansas');
 
     // Cell Bank has no State field. Its pin at 35, -90 sits inside the Kansas outline.
-    expect(screen.getByRole('option', { name: /Kansas/ })).toHaveTextContent(
+    expect(screen.getByRole('option', { name: /^Kansas/ })).toHaveTextContent(
       '1 project',
     );
   });
@@ -414,6 +436,93 @@ describe('Projects map Escape with the search (AC-9.7)', () => {
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     });
     expect(within(panel()).queryByText('Cell Bank')).toBeNull();
+  });
+});
+
+describe('Projects map category preview', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    setupIntersectionMocking(vi.fn);
+  });
+
+  afterEach(() => {
+    destroyIntersectionMocking();
+    vi.useRealTimers();
+  });
+
+  const step = () =>
+    act(() => {
+      vi.advanceTimersByTime(PREVIEW_STEP_MS);
+    });
+  /** Puts the map on screen. Act applies the state change at once. */
+  const onScreen = () =>
+    act(() => {
+      mockAllIsIntersecting(true);
+    });
+  const stopButton = () =>
+    screen.queryByRole('button', { name: 'Stop the category preview' });
+
+  it('shows each category on its own, then the full map, without a selection', async () => {
+    await show();
+    onScreen();
+
+    // The test map has Solar and Battery projects, so the preview shows those two.
+    expect(fake.marker('Sun Farm').map).toBe(fake.map());
+    expect(fake.marker('Isle Array').map).toBe(fake.map());
+    expect(fake.marker('Cell Bank').map).toBeNull();
+    expect(legendEntry('Solar')).toHaveAttribute('data-look', 'filter');
+    // The preview is a look. No entry is pressed, and the panel stays at rest.
+    expect(legendEntry('Solar')).toHaveAttribute('aria-pressed', 'false');
+    expect(panel()).toHaveAttribute('data-view', 'resting');
+    expect(stopButton()).toBeVisible();
+
+    step();
+    expect(fake.marker('Cell Bank').map).toBe(fake.map());
+    expect(fake.marker('Sun Farm').map).toBeNull();
+    expect(legendEntry('Battery')).toHaveAttribute('data-look', 'filter');
+
+    step();
+    for (const marker of fake.markers) {
+      expect(marker.map).toBe(fake.map());
+      expect(marker.look).toBe('normal');
+    }
+    expect(legendEntry('Solar')).toHaveAttribute('data-look', 'normal');
+    expect(stopButton()).toBeNull();
+  });
+
+  it('ends when the visitor picks a marker, and shows the pick', async () => {
+    await show();
+    onScreen();
+    act(() => {
+      fireEvent.pointerDown(fake.map().element);
+    });
+    // The look holds through the press, so the click lands on the marker the visitor saw.
+    expect(fake.marker('Cell Bank').map).toBeNull();
+
+    act(() => {
+      fireEvent.pointerUp(window);
+      fake.marker('Sun Farm').pick();
+    });
+    act(() => {
+      vi.advanceTimersByTime(0);
+    });
+
+    expect(stopButton()).toBeNull();
+    expect(fake.marker('Sun Farm').look).toBe('selected');
+    expect(fake.marker('Cell Bank').map).toBe(fake.map());
+    expect(within(panel()).getByText('Sun Farm')).toBeVisible();
+  });
+
+  it('stops on its button, and moves keyboard focus to the legend', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await show();
+    onScreen();
+    act(() => stopButton()?.focus());
+    await user.keyboard('{Enter}');
+
+    expect(stopButton()).toBeNull();
+    for (const marker of fake.markers) expect(marker.look).toBe('normal');
+    expect(legendEntry('Energy Efficiency')).toHaveFocus();
   });
 });
 

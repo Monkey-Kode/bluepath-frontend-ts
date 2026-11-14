@@ -80,7 +80,9 @@ function renderSearch() {
       lookupZip={lookup}
     />,
   );
-  const box = screen.getByRole('combobox', { name: 'Search' });
+  const box = screen.getByRole('combobox', {
+    name: 'Search by name, state, or ZIP code',
+  });
   return { user, box };
 }
 
@@ -90,7 +92,15 @@ const status = () => screen.getByRole('status');
 /** The message shown in place of the list. The status speaks it. */
 const message = () => document.querySelector('[data-search-message]');
 
-describe('MapSearch: plain search (AC-9.2, AC-9.6)', () => {
+describe('MapSearch: one box (AC-9.1, AC-9.2)', () => {
+  it('offers no mode buttons, and hints at names, states, and ZIP codes', () => {
+    const { box } = renderSearch();
+    expect(screen.queryByRole('button')).toBeNull();
+    expect(box).toHaveAttribute('placeholder', 'Name / State / ZIP code');
+  });
+});
+
+describe('MapSearch: names and places (AC-9.2, AC-9.6)', () => {
   it('lists matching plotted projects as the visitor types, and announces the count', async () => {
     const { user, box } = renderSearch();
 
@@ -205,18 +215,22 @@ describe('MapSearch: keyboard (AC-9.7)', () => {
   });
 });
 
-describe('MapSearch: State (AC-9.4)', () => {
-  it('lists matching states with their counts, then fits the map to a picked state', async () => {
+describe('MapSearch: states (AC-9.4)', () => {
+  it('lists a matching state first, then fits the map to a picked state', async () => {
     const { user, box } = renderSearch();
-    const state = screen.getByRole('button', { name: 'State' });
 
-    await user.click(state);
-    expect(state).toHaveAttribute('aria-pressed', 'true');
     await user.type(box, 'ca');
-    expect(options()).toEqual(['California1 project']);
+    // Two letters are a code, so only California matches as a state. Projects whose name or
+    // state holds "ca" follow it.
+    expect(options()).toEqual([
+      'CaliforniaState · 1 project',
+      expect.stringContaining('Cartwright School'),
+      expect.stringContaining('Stanford Solar'),
+    ]);
 
-    await user.click(screen.getByRole('option', { name: /California/ }));
+    await user.click(screen.getByRole('option', { name: /^California/ }));
     expect(onFocus).toHaveBeenCalledWith({ kind: 'state', name: 'California' });
+    expect(box).toHaveValue('California');
     expect(options()).toEqual([expect.stringContaining('Stanford Solar')]);
     expect(status()).toHaveTextContent('California: 1 project');
 
@@ -226,35 +240,43 @@ describe('MapSearch: State (AC-9.4)', () => {
     );
   });
 
+  it('lists projects that name a state below the state itself', async () => {
+    const { user, box } = renderSearch();
+    await user.type(box, 'arizona');
+    expect(options()).toEqual([
+      'ArizonaState · 1 project',
+      expect.stringContaining('Cartwright School'),
+    ]);
+  });
+
   it('says when a picked state has no projects', async () => {
     const { user, box } = renderSearch();
-    await user.click(screen.getByRole('button', { name: 'State' }));
     await user.type(box, 'nev');
-    expect(options()).toEqual(['NevadaNo projects']);
+    expect(options()).toEqual(['NevadaState · No projects']);
 
-    await user.click(screen.getByRole('option', { name: /Nevada/ }));
+    await user.click(screen.getByRole('option', { name: /^Nevada/ }));
     expect(message()).toHaveTextContent('No projects in Nevada yet.');
   });
 
-  it('makes no call to Google', async () => {
+  it('makes no call to Google for a state', async () => {
     const { user, box } = renderSearch();
-    await user.click(screen.getByRole('button', { name: 'State' }));
-    await user.type(box, '85033');
+    await user.type(box, 'calif');
+    expect(options()).toEqual([
+      'CaliforniaState · 1 project',
+      expect.stringContaining('Stanford Solar'),
+    ]);
     expect(lookup).not.toHaveBeenCalled();
   });
 });
 
-describe('MapSearch: ZIP Code (AC-9.5, AC-9.6)', () => {
+describe('MapSearch: ZIP codes (AC-9.5, AC-9.6)', () => {
   it('waits for five digits, asks once, centers the map, and lists the nearest projects', async () => {
     const { user, box } = renderSearch();
-    const zip = screen.getByRole('button', { name: 'ZIP Code' });
-    await user.click(zip);
-    expect(zip).toHaveAttribute('aria-pressed', 'true');
-    expect(box).toHaveAttribute('inputmode', 'numeric');
 
+    // Four digits search names and addresses. Cartwright's address holds 85033.
     await user.type(box, '8503');
     expect(lookup).not.toHaveBeenCalled();
-    expect(message()).toHaveTextContent('Type a five-digit ZIP code.');
+    expect(options()).toEqual([expect.stringContaining('Cartwright School')]);
 
     await user.type(box, '3');
     expect(lookup).toHaveBeenCalledOnce();
@@ -273,7 +295,6 @@ describe('MapSearch: ZIP Code (AC-9.5, AC-9.6)', () => {
   it('says so for an unknown ZIP', async () => {
     lookup.mockResolvedValue({ kind: 'unknown' });
     const { user, box } = renderSearch();
-    await user.click(screen.getByRole('button', { name: 'ZIP Code' }));
     await user.type(box, '00000');
     await waitFor(() =>
       expect(message()).toHaveTextContent("We couldn't find that ZIP code."),
@@ -281,11 +302,9 @@ describe('MapSearch: ZIP Code (AC-9.5, AC-9.6)', () => {
     expect(onFocus).not.toHaveBeenCalled();
   });
 
-  it('says ZIP lookup is unavailable when Google fails, and plain search still works', async () => {
+  it('says ZIP lookup is unavailable when Google fails, and name search still works', async () => {
     lookup.mockResolvedValue({ kind: 'unavailable' });
     const { user, box } = renderSearch();
-    const zip = screen.getByRole('button', { name: 'ZIP Code' });
-    await user.click(zip);
     await user.type(box, '85033');
     await waitFor(() =>
       expect(message()).toHaveTextContent(
@@ -293,10 +312,6 @@ describe('MapSearch: ZIP Code (AC-9.5, AC-9.6)', () => {
       ),
     );
 
-    await user.click(zip);
-    expect(zip).toHaveAttribute('aria-pressed', 'false');
-    // Switching keeps the typed text, so nothing is erased without a word.
-    expect(box).toHaveValue('85033');
     await user.clear(box);
     await user.type(box, 'ford');
     expect(options()).toHaveLength(2);
@@ -310,7 +325,6 @@ describe('MapSearch: ZIP Code (AC-9.5, AC-9.6)', () => {
       }),
     );
     const { user, box } = renderSearch();
-    await user.click(screen.getByRole('button', { name: 'ZIP Code' }));
     await user.type(box, '85033');
     await user.type(box, '{Backspace}');
 

@@ -246,8 +246,7 @@ export const casestudiesQuery = defineQuery(`
 
 export const projectMapQuery = defineQuery(`
   *[_type == "projectMap" && _id == "projectMap"][0]{
-    restingPrompt,
-    categoryDescriptions{ energyEfficiency, solar, solarBess, bess }
+    restingPrompt
   }
 `);
 

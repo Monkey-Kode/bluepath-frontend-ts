@@ -5,7 +5,8 @@ Checks that the search, key, legend, and panel never overlap each other or Googl
 - **Prerequisites:** the map loads without Google's error box. Locally, that needs the key to allow `http://localhost:3000/*`.
 - **Entry point:** `scripts/overlap.sh --url /projects/`.
 - **Actions:** the map fills the screen, and every other region sits on top of it. So leave the map out of the regions.
-  The resting panel is empty or screen-reader-only on small screens, so the rest run leaves it out too.
+  The resting panel draws no box at any width, so the rest run leaves it out too.
+  The category preview's pause button shows for about 6 seconds after the map loads. To check it, wait for `.gm-style-cc`, then run `scripts/overlap.js` by hand with `stop='[data-preview-stop]'` added to the items.
 
   ```sh
   EVIDENCE=../.agents/specs/feat/case-studies/.mk-goal/evidence/map-overlap
@@ -20,7 +21,7 @@ Checks that the search, key, legend, and panel never overlap each other or Googl
   Then pipe `const CONFIG = {...};` and `scripts/overlap.js` to `agent-browser eval --stdin`, with `panel='[data-map-panel]'` added to the items.
 
   When the map shows Google's error box, add `--wait '[data-map-legend]'`. The run then still measures the other regions, and fails only on Google's missing logo and attribution.
-  Don't wait on the panel. Below 800 px, the resting panel has no visible box, so the wait times out.
+  Don't wait on the panel. The resting panel has no visible box, so the wait times out.
   Each run loads the map once per viewport. A demo Maps key has a small daily quota, and a day of repeated runs can use it up. The console then says "Maps Demo Key limit reached".
 
 - **Expected result:** `PASS` at all six viewports and exit code 0.
