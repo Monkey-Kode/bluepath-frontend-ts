@@ -2,6 +2,7 @@
 
 import { PortableText, type PortableTextComponents } from '@portabletext/react';
 import getYouTubeId from 'get-youtube-id';
+import { ARTICLE_PATHS } from '@/lib/articles';
 
 type SanityImageAsset =
   | {
@@ -20,6 +21,21 @@ type SanityImageRef =
 
 const imageUrlFor = (image: SanityImageRef): string | null =>
   image?.asset?.url ?? null;
+
+/**
+ * Where an internal link leads. A case study link ends in a slash, the site's canonical form.
+ * Page, news, and event links keep the form they had before case studies.
+ */
+const internalHref = (
+  type: string | undefined,
+  slug: string | undefined,
+): string => {
+  if (!slug) return '#';
+  if (type === 'caseStudy') return `${ARTICLE_PATHS.caseStudy}${slug}/`;
+  const prefix =
+    type === 'news' || type === 'event' ? ARTICLE_PATHS[type] : '/';
+  return `${prefix}${slug}`;
+};
 
 export const newsBodyComponents: PortableTextComponents = {
   block: {
@@ -71,13 +87,16 @@ export const newsBodyComponents: PortableTextComponents = {
         </a>
       );
     },
-    internalLink: ({ value, children }) => {
-      const slug = value?.reference?.slug?.current;
-      const type = value?.reference?._type;
-      const prefix =
-        type === 'news' ? '/news/' : type === 'event' ? '/events/' : '/';
-      return <a href={slug ? `${prefix}${slug}` : '#'}>{children}</a>;
-    },
+    internalLink: ({ value, children }) => (
+      <a
+        href={internalHref(
+          value?.reference?._type,
+          value?.reference?.slug?.current,
+        )}
+      >
+        {children}
+      </a>
+    ),
   },
   types: {
     imageWithCaption: ({ value }) => {

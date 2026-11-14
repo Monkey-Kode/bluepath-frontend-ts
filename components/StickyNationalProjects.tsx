@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { InViewHookResponse } from 'react-intersection-observer';
 
-import NationalProjects, { CaseStudy } from './NationalProjects';
+import { tickerEntries } from '@/lib/mapProjects/ticker';
+import type { CasestudiesQueryResult } from '@/sanity.types';
+import NationalProjects from './NationalProjects';
 
 interface StickyNationalProjectsProps {
-  caseStudies: CaseStudy[];
+  caseStudies: CasestudiesQueryResult;
   footerRef: InViewHookResponse;
   tableOfContentsRef: InViewHookResponse;
 }
@@ -18,6 +20,7 @@ export default function StickyNationalProjects({
   tableOfContentsRef,
 }: StickyNationalProjectsProps) {
   const controls = useAnimation();
+  const entries = useMemo(() => tickerEntries(caseStudies), [caseStudies]);
   const [shouldStickyBeVisible, setShouldStickyBeVisible] = useState(false);
   const [isPastTableOfContents, setIsPastTableOfContents] = useState(false);
 
@@ -83,7 +86,7 @@ export default function StickyNationalProjects({
       transition={{ duration: 0.5 }}
       className="hidden snap-align-none min-[1025px]:block min-[1025px]:fixed min-[1025px]:bottom-0 min-[1025px]:left-0 min-[1025px]:right-0 min-[1025px]:z-10 min-[1025px]:bg-white"
     >
-      {shouldStickyBeVisible && <NationalProjects caseStudies={caseStudies} />}
+      {shouldStickyBeVisible && <NationalProjects entries={entries} />}
     </motion.div>
   );
 }

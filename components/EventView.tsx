@@ -4,7 +4,7 @@ import FormBasic from '@/components/FormBasic';
 import NewsBody from '@/components/NewsBody';
 import SanityImage from '@/components/SanityImage';
 import ViewTransition from '@/components/ViewTransition';
-import { mediaTransitionName, titleTransitionName } from '@/lib/newsEvents';
+import { mediaTransitionName, titleTransitionName } from '@/lib/articles';
 import type { EventBySlugQueryResult } from '@/sanity.types';
 
 export default function EventView({

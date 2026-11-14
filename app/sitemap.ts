@@ -1,15 +1,26 @@
 import type { MetadataRoute } from 'next';
 
+import { ARTICLE_PATHS } from '@/lib/articles';
+import { getSiteUrl } from '@/lib/siteUrl';
 import { sanityFetch } from '@/sanity/lib/live';
 import { sitemapQuery, teamSlugsQuery } from '@/sanity/lib/queries';
-import { getSiteUrl } from '@/lib/siteUrl';
 
 const BASE = getSiteUrl();
 
 // Slugs owned by hand-built static routes (mirrors gatsby-node STATIC_PAGE_SLUGS).
-const STATIC_PAGE_SLUGS = new Set(['leadership', 'news-and-events']);
+const STATIC_PAGE_SLUGS = new Set([
+  'leadership',
+  'news-and-events',
+  'case-studies',
+]);
 
-const STATIC_ROUTES = ['', 'leadership', 'news-and-events', 'thankyou'];
+const STATIC_ROUTES = [
+  '',
+  'leadership',
+  'news-and-events',
+  'case-studies',
+  'thankyou',
+];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [{ data }, { data: teamSlugs }] = await Promise.all([
@@ -37,10 +48,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     let path: string;
     switch (doc._type) {
       case 'event':
-        path = `events/${doc.slug}`;
-        break;
       case 'news':
-        path = `news/${doc.slug}`;
+      case 'caseStudy':
+        path = `${ARTICLE_PATHS[doc._type].slice(1)}${doc.slug}`;
         break;
       case 'page':
         if (STATIC_PAGE_SLUGS.has(doc.slug)) continue;

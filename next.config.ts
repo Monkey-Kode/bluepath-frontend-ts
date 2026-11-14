@@ -4,14 +4,10 @@ const nextConfig: NextConfig = {
   // Gatsby used `trailingSlash: 'always'` — preserve every existing URL.
   trailingSlash: true,
   // Netlify sets CONTEXT only during the build, not inside functions. Baking the build's value
-  // into the code lets server code tell the production deploy apart at run time.
+  // into the code lets server code tell the production deploy apart at run time: the analytics
+  // check in app/layout.tsx and the write guard in sanity/lib/writeClient.ts.
   // Next skips the entry when CONTEXT is unset, as in local runs.
   env: { CONTEXT: process.env.CONTEXT },
-  // Enables React's <ViewTransition> integration so route navigations
-  // (e.g. /leadership → /leadership/[slug]) wrap in the browser View Transitions API.
-  experimental: {
-    viewTransition: true,
-  },
   // Allow the proxied remote host (office.monkeykode.com → localhost:3000)
   // to reach dev-only assets/HMR (Next 16 blocks cross-origin dev by default).
   allowedDevOrigins: ['office.monkeykode.com'],
