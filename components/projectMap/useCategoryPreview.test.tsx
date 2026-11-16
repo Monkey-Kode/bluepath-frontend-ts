@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CategoryKey } from '@/lib/categories';
 import type { MapProject } from '@/lib/mapProjects/display';
 import {
+  PREVIEW_LOOPS,
   PREVIEW_STEP_MS,
   PREVIEW_STOP,
   previewCategories,
@@ -76,19 +77,17 @@ describe('previewCategories', () => {
 });
 
 describe('useCategoryPreview', () => {
-  it('shows each category once, on screen, then ends on the full map', () => {
+  it('cycles through the categories three times, on screen, then ends on the full map', () => {
     const { result } = preview();
     expect(result.current.preview).toBeNull();
 
     onScreen();
-    expect(result.current.preview).toBe('energyEfficiency');
-    step();
-    expect(result.current.preview).toBe('solar');
-    step();
-    expect(result.current.preview).toBe('solarBess');
-    step();
-    expect(result.current.preview).toBe('bess');
-    step();
+    for (let loop = 0; loop < PREVIEW_LOOPS; loop++) {
+      for (const category of ALL) {
+        expect(result.current.preview).toBe(category);
+        step();
+      }
+    }
     expect(result.current.preview).toBeNull();
 
     // It runs once per visit.

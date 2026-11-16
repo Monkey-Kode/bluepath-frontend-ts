@@ -6,8 +6,11 @@ import { CATEGORIES, type CategoryKey, categoryOf } from '@/lib/categories';
 import { isPlotted, type MapProject } from '@/lib/mapProjects/display';
 import { prefersReducedMotion } from '@/lib/reducedMotion';
 
-/** How long the preview shows each category. Four categories take 6 seconds. */
-export const PREVIEW_STEP_MS = 1500;
+/** How long the preview shows each category. Four categories take 12 seconds a pass. */
+export const PREVIEW_STEP_MS = 3000;
+
+/** How many times the preview goes through the categories before it ends. */
+export const PREVIEW_LOOPS = 3;
 
 /** Marks the preview's stop button. Using it never counts as using the map. */
 export const PREVIEW_STOP = 'data-preview-stop';
@@ -40,11 +43,11 @@ export function previewCategories(
 }
 
 /**
- * Shows each category on its own, once, to hint that the map responds (Nov 13). It starts when
- * the map is ready and half on screen. It ends on the full map after one pass. The first use of
- * the map ends it for good, as does the stop button (WCAG 2.2.2). A press, a key, or focus counts
- * as use. A wheel or keyboard scroll doesn't, but a touch swipe that starts on the map does. It
- * never runs with reduced motion on (NFR-002).
+ * Shows each category on its own, in turn, to hint that the map responds (Nov 13). It starts when
+ * the map is ready and half on screen. It ends on the full map after three passes (Nov 16). The
+ * first use of the map ends it for good, as does the stop button (WCAG 2.2.2). A press, a key, or
+ * focus counts as use. A wheel or keyboard scroll doesn't, but a touch swipe that starts on the
+ * map does. It never runs with reduced motion on (NFR-002).
  */
 export function useCategoryPreview(
   section: RefObject<HTMLElement | null>,
@@ -112,7 +115,7 @@ export function useCategoryPreview(
   useEffect(() => {
     if (phase !== 'running') return;
     const timer = window.setTimeout(() => {
-      if (step + 1 < categories.length) setStep(step + 1);
+      if (step + 1 < categories.length * PREVIEW_LOOPS) setStep(step + 1);
       else setPhase('done');
     }, PREVIEW_STEP_MS);
     return () => window.clearTimeout(timer);
@@ -122,7 +125,7 @@ export function useCategoryPreview(
     /** The category on show, or null outside the preview. */
     preview:
       phase === 'running' || phase === 'held'
-        ? (categories[step] ?? null)
+        ? (categories[step % categories.length] ?? null)
         : null,
     stop,
   };

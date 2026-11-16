@@ -17,10 +17,10 @@ interface MapPanelProps {
 }
 
 /**
- * The panel above the key and the legend (FR-004, FR-006). It shows a picked project or a clicked
- * legend category, so it stays out of sight until a visitor clicks (AC-2.5, AC-2.7). It keeps one
- * live region through every switch, so screen readers hear each change (AC-2.8). It grows upward
- * over the map, so the legend never moves. Long content scrolls inside it. Shown content takes
+ * The panel above the key and the legend (FR-004, FR-006). It shows a picked project, or a clicked
+ * legend category that has a description, so it stays out of sight until a visitor clicks (AC-2.5,
+ * AC-2.7). It keeps one live region through every switch, so screen readers hear each change
+ * (AC-2.8). It grows upward over the map, so the legend never moves. Long content scrolls inside it. Shown content takes
  * focus, so a keyboard user can scroll it too (WCAG 2.1.1). An empty panel takes no Tab stop.
  * Each new project or category fades in, and the box fades in with the first one. Reduced motion
  * shows both at once (NFR-002).
@@ -31,8 +31,17 @@ export default function MapPanel({
   copy,
   className,
 }: MapPanelProps) {
-  // A picked project that is gone leaves the panel at rest.
-  const shown = view.kind === 'project' && !project ? 'resting' : view.kind;
+  const description =
+    view.kind === 'category'
+      ? copy?.categoryDescriptions?.[view.category]?.trim()
+      : undefined;
+  // A picked project that is gone leaves the panel at rest. So does a category without a
+  // description, because its name alone repeats the legend (Nov 16).
+  const shown =
+    (view.kind === 'project' && !project) ||
+    (view.kind === 'category' && !description)
+      ? 'resting'
+      : view.kind;
   return (
     <div
       role="region"
@@ -50,12 +59,22 @@ export default function MapPanel({
         className,
       )}
     >
-      <PanelContent view={view} project={project} copy={copy} />
+      <PanelContent
+        view={view}
+        project={project}
+        copy={copy}
+        description={description}
+      />
     </div>
   );
 }
 
-function PanelContent({ view, project, copy }: MapPanelProps) {
+function PanelContent({
+  view,
+  project,
+  copy,
+  description,
+}: Omit<MapPanelProps, 'className'> & { description: string | undefined }) {
   // A new key mounts the content afresh, so its starting style plays the fade again.
   if (view.kind === 'project' && project)
     return (
@@ -63,13 +82,10 @@ function PanelContent({ view, project, copy }: MapPanelProps) {
         <ProjectDetails project={project} />
       </FadeIn>
     );
-  if (view.kind === 'category')
+  if (view.kind === 'category' && description)
     return (
       <FadeIn key={`category-${view.category}`}>
-        <CategoryDetails
-          category={view.category}
-          description={copy?.categoryDescriptions?.[view.category]}
-        />
+        <CategoryDetails category={view.category} description={description} />
       </FadeIn>
     );
   const prompt = copy?.restingPrompt?.trim();
@@ -95,22 +111,21 @@ function ProjectDetails({ project }: { project: MapProject }) {
   );
 }
 
-/** The descriptions are optional. Without one, the panel still names the category. */
+/** A category's name above its editor's description. */
 function CategoryDetails({
   category,
   description,
 }: {
   category: CategoryKey;
-  description: string | null | undefined;
+  description: string;
 }) {
-  const text = description?.trim();
   return (
     <>
       <p className="flex items-center justify-center gap-2 font-semibold text-blue text-h4">
         <Swatch category={category} />
         {CATEGORY_BY_KEY[category].label}
       </p>
-      {text && <p className="mt-2 whitespace-pre-line">{text}</p>}
+      <p className="mt-2 whitespace-pre-line">{description}</p>
     </>
   );
 }

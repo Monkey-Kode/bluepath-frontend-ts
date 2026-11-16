@@ -24,7 +24,10 @@ import {
   setupIntersectionMocking,
 } from 'react-intersection-observer/test-utils';
 import { fakeMaps } from '@/test/fakeMaps';
-import { PREVIEW_STEP_MS } from './projectMap/useCategoryPreview';
+import {
+  PREVIEW_LOOPS,
+  PREVIEW_STEP_MS,
+} from './projectMap/useCategoryPreview';
 import Projects from './Projects';
 
 vi.mock('@/lib/mapsLoader', async (importOriginal) => ({
@@ -219,6 +222,19 @@ describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
     expect(
       within(panel()).getByText('Batteries store power for later.'),
     ).toBeVisible();
+  });
+
+  it('filters by a legend category without a description and keeps the panel at rest (AC-2.5)', async () => {
+    const user = userEvent.setup();
+    await show();
+    await user.click(legendEntry('Solar'));
+
+    expect(legendEntry('Solar')).toHaveAttribute('aria-pressed', 'true');
+    expect(fake.marker('Sun Farm').map).toBe(fake.map());
+    expect(fake.marker('Cell Bank').map).toBeNull();
+    expect(panel()).toHaveAttribute('data-view', 'resting');
+    expect(panel()).not.toHaveTextContent('Solar');
+    expect(panel()).toHaveTextContent(copy.restingPrompt);
   });
 
   it('puts the panel right after the legend, so Tab goes from a legend entry to its description (AC-2.8)', async () => {
@@ -559,7 +575,13 @@ describe('Projects map category preview', () => {
     expect(fake.marker('Sun Farm').map).toBeNull();
     expect(legendEntry('Battery')).toHaveAttribute('data-look', 'filter');
 
+    // It goes round again, until its last pass ends.
     step();
+    expect(legendEntry('Solar')).toHaveAttribute('data-look', 'filter');
+    for (let loop = 1; loop < PREVIEW_LOOPS; loop++) {
+      step();
+      step();
+    }
     for (const marker of fake.markers) {
       expect(marker.map).toBe(fake.map());
       expect(marker.look).toBe('normal');

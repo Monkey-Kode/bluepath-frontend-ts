@@ -127,17 +127,26 @@ describe('MapPanel category view (AC-2.5)', () => {
     expect(liveRegion()).toHaveAttribute('data-view', 'category');
   });
 
-  // The descriptions are optional. Without one, the panel still names the category.
+  // The descriptions are optional. A name alone tells the visitor nothing the legend doesn't, so
+  // the panel stays at rest without one (Nov 16).
   it.each([
     ['a null description', 'energyEfficiency', copy, 'Energy Efficiency'],
     ['an empty description', 'solarBess', copy, 'Solar + Battery'],
     ['a blank description', 'bess', copy, 'Battery'],
     ['no Project Map item', 'solar', null, 'Solar'],
-  ] as const)('shows only the category for %s', (_case, category, projectMap, label) => {
+  ] as const)('stays at rest for %s', (_case, category, projectMap, label) => {
     render(
       <MapPanel view={{ kind: 'category', category }} copy={projectMap} />,
     );
-    expect(liveRegion().textContent).toBe(label);
+    expect(liveRegion()).toHaveAttribute('data-view', 'resting');
+    expect(liveRegion()).not.toHaveAttribute('tabindex');
+    expect(liveRegion()).not.toHaveTextContent(label);
+    // Only screen readers get the resting prompt, as at rest.
+    if (projectMap)
+      expect(
+        within(liveRegion()).getByText(projectMap.restingPrompt),
+      ).toHaveClass('sr-only');
+    else expect(liveRegion()).toBeEmptyDOMElement();
   });
 });
 
