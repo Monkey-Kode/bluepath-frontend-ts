@@ -219,15 +219,16 @@ function Projects({
         <div ref={mapRef} data-map-root className="absolute inset-0" />
         {/*
          * The UI sits on top of the map in a grid that lets clicks through its gaps. The search
-         * sits at the top, full width below 800 px and top right from 800 px. The panel, the key,
-         * and the legend stack at the bottom. The panel sits above them and grows up over the map,
-         * so the legend never moves. Below 800 px, the parts stay clear of Google's zoom buttons in
-         * the right column. From 1280 px, the key moves beside the panel and the legend, to leave
-         * the map more height. The bottom row clears Google's logo and attribution (AC-2.9).
+         * sits at the top, full width below 800 px and top right from 800 px. The panel, the
+         * legend, and the key stack at the bottom. The panel rests right on the legend and grows up
+         * over the map, so the legend never moves (Nov 16). Below 800 px, the parts stay clear of
+         * Google's zoom buttons in the right column. From 1280 px, the key moves beside the panel
+         * and the legend, to leave the map more height. The bottom row clears Google's logo and
+         * attribution (AC-2.9).
          */}
         <div
           ref={overlayRef}
-          className="pointer-events-none absolute inset-0 grid grid-cols-[minmax(0,1fr)_2.75rem] grid-rows-[auto_1fr_auto_auto_auto] gap-2 p-3 pb-8 [grid-template-areas:'search_search'_'._.'_'panel_.'_'key_.'_'legend_.'] tablet:grid-cols-[minmax(0,1fr)_auto] tablet:gap-3 tablet:p-4 tablet:pb-8 tablet:[grid-template-areas:'._search'_'._.'_'panel_panel'_'key_.'_'legend_legend'] xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:grid-rows-[auto_1fr_auto_auto] xl:[grid-template-areas:'._search_search'_'._._.'_'key_panel_.'_'key_legend_.']"
+          className="pointer-events-none absolute inset-0 grid grid-cols-[minmax(0,1fr)_2.75rem] grid-rows-[auto_1fr_auto_auto_auto] gap-x-2 gap-y-1 p-3 pb-8 [grid-template-areas:'search_search'_'._.'_'panel_.'_'legend_.'_'key_.'] tablet:grid-cols-[minmax(0,1fr)_auto] tablet:gap-x-3 tablet:p-4 tablet:pb-8 tablet:[grid-template-areas:'._search'_'._.'_'panel_panel'_'legend_legend'_'key_.'] xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:grid-rows-[auto_1fr_auto_auto] xl:[grid-template-areas:'._search_search'_'._._.'_'key_panel_.'_'key_legend_.']"
         >
           <MapSearch
             projects={casestudies}
@@ -237,7 +238,8 @@ function Projects({
             // The results list hangs over the legend and the panel, so the search draws above them.
             className="pointer-events-auto z-10 [grid-area:search] tablet:justify-self-end"
           />
-          <MapKey className="pointer-events-auto [grid-area:key] justify-self-start xl:self-end" />
+          {/* Below 1280 px, the key sits under the legend, a little apart from it. */}
+          <MapKey className="pointer-events-auto mt-1 [grid-area:key] justify-self-start tablet:mt-2 xl:mt-0 xl:self-end" />
           <MapLegend
             selection={selection}
             shown={shown}

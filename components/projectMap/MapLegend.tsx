@@ -53,12 +53,16 @@ export default function MapLegend({
               data-look={look}
               onClick={() => onPick(key)}
               onPointerEnter={() => onHover?.(key)}
-              className="group inline-flex min-h-7 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-sm px-1 py-0.5 text-left text-legend text-xs uppercase tablet:min-h-8 tablet:gap-2 tablet:px-2 tablet:py-1 tablet:text-sm tablet:tracking-wide focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent data-[look=faded]:text-legend-faded data-[look=filter]:scale-110 motion-safe:transition"
+              className="group inline-flex min-h-7 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-sm px-1 py-0.5 text-left text-legend text-xs uppercase tablet:min-h-8 tablet:gap-2 tablet:px-2 tablet:py-1 tablet:text-sm tablet:tracking-wide focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent data-[look=faded]:font-light data-[look=faded]:text-legend-faded data-[look=filter]:scale-110 motion-safe:transition"
             >
               <Swatch category={key} faded={look === 'faded'} />
-              {/* The hidden bold copy reserves the bold width, so bolding never shifts the row. */}
+              {/*
+               * The chosen entry turns bold, so the difference never rests on color alone. The
+               * hidden bold copy reserves the bold width, so bolding never shifts the row. A
+               * faded entry's light weight reads lighter without changing its color (D-20).
+               */}
               <span className="grid">
-                <span className="col-start-1 row-start-1 group-data-[look=match]:font-bold">
+                <span className="col-start-1 row-start-1 group-data-[look=filter]:font-bold group-data-[look=match]:font-bold">
                   {label}
                 </span>
                 <span
