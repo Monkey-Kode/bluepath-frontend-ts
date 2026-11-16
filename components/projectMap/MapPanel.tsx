@@ -46,7 +46,7 @@ export default function MapPanel({
         MAP_OVERLAY,
         'max-h-[35svh] w-full overflow-y-auto p-3 text-center text-gray-3 text-sm motion-safe:transition motion-safe:duration-300 tablet:w-xl tablet:max-w-full tablet:text-base',
         // At rest, the panel shows nothing. Only screen readers get the resting prompt.
-        'data-[view=resting]:bg-transparent data-[view=resting]:p-0 data-[view=resting]:shadow-none data-[view=resting]:backdrop-blur-none',
+        'data-[view=resting]:bg-transparent data-[view=resting]:p-0 data-[view=resting]:backdrop-blur-none',
         className,
       )}
     >

@@ -289,7 +289,7 @@ export default function MapSearch({
         <p
           data-search-message
           aria-hidden="true"
-          className="absolute inset-x-0 top-full z-20 mt-1 rounded-sm border border-legend/30 bg-white px-3 py-2 text-gray-2 shadow-lg"
+          className="absolute inset-x-0 top-full z-20 mt-1 rounded-sm border border-legend/30 bg-white px-3 py-2 text-gray-2"
         >
           {view.message}
         </p>
@@ -304,7 +304,7 @@ export default function MapSearch({
           onPointerDown={(event) => {
             pointer.current = event.pointerType;
           }}
-          className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-sm border border-legend/30 bg-white shadow-lg"
+          className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-sm border border-legend/30 bg-white"
         >
           {view.options.map((option, index) => (
             <li
