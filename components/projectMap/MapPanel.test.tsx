@@ -8,6 +8,12 @@ import MapPanel from './MapPanel';
 
 const copy = {
   restingPrompt: 'Pick a marker or a category to learn more.',
+  categoryDescriptions: {
+    energyEfficiency: null,
+    solar: 'Solar plants make power on site.',
+    solarBess: '',
+    bess: '  ',
+  },
 } satisfies ProjectMapQueryResult;
 
 const newton: MapProject = {
@@ -110,6 +116,31 @@ describe('MapPanel project view (AC-2.4)', () => {
   });
 });
 
+describe('MapPanel category view (AC-2.5)', () => {
+  it("shows the category and its editor's description", () => {
+    render(
+      <MapPanel view={{ kind: 'category', category: 'solar' }} copy={copy} />,
+    );
+    expect(liveRegion()).toHaveTextContent(
+      `Solar${copy.categoryDescriptions.solar}`,
+    );
+    expect(liveRegion()).toHaveAttribute('data-view', 'category');
+  });
+
+  // The descriptions are optional. Without one, the panel still names the category.
+  it.each([
+    ['a null description', 'energyEfficiency', copy, 'Energy Efficiency'],
+    ['an empty description', 'solarBess', copy, 'Solar + Battery'],
+    ['a blank description', 'bess', copy, 'Battery'],
+    ['no Project Map item', 'solar', null, 'Solar'],
+  ] as const)('shows only the category for %s', (_case, category, projectMap, label) => {
+    render(
+      <MapPanel view={{ kind: 'category', category }} copy={projectMap} />,
+    );
+    expect(liveRegion().textContent).toBe(label);
+  });
+});
+
 describe('MapPanel switching (AC-2.7, AC-2.8)', () => {
   it('keeps one polite live region through every switch', () => {
     const { rerender } = render(<MapPanel view={resting} copy={copy} />);
@@ -119,6 +150,12 @@ describe('MapPanel switching (AC-2.7, AC-2.8)', () => {
     expect(liveRegion()).toBe(region);
     expect(region).toHaveTextContent('Newton High School');
 
+    rerender(
+      <MapPanel view={{ kind: 'category', category: 'solar' }} copy={copy} />,
+    );
+    expect(liveRegion()).toBe(region);
+    expect(region).toHaveTextContent(copy.categoryDescriptions.solar);
+
     rerender(<MapPanel view={resting} copy={copy} />);
     expect(liveRegion()).toBe(region);
     expect(region).toHaveTextContent(copy.restingPrompt);
@@ -126,9 +163,12 @@ describe('MapPanel switching (AC-2.7, AC-2.8)', () => {
 });
 
 describe('MapPanel from the keyboard', () => {
-  it('takes focus, so a keyboard user can scroll a long project (WCAG 2.1.1)', async () => {
+  it.each([
+    ['a project', picked, newton],
+    ['a category', { kind: 'category', category: 'solar' } as const, undefined],
+  ])('takes focus on %s, so a keyboard user can scroll a long one (WCAG 2.1.1)', async (_case, view, project) => {
     const user = userEvent.setup();
-    render(<MapPanel view={picked} project={newton} copy={copy} />);
+    render(<MapPanel view={view} project={project} copy={copy} />);
 
     await user.tab();
     expect(screen.getByRole('region', { name: 'Map details' })).toHaveFocus();

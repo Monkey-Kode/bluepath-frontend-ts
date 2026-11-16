@@ -29,12 +29,6 @@ export type Action =
 
 export const idle: Selection = { filter: null, project: null };
 
-/** How the markers and the legend look while the preview shows one category. */
-export const previewOf = (category: CategoryKey): Selection => ({
-  filter: category,
-  project: null,
-});
-
 export function select(state: Selection, action: Action): Selection {
   switch (action.type) {
     case 'pickMarker':
@@ -88,11 +82,15 @@ export function legendLook(
 
 export type PanelView =
   | { readonly kind: 'resting' }
-  | { readonly kind: 'project'; readonly id: string };
+  | { readonly kind: 'project'; readonly id: string }
+  | { readonly kind: 'category'; readonly category: CategoryKey };
 
-/** Only a picked project opens the panel. A legend filter leaves it at rest (AC-2.5, AC-2.7). */
+/**
+ * A picked project or a legend click opens the panel (AC-2.5, AC-2.7). The preview and a hovered
+ * legend entry change only the look, so they never reach here.
+ */
 export function panelView(state: Selection): PanelView {
-  return state.project
-    ? { kind: 'project', id: state.project.id }
-    : { kind: 'resting' };
+  if (state.project) return { kind: 'project', id: state.project.id };
+  if (state.filter) return { kind: 'category', category: state.filter };
+  return { kind: 'resting' };
 }

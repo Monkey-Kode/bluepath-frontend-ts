@@ -18,6 +18,7 @@ import {
   previewCategories,
   useCategoryPreview,
 } from '@/components/projectMap/useCategoryPreview';
+import type { CategoryKey } from '@/lib/categories';
 import { NO_PADDING, paddingAround } from '@/lib/mapProjects/camera';
 import {
   createMapLayer,
@@ -29,12 +30,7 @@ import {
   type StateOutlines,
 } from '@/lib/mapProjects/outlines';
 import type { ProjectResult } from '@/lib/mapProjects/search';
-import {
-  idle,
-  panelView,
-  previewOf,
-  select,
-} from '@/lib/mapProjects/selection';
+import { idle, panelView, select } from '@/lib/mapProjects/selection';
 import { loadMaps } from '@/lib/mapsLoader';
 import type {
   CasestudiesQueryResult,
@@ -169,10 +165,14 @@ function Projects({
     categories,
     layer !== null,
   );
-  // The preview only changes the look. The selection stays idle under it.
+  // A legend entry under the pointer shows its category the way the preview does (AC-2.14).
+  const [hovered, setHovered] = useState<CategoryKey | null>(null);
+  const showing = hovered ?? preview;
+  // The preview and a hovered entry only change the look. The selection stays as it was, so a
+  // picked project keeps its marker and its panel.
   const shown = useMemo(
-    () => (preview ? previewOf(preview) : selection),
-    [preview, selection],
+    () => (showing ? { ...selection, filter: showing } : selection),
+    [showing, selection],
   );
   useEffect(() => {
     layer?.show(shown);
@@ -241,10 +241,19 @@ function Projects({
           <MapLegend
             selection={selection}
             shown={shown}
-            onPick={(category) => dispatch({ type: 'pickLegend', category })}
-            // From 1280 px, the taller key spans the panel's row and this one. Sitting at the row's
-            // bottom keeps the legend still when the panel empties (AC-2.7).
-            className="pointer-events-auto self-end [grid-area:legend] justify-self-center"
+            onPick={(category) => {
+              // A click shows its result at once, even with the pointer still on the entry or
+              // the preview holding a category through the press.
+              setHovered(null);
+              stopPreview();
+              dispatch({ type: 'pickLegend', category });
+            }}
+            onHover={setHovered}
+            // Below 800 px, the zoom buttons sit on the right, so the legend lines up on the left
+            // with the key and the panel. From 800 px, it centers. From 1280 px, the taller key
+            // spans the panel's row and this one. Sitting at the row's bottom keeps the legend
+            // still when the panel empties (AC-2.7).
+            className="pointer-events-auto self-end [grid-area:legend] justify-self-start tablet:justify-self-center"
           />
           {/* While the preview runs, the panel is empty, so its stop button takes the panel's place. */}
           {preview && (

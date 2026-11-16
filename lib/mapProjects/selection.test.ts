@@ -188,7 +188,10 @@ describe('panelView (AC-2.4, AC-2.5, AC-2.7)', () => {
     });
   });
 
-  it('stays at rest while only a filter is on', () => {
-    expect(panelView(run(legend('bess')))).toEqual({ kind: 'resting' });
+  it("shows the filter's category and its description (AC-2.5)", () => {
+    expect(panelView(run(legend('bess')))).toEqual({
+      kind: 'category',
+      category: 'bess',
+    });
   });
 });

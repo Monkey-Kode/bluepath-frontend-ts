@@ -12,18 +12,23 @@ interface MapLegendProps {
   /** What the entries look like, when the category preview differs from the selection. */
   shown?: Selection;
   onPick: (category: CategoryKey) => void;
+  /** The entry under the pointer, or null once the pointer leaves the legend. */
+  onHover?: (category: CategoryKey | null) => void;
   className?: string;
 }
 
 /**
  * The category legend at the map's bottom (FR-004). Each entry is a toggle button. Its pressed
  * state tells assistive tech which filter is on (AC-2.8). A click outside the legend turns the
- * filter off, so the legend needs no "all" entry (AC-2.6).
+ * filter off, so the legend needs no "all" entry (AC-2.6). The entry under the pointer previews
+ * its category until the pointer leaves the legend. Leaving the legend, not an entry, ends it, so
+ * the map doesn't flash in the gaps between entries (AC-2.14).
  */
 export default function MapLegend({
   selection,
   shown = selection,
   onPick,
+  onHover,
   className,
 }: MapLegendProps) {
   return (
@@ -31,6 +36,7 @@ export default function MapLegend({
     <ul
       aria-label="Filter the map by category"
       data-map-legend
+      onPointerLeave={() => onHover?.(null)}
       className={twMerge(
         MAP_OVERLAY,
         'grid w-fit grid-cols-2 justify-items-start gap-x-2 px-1 py-0.5 tablet:flex tablet:flex-wrap tablet:justify-center tablet:gap-x-6 tablet:px-2 tablet:py-1',
@@ -46,6 +52,7 @@ export default function MapLegend({
               aria-pressed={legendLook(selection, key) === 'filter'}
               data-look={look}
               onClick={() => onPick(key)}
+              onPointerEnter={() => onHover?.(key)}
               className="group inline-flex min-h-7 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-sm px-1 py-0.5 text-left text-legend text-xs uppercase tablet:min-h-8 tablet:gap-2 tablet:px-2 tablet:py-1 tablet:text-sm tablet:tracking-wide focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent data-[look=faded]:text-legend-faded data-[look=filter]:scale-110 motion-safe:transition"
             >
               <Swatch category={key} faded={look === 'faded'} />

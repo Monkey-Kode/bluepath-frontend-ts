@@ -95,6 +95,12 @@ const casestudies: CaseStudy[] = [
 
 const copy = {
   restingPrompt: 'Pick a marker or a category to learn more.',
+  categoryDescriptions: {
+    energyEfficiency: null,
+    solar: null,
+    solarBess: null,
+    bess: 'Batteries store power for later.',
+  },
 } satisfies ProjectMapQueryResult;
 
 const outlines = {
@@ -144,6 +150,9 @@ const panel = () => {
 };
 
 const legendEntry = (name: string) => screen.getByRole('button', { name });
+
+const legendList = () =>
+  screen.getByRole('list', { name: 'Filter the map by category' });
 
 const searchBox = () =>
   screen.getByRole('combobox', { name: 'Search by name, state, or ZIP code' });
@@ -197,7 +206,7 @@ describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
     expect(panel()).toHaveFocus();
   });
 
-  it('filters by a legend category and leaves the panel at rest (AC-2.5)', async () => {
+  it('filters by a legend category and shows its description (AC-2.5)', async () => {
     const user = userEvent.setup();
     await show();
     await user.click(legendEntry('Battery'));
@@ -206,9 +215,78 @@ describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
     expect(fake.marker('Cell Bank').map).toBe(fake.map());
     expect(fake.marker('Sun Farm').map).toBeNull();
     expect(fake.marker('Isle Array').map).toBeNull();
-    // Only a picked project opens the panel.
+    expect(panel()).toHaveAttribute('data-view', 'category');
+    expect(
+      within(panel()).getByText('Batteries store power for later.'),
+    ).toBeVisible();
+  });
+
+  it('puts the panel right after the legend, so Tab goes from a legend entry to its description (AC-2.8)', async () => {
+    const user = userEvent.setup();
+    await show();
+    await user.click(legendEntry('Battery'));
+    await user.tab();
+
+    expect(panel()).toHaveFocus();
+  });
+
+  it('shows a hovered legend category on its own, as the preview does, until the pointer leaves the legend (AC-2.14)', async () => {
+    const user = userEvent.setup();
+    await show();
+    await user.hover(legendEntry('Battery'));
+
+    expect(fake.marker('Cell Bank').map).toBe(fake.map());
+    expect(fake.marker('Sun Farm').map).toBeNull();
+    expect(fake.marker('Isle Array').map).toBeNull();
+    expect(legendEntry('Battery')).toHaveAttribute('data-look', 'filter');
+    expect(legendEntry('Solar')).toHaveAttribute('data-look', 'faded');
+    // Hover is a look. No entry is pressed, and the panel stays at rest.
+    expect(legendEntry('Battery')).toHaveAttribute('aria-pressed', 'false');
     expect(panel()).toHaveAttribute('data-view', 'resting');
-    expect(panel().textContent).toBe(copy.restingPrompt);
+
+    // A gap between entries keeps the category, so the map doesn't flash between them. A browser
+    // names the element that the pointer moved to. User-event leaves it out, which React reads as
+    // leaving the page, so this move names it by hand.
+    act(() => {
+      fireEvent.pointerOut(legendEntry('Battery'), {
+        relatedTarget: legendList(),
+      });
+      fireEvent.pointerOver(legendList(), {
+        relatedTarget: legendEntry('Battery'),
+      });
+    });
+    expect(fake.marker('Sun Farm').map).toBeNull();
+
+    await user.unhover(legendList());
+    for (const marker of fake.markers) {
+      expect(marker.map).toBe(fake.map());
+      expect(marker.look).toBe('normal');
+    }
+    expect(legendEntry('Battery')).toHaveAttribute('data-look', 'normal');
+  });
+
+  it('keeps the picked project on the map and in the panel while a legend entry is hovered', async () => {
+    const user = userEvent.setup();
+    await show();
+    act(() => fake.marker('Cell Bank').pick());
+    await user.hover(legendEntry('Solar'));
+
+    expect(fake.marker('Sun Farm').map).toBe(fake.map());
+    expect(fake.marker('Cell Bank').look).toBe('selected');
+    expect(within(panel()).getByText('Cell Bank')).toBeVisible();
+  });
+
+  it("shows a legend click's result at once, while the pointer stays on the entry", async () => {
+    const user = userEvent.setup();
+    await show();
+    await user.hover(legendEntry('Battery'));
+    await user.click(legendEntry('Battery'));
+    expect(legendEntry('Battery')).toHaveAttribute('aria-pressed', 'true');
+
+    // The second click turns the filter off, and the full map returns under the pointer.
+    await user.click(legendEntry('Battery'));
+    expect(legendEntry('Battery')).toHaveAttribute('aria-pressed', 'false');
+    for (const marker of fake.markers) expect(marker.map).toBe(fake.map());
   });
 
   it('returns to the resting prompt after a click on empty map', async () => {
@@ -487,6 +565,26 @@ describe('Projects map category preview', () => {
       expect(marker.look).toBe('normal');
     }
     expect(legendEntry('Solar')).toHaveAttribute('data-look', 'normal');
+    expect(stopButton()).toBeNull();
+  });
+
+  it("shows a legend click's category at once, never the preview's in between (AC-2.14)", async () => {
+    await show();
+    onScreen();
+    expect(legendEntry('Solar')).toHaveAttribute('data-look', 'filter');
+
+    // The press holds the preview, and the release ends it only a task later.
+    act(() => {
+      fireEvent.pointerEnter(legendEntry('Battery'));
+      fireEvent.pointerDown(legendEntry('Battery'));
+      fireEvent.pointerUp(legendEntry('Battery'));
+      fireEvent.click(legendEntry('Battery'));
+    });
+
+    expect(legendEntry('Battery')).toHaveAttribute('data-look', 'filter');
+    expect(legendEntry('Solar')).toHaveAttribute('data-look', 'faded');
+    expect(fake.marker('Cell Bank').map).toBe(fake.map());
+    expect(fake.marker('Sun Farm').map).toBeNull();
     expect(stopButton()).toBeNull();
   });
 
