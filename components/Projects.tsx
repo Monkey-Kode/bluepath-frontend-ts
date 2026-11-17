@@ -12,7 +12,6 @@ import { twMerge } from 'tailwind-merge';
 import MapKey from '@/components/projectMap/MapKey';
 import MapLegend from '@/components/projectMap/MapLegend';
 import MapPanel from '@/components/projectMap/MapPanel';
-import MapPreviewStop from '@/components/projectMap/MapPreviewStop';
 import MapSearch from '@/components/projectMap/MapSearch';
 import {
   previewCategories,
@@ -177,11 +176,6 @@ function Projects({
   useEffect(() => {
     layer?.show(shown);
   }, [layer, shown]);
-  const onStopPreview = (byKeyboard: boolean) => {
-    stopPreview();
-    // The button leaves with the preview, so keyboard focus moves to the legend it previewed.
-    if (byKeyboard) focusLegend(overlayRef.current);
-  };
 
   // A search moves the map after the panel renders, so the map frames the pick in the area that
   // the panel leaves open. Without the map, a pick still selects the project and fills the panel
@@ -257,13 +251,6 @@ function Projects({
             // still when the panel empties (AC-2.7).
             className="pointer-events-auto self-end [grid-area:legend] justify-self-start tablet:justify-self-center"
           />
-          {/* While the preview runs, the panel is empty, so its stop button takes the panel's place. */}
-          {preview && (
-            <MapPreviewStop
-              onStop={onStopPreview}
-              className="pointer-events-auto self-end [grid-area:panel] justify-self-center"
-            />
-          )}
           {/*
            * The panel sits above the legend but follows it in the page, so Tab moves from a legend
            * entry to the picked project.

@@ -6,7 +6,7 @@ Checks that the search, key, legend, and panel never overlap each other or Googl
 - **Entry point:** `scripts/overlap.sh --url /projects/`.
 - **Actions:** the map fills the screen, and every other region sits on top of it. So leave the map out of the regions.
   The resting panel draws no box at any width, so the rest run leaves it out too.
-  The category preview's pause button shows for about 9 seconds per plotted category after the map loads, which is 36 seconds with four. To check it, wait for `.gm-style-cc`, then run `scripts/overlap.js` by hand with `stop='[data-preview-stop]'` added to the items.
+  The category preview has no pause button (D-52), so it adds nothing to check.
 
   ```sh
   EVIDENCE=../.agents/specs/feat/case-studies/.mk-goal/evidence/map-overlap

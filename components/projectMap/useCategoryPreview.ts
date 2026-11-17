@@ -12,9 +12,6 @@ export const PREVIEW_STEP_MS = 3000;
 /** How many times the preview goes through the categories before it ends. */
 export const PREVIEW_LOOPS = 3;
 
-/** Marks the preview's stop button. Using it never counts as using the map. */
-export const PREVIEW_STOP = 'data-preview-stop';
-
 /** The preview starts once this share of the map is on screen. */
 const IN_VIEW = 0.5;
 
@@ -27,10 +24,6 @@ type Phase = 'waiting' | 'running' | 'held' | 'done';
 
 /** The release ends a held preview after the click that follows it. */
 const RELEASE_EVENTS = ['pointerup', 'pointercancel'] as const;
-
-const onStopButton = (event: Event) =>
-  event.target instanceof Element &&
-  event.target.closest(`[${PREVIEW_STOP}]`) !== null;
 
 /** The categories that have a plotted marker, in legend order. */
 export function previewCategories(
@@ -45,9 +38,12 @@ export function previewCategories(
 /**
  * Shows each category on its own, in turn, to hint that the map responds (Nov 13). It starts when
  * the map is ready and half on screen. It ends on the full map after three passes (Nov 16). The
- * first use of the map ends it for good, as does the stop button (WCAG 2.2.2). A press, a key, or
- * focus counts as use. A wheel or keyboard scroll doesn't, but a touch swipe that starts on the
- * map does. It never runs with reduced motion on (NFR-002).
+ * first use of the map ends it for good. A press, a key, or focus counts as use. A wheel or
+ * keyboard scroll doesn't, but a touch swipe that starts on the map does. It never runs with
+ * reduced motion on (NFR-002).
+ *
+ * It has no stop button, at the client's request on Nov 17. It runs longer than 5 seconds, so it
+ * falls short of WCAG 2.2.2 (D-52).
  */
 export function useCategoryPreview(
   section: RefObject<HTMLElement | null>,
@@ -64,15 +60,11 @@ export function useCategoryPreview(
     const element = section.current;
     if (!element || !listening) return;
     let release: number | undefined;
-    const onPress = (event: Event) => {
-      if (!onStopButton(event))
-        setPhase((now) => (now === 'running' ? 'held' : 'done'));
-    };
+    const onPress = () =>
+      setPhase((now) => (now === 'running' ? 'held' : 'done'));
     // A press focuses what it hits, so focus during a press doesn't end the preview yet.
-    const onKeyOrFocus = (event: Event) => {
-      if (!onStopButton(event))
-        setPhase((now) => (now === 'held' ? now : 'done'));
-    };
+    const onKeyOrFocus = () =>
+      setPhase((now) => (now === 'held' ? now : 'done'));
     // The browser sends the click after the release, in the same task. Ending a task later lets
     // the click reach the marker that the visitor saw.
     const onRelease = () => {

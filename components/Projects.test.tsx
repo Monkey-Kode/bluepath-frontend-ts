@@ -553,8 +553,6 @@ describe('Projects map category preview', () => {
     act(() => {
       mockAllIsIntersecting(true);
     });
-  const stopButton = () =>
-    screen.queryByRole('button', { name: 'Stop the category preview' });
 
   it('shows each category on its own, then the full map, without a selection', async () => {
     await show();
@@ -568,7 +566,6 @@ describe('Projects map category preview', () => {
     // The preview is a look. No entry is pressed, and the panel stays at rest.
     expect(legendEntry('Solar')).toHaveAttribute('aria-pressed', 'false');
     expect(panel()).toHaveAttribute('data-view', 'resting');
-    expect(stopButton()).toBeVisible();
 
     step();
     expect(fake.marker('Cell Bank').map).toBe(fake.map());
@@ -587,7 +584,6 @@ describe('Projects map category preview', () => {
       expect(marker.look).toBe('normal');
     }
     expect(legendEntry('Solar')).toHaveAttribute('data-look', 'normal');
-    expect(stopButton()).toBeNull();
   });
 
   it("shows a legend click's category at once, never the preview's in between (AC-2.14)", async () => {
@@ -607,7 +603,6 @@ describe('Projects map category preview', () => {
     expect(legendEntry('Solar')).toHaveAttribute('data-look', 'faded');
     expect(fake.marker('Cell Bank').map).toBe(fake.map());
     expect(fake.marker('Sun Farm').map).toBeNull();
-    expect(stopButton()).toBeNull();
   });
 
   it('ends when the visitor picks a marker, and shows the pick', async () => {
@@ -627,22 +622,9 @@ describe('Projects map category preview', () => {
       vi.advanceTimersByTime(0);
     });
 
-    expect(stopButton()).toBeNull();
     expect(fake.marker('Sun Farm').look).toBe('selected');
     expect(fake.marker('Cell Bank').map).toBe(fake.map());
     expect(within(panel()).getByText('Sun Farm')).toBeVisible();
-  });
-
-  it('stops on its button, and moves keyboard focus to the legend', async () => {
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    await show();
-    onScreen();
-    act(() => stopButton()?.focus());
-    await user.keyboard('{Enter}');
-
-    expect(stopButton()).toBeNull();
-    for (const marker of fake.markers) expect(marker.look).toBe('normal');
-    expect(legendEntry('Energy Efficiency')).toHaveFocus();
   });
 });
 

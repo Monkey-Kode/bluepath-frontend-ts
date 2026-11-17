@@ -10,7 +10,6 @@ import type { MapProject } from '@/lib/mapProjects/display';
 import {
   PREVIEW_LOOPS,
   PREVIEW_STEP_MS,
-  PREVIEW_STOP,
   previewCategories,
   useCategoryPreview,
 } from './useCategoryPreview';
@@ -18,15 +17,11 @@ import {
 const ALL: CategoryKey[] = ['energyEfficiency', 'solar', 'solarBess', 'bess'];
 
 let section: HTMLElement;
-let stopButton: HTMLButtonElement;
 
 beforeEach(() => {
   vi.useFakeTimers();
   setupIntersectionMocking(vi.fn);
   section = document.createElement('section');
-  stopButton = document.createElement('button');
-  stopButton.setAttribute(PREVIEW_STOP, '');
-  section.append(stopButton);
   document.body.append(section);
 });
 
@@ -162,16 +157,15 @@ describe('useCategoryPreview', () => {
     expect(result.current.preview).toBeNull();
   });
 
-  it('keeps running on a press or focus on its stop button, and ends on stop', () => {
+  it('ends for good on stop', () => {
     const { result } = preview();
     onScreen();
-    act(() => {
-      fireEvent.pointerDown(stopButton);
-      fireEvent.focusIn(stopButton);
-    });
     expect(result.current.preview).toBe('energyEfficiency');
 
     act(() => result.current.stop());
+    expect(result.current.preview).toBeNull();
+    onScreen();
+    step();
     expect(result.current.preview).toBeNull();
   });
 
