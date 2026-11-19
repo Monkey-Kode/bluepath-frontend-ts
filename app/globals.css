@@ -52,6 +52,10 @@
     --color-gray-2: #616567;
     --color-gray-3: #595959;
     --color-surface: #f6f7f9;
+    /* Map legend text. The design's #6879A1 measures 4.34:1 on white, so both
+     * slates are darker. Faded entries still pass AA (D-20). */
+    --color-legend: #44547a;
+    --color-legend-faded: #62729a;
 
     /* ── Type scale: Axios sizes converted into our fluid (Utopia) method ──
      * Each step's DESKTOP ceiling (@1240px) equals the matching Axios token
@@ -262,92 +266,6 @@
     display: none;
 }
 
-/* ─── Google Maps InfoWindow chrome (Projects map) ────────────────────── */
-.gm-style .gm-ui-hover-effect img {
-    filter: invert(1);
-    transform: scale(2) translate(-5px, 5px);
-}
-.gm-style .gm-style-iw-c {
-    border-radius: 0 !important;
-    background-color: var(--color-blue);
-    padding: 0 !important;
-    transform: scale(0.5) translate(-115%, -52%) !important;
-    transform-origin: 0% 0%;
-}
-.gm-style .gm-style-iw-c * {
-    color: white;
-}
-.gm-style .gm-style-iw-c #content {
-    max-width: 380px;
-}
-.gm-style .gm-style-iw-c #siteNotice {
-    text-align: center;
-    text-transform: uppercase;
-}
-.gm-style .gm-style-iw-c #siteNotice h3 {
-    margin-bottom: 0;
-    padding: 0 0 0.3rem;
-    font-weight: 300;
-    font-size: 1.2rem;
-}
-.gm-style .gm-style-iw-c #siteNotice p {
-    font-weight: bold;
-    font-size: 1.3rem;
-    padding: 0;
-    margin: 0;
-    line-height: 1.25;
-}
-@media (max-width: 480px) {
-    .gm-style .gm-style-iw-c #siteNotice p {
-        font-size: 0.8rem;
-    }
-}
-.gm-style .gm-style-iw-c .image {
-    background-color: var(--color-gray-2);
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-bottom: 1px solid var(--color-accent);
-    flex-flow: column wrap;
-    padding: 8%;
-}
-.gm-style .gm-style-iw-c .image svg,
-.gm-style .gm-style-iw-c .image img {
-    max-width: 180px;
-    display: block;
-    flex: 1 auto;
-}
-.gm-style .gm-style-iw-c .line-content {
-    padding: 0.7rem 1.3rem;
-}
-.gm-style .gm-style-iw-c .content {
-    padding: 0.5rem 1rem 1.5rem;
-}
-.gm-style .gm-style-iw-c .list-title {
-    font-weight: bold;
-    text-transform: uppercase;
-}
-.gm-style-iw-d {
-    overflow: hidden !important;
-}
-.gm-style .gm-style-iw-t::after {
-    background: var(--color-blue) !important;
-    transform: translate(-36px, 18px) rotate(-45deg);
-    box-shadow: none;
-}
-#markerLayer img {
-    transform-origin: center;
-    transform: scale(0.5);
-    transition: transform 0.35s ease-out;
-}
-#markerLayer img.grow {
-    transform: scale(1);
-}
-#markerLayer img.shrink {
-    transform: scale(0.5);
-}
-
 /* ─── Home page header overlay ──────────────────────────────────────────
  * The home page renders the Header over a dark hero image. Default state
  * = transparent + white text + light logo. After scroll, HomeView toggles
@@ -366,7 +284,7 @@
 .home .header-overlay header .burger-menu > span {
     background-color: white;
 }
-.home .header-overlay header nav ul li a {
+.home .header-overlay header nav > ul > li > :is(a, button) {
     color: #fff;
 }
 .home .header-overlay header.show {
@@ -383,7 +301,7 @@
     background-color: var(--color-blue);
 }
 @media (min-width: 800px) {
-    .home .header-overlay header.show nav ul li a {
+    .home .header-overlay header.show nav > ul > li > :is(a, button) {
         color: var(--color-blue);
         font-weight: 400;
     }

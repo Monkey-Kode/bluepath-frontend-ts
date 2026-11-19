@@ -7,6 +7,7 @@ import { draftMode } from 'next/headers';
 import { VisualEditing } from 'next-sanity/visual-editing';
 import { Toaster } from 'sonner';
 
+import { refreshSanityTags } from '@/app/actions';
 import { handleError } from '@/app/client-utils';
 import DraftModeToast from '@/components/DraftModeToast';
 import { getSiteUrl } from '@/lib/siteUrl';
@@ -64,7 +65,7 @@ export default async function RootLayout({
           </>
         )}
         {/* SanityLive drives live revalidation for every sanityFetch — always rendered. */}
-        <SanityLive onError={handleError} />
+        <SanityLive action={refreshSanityTags} onError={handleError} />
       </body>
     </html>
   );
