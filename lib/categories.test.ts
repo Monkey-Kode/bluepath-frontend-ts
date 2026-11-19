@@ -4,10 +4,10 @@ import { CATEGORIES, categoryOf } from './categories';
 describe('CATEGORIES', () => {
   it('lists the legend in the order that the spec sets (AC-2.3)', () => {
     expect(CATEGORIES.map(({ label }) => label)).toEqual([
-      'Energy Efficiency',
       'Solar',
-      'Solar + Battery',
       'Battery',
+      'Solar + Battery',
+      'Energy Efficiency',
     ]);
   });
 

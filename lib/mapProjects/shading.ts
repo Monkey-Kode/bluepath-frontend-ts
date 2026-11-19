@@ -1,5 +1,5 @@
 /**
- * State shading for the projects map (FR-003, AC-2.2). The map's states and the "Plants per
+ * State shading for the projects map (FR-003, AC-2.2). The map's states and the "Projects per
  * state" key both read `SHADES`, so they always agree.
  */
 import { isPlotted, type MapProject } from './display';

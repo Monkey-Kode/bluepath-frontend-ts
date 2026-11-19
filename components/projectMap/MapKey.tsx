@@ -3,7 +3,7 @@ import { SHADES } from '@/lib/mapProjects/shading';
 import { MAP_OVERLAY } from './overlay';
 
 /**
- * The "Plants per state" key (FR-003, AC-2.2). Its steps are the map's own shades, darkest
+ * The "Projects per state" key (FR-003, AC-2.2). Its steps are the map's own shades, darkest
  * first, so the key and the map always agree. It sits on the map: in one row below 800 px, and
  * as the design's block from 800 px.
  */
@@ -18,9 +18,9 @@ export default function MapKey({ className }: { className?: string }) {
         className,
       )}
     >
-      <p className="text-legend tablet:col-span-2">Plants per state</p>
+      <p className="text-legend tablet:col-span-2">Projects per state</p>
       <span className="sr-only">
-        Darker states have fewer plants, from 1 at the darkest to 100 at the
+        Darker states have fewer projects, from 1 at the darkest to 100 at the
         lightest.
       </span>
       <span

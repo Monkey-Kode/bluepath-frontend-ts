@@ -202,8 +202,8 @@ describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
     const user = userEvent.setup();
     await show();
     act(() => fake.marker('Cell Bank').pick());
-    // Battery is the legend's last entry.
-    act(() => legendEntry('Battery').focus());
+    // Energy Efficiency is the legend's last entry.
+    act(() => legendEntry('Energy Efficiency').focus());
     await user.tab();
 
     expect(panel()).toHaveFocus();
@@ -241,6 +241,8 @@ describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
     const user = userEvent.setup();
     await show();
     await user.click(legendEntry('Battery'));
+    // Energy Efficiency is the legend's last entry.
+    act(() => legendEntry('Energy Efficiency').focus());
     await user.tab();
 
     expect(panel()).toHaveFocus();
@@ -365,7 +367,7 @@ describe('Projects map selection (AC-2.4 to AC-2.7)', () => {
     await user.keyboard('{Escape}');
 
     expect(panel()).toHaveAttribute('data-view', 'resting');
-    expect(legendEntry('Energy Efficiency')).toHaveFocus();
+    expect(legendEntry('Solar')).toHaveFocus();
   });
 
   it('returns to the resting prompt on Escape', async () => {

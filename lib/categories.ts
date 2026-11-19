@@ -11,12 +11,12 @@ export interface Category {
   color: string;
 }
 
-/** In legend order. */
+/** In legend order. Energy Efficiency comes last, at the client's request (Nov 19). */
 export const CATEGORIES: readonly Category[] = [
-  { key: 'energyEfficiency', label: 'Energy Efficiency', color: '#00FFFF' },
   { key: 'solar', label: 'Solar', color: '#F5A623' },
-  { key: 'solarBess', label: 'Solar + Battery', color: '#39FF14' },
   { key: 'bess', label: 'Battery', color: '#FF1493' },
+  { key: 'solarBess', label: 'Solar + Battery', color: '#39FF14' },
+  { key: 'energyEfficiency', label: 'Energy Efficiency', color: '#00FFFF' },
 ];
 
 export const CATEGORY_BY_KEY = Object.fromEntries(

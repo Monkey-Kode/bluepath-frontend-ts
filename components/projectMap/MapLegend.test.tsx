@@ -24,7 +24,8 @@ const show = (selection: Selection, onPick = vi.fn()) => {
 describe('MapLegend entries (AC-2.3)', () => {
   it('lists the four categories in legend order, each as a button', () => {
     show(idle);
-    const names = ['Energy Efficiency', 'Solar', 'Solar + Battery', 'Battery'];
+    // Solar leads and Energy Efficiency comes last, at the client's request (Nov 19).
+    const names = ['Solar', 'Battery', 'Solar + Battery', 'Energy Efficiency'];
     expect(entries()).toHaveLength(names.length);
     for (const [i, button] of entries().entries()) {
       expect(button).toHaveAccessibleName(names[i]);
@@ -72,14 +73,14 @@ describe('MapLegend states (AC-2.4, AC-2.5, AC-2.8)', () => {
     const user = userEvent.setup();
     const onPick = show(idle);
     await user.tab();
-    expect(entry('Energy Efficiency')).toHaveFocus();
+    expect(entry('Solar')).toHaveFocus();
     await user.keyboard('{Enter}');
-    expect(onPick).toHaveBeenLastCalledWith('energyEfficiency');
+    expect(onPick).toHaveBeenLastCalledWith('solar');
 
     await user.tab();
-    expect(entry('Solar')).toHaveFocus();
+    expect(entry('Battery')).toHaveFocus();
     await user.keyboard(' ');
-    expect(onPick).toHaveBeenLastCalledWith('solar');
+    expect(onPick).toHaveBeenLastCalledWith('bess');
 
     await user.click(entry('Solar + Battery'));
     expect(onPick).toHaveBeenLastCalledWith('solarBess');
