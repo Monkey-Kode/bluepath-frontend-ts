@@ -38,11 +38,15 @@ export interface MapLayerOptions {
   padding: () => Padding;
 }
 
-/** Where a search pick moves the map (AC-9.3 to AC-9.5). */
+/**
+ * Where a search moves the map (AC-9.3 to AC-9.5). `home` is the first view, for a cleared search
+ * (AC-9.10).
+ */
 export type FocusTarget =
   | { readonly kind: 'project'; readonly id: string }
   | { readonly kind: 'state'; readonly name: string }
-  | { readonly kind: 'point'; readonly point: google.maps.LatLngLiteral };
+  | { readonly kind: 'point'; readonly point: google.maps.LatLngLiteral }
+  | { readonly kind: 'home' };
 
 export interface MapLayer {
   show(selection: Selection): void;
@@ -149,6 +153,7 @@ export function createMapLayer(
   // that differs from the last refit's.
   let moved = false;
   let framed: Camera | null = null;
+  const firstView = () => cameraForBounds(LOWER_48, sizeOf(), padding());
   const frame = () => {
     const size = sizeOf();
     if (moved || size.width === 0 || size.height === 0) return;
@@ -156,7 +161,12 @@ export function createMapLayer(
       moved = true;
       return;
     }
-    map.moveCamera(cameraForBounds(LOWER_48, size, padding()));
+    map.moveCamera(firstView());
+    framed = cameraNow();
+  };
+  /** Back at the first view, the map follows its size again. */
+  const backHome = () => {
+    moved = false;
     framed = cameraNow();
   };
   frame();
@@ -167,12 +177,14 @@ export function createMapLayer(
     moved = true;
     stopFlight();
   });
-  const fly = (to: Camera) => {
+  /** `landed` runs once the camera reaches `to`. A drag that stops the flight skips it. */
+  const fly = (to: Camera, landed?: () => void) => {
     moved = true;
     stopFlight();
     const from = cameraNow();
     if (prefersReducedMotion() || !from) {
       map.moveCamera(to);
+      landed?.();
       return;
     }
     let start: number | null = null;
@@ -181,6 +193,7 @@ export function createMapLayer(
       const t = Math.min(1, (time - start) / FLIGHT_MS);
       map.moveCamera(t < 1 ? cameraAlong(from, to, t, sizeOf()) : to);
       flight = t < 1 ? requestAnimationFrame(step) : null;
+      if (t === 1) landed?.();
     };
     flight = requestAnimationFrame(step);
   };
@@ -236,6 +249,10 @@ export function createMapLayer(
       }
     },
     focus(target) {
+      if (target.kind === 'home') {
+        fly(firstView(), backHome);
+        return;
+      }
       if (target.kind === 'state') {
         const bounds = outlines && boundsOf(outlines, target.name);
         if (bounds)

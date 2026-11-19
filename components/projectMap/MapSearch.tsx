@@ -111,7 +111,10 @@ interface MapSearchProps {
   /** Every map project. Search lists only the plotted ones. */
   projects: readonly SearchProject[];
   onPickProject: (result: ProjectResult) => void;
-  /** A picked state or a found ZIP moves the map. */
+  /**
+   * A picked state or a found ZIP moves the map. Emptying the box after a search moved it sends
+   * the map home (AC-9.10).
+   */
   onFocus: (target: FocusTarget) => void;
   /** The map's state outlines, once loaded. State search then places a project by its pin. */
   outlines?: StateOutlines | null;
@@ -147,6 +150,8 @@ export default function MapSearch({
   // A new parent callback on each render must not repeat a ZIP's map move.
   const focusRef = useRef(onFocus);
   focusRef.current = onFocus;
+  /** Whether a search moved the map since it last showed the whole map. */
+  const movedMap = useRef(false);
 
   // A picked state fills the box with its name, never with digits.
   const typedZip = !chosenState && isZip(text) ? text.trim() : null;
@@ -157,8 +162,10 @@ export default function MapSearch({
     lookupZip(typedZip).then((answer) => {
       if (!live) return;
       setZip({ zip: typedZip, answer });
-      if (answer.kind === 'found')
+      if (answer.kind === 'found') {
+        movedMap.current = true;
         focusRef.current({ kind: 'point', point: answer.point });
+      }
     });
     return () => {
       live = false;
@@ -189,9 +196,16 @@ export default function MapSearch({
     setChosenState(null);
     setActive(-1);
     setOpen(true);
+    // An emptied box undoes the search's move and shows the whole map again (AC-9.10).
+    if (!value.trim() && movedMap.current) {
+      movedMap.current = false;
+      onFocus({ kind: 'home' });
+    }
   }
 
   function pick(option: Option) {
+    // A picked state or project moves the map.
+    movedMap.current = true;
     if (option.kind === 'state') {
       setChosenState(option.state);
       setText(option.state.name);

@@ -269,6 +269,63 @@ describe('MapSearch: states (AC-9.4)', () => {
   });
 });
 
+describe('MapSearch: back to the whole map (AC-9.10)', () => {
+  it('flies back when the visitor empties the box after a state pick', async () => {
+    const { user, box } = renderSearch();
+    await user.type(box, 'ca');
+    await user.click(screen.getByRole('option', { name: /^California/ }));
+    onFocus.mockClear();
+
+    await user.clear(box);
+    expect(onFocus).toHaveBeenCalledExactlyOnceWith({ kind: 'home' });
+  });
+
+  it('keeps the map where it is while the visitor edits the search', async () => {
+    const { user, box } = renderSearch();
+    await user.type(box, 'ca');
+    await user.click(screen.getByRole('option', { name: /^California/ }));
+    onFocus.mockClear();
+
+    await user.type(box, '{Backspace}');
+    expect(box).toHaveValue('Californi');
+    expect(onFocus).not.toHaveBeenCalled();
+  });
+
+  it('flies back after a project pick, once', async () => {
+    const { user, box } = renderSearch();
+    await user.type(box, 'ford');
+    await user.click(
+      screen.getByRole('option', { name: /Ford Motor Company/ }),
+    );
+    await user.clear(box);
+    expect(onFocus).toHaveBeenCalledExactlyOnceWith({ kind: 'home' });
+
+    // The map is back, so a search that moves nothing leaves it alone.
+    await user.type(box, 'ford');
+    await user.clear(box);
+    expect(onFocus).toHaveBeenCalledOnce();
+  });
+
+  it('flies back after a found ZIP', async () => {
+    const { user, box } = renderSearch();
+    await user.type(box, '85033');
+    await waitFor(() =>
+      expect(onFocus).toHaveBeenCalledWith({ kind: 'point', point: PHOENIX }),
+    );
+    onFocus.mockClear();
+
+    await user.clear(box);
+    expect(onFocus).toHaveBeenCalledExactlyOnceWith({ kind: 'home' });
+  });
+
+  it('leaves the map alone when the search never moved it', async () => {
+    const { user, box } = renderSearch();
+    await user.type(box, 'ford');
+    await user.clear(box);
+    expect(onFocus).not.toHaveBeenCalled();
+  });
+});
+
 describe('MapSearch: ZIP codes (AC-9.5, AC-9.6)', () => {
   it('waits for five digits, asks once, centers the map, and lists the nearest projects', async () => {
     const { user, box } = renderSearch();

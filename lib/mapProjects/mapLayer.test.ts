@@ -630,6 +630,56 @@ describe('the camera for a search pick (AC-9.3 to AC-9.5, NFR-002)', () => {
     expect(camera()).toEqual(picked);
   });
 
+  it('flies back to the lower 48 for a cleared search, and frames them on resize again', () => {
+    const layer = create();
+    layer.focus({ kind: 'state', name: 'Westland' });
+    runFrames(1000, 3000);
+    expect(inOpenArea(places.maine)).toBe(false);
+
+    layer.focus({ kind: 'home' });
+    expect(frames.size).toBe(1);
+    runFrames(4000, 4600, 6000);
+    for (const place of [
+      places.maine,
+      places.keyWest,
+      places.seattle,
+      places.sanDiego,
+      places.northDakota,
+    ]) {
+      expect(inOpenArea(place)).toBe(true);
+    }
+
+    resizeTo(390, 600);
+    expect(inOpenArea(places.maine)).toBe(true);
+    expect(inOpenArea(places.seattle)).toBe(true);
+  });
+
+  it('jumps back to the lower 48 with reduced motion, and frames them on resize again', () => {
+    reduceMotion = true;
+    const layer = create();
+    layer.focus({ kind: 'state', name: 'Westland' });
+    layer.focus({ kind: 'home' });
+    expect(frames.size).toBe(0);
+    expect(inOpenArea(places.maine)).toBe(true);
+
+    resizeTo(390, 600);
+    expect(inOpenArea(places.maine)).toBe(true);
+    expect(inOpenArea(places.seattle)).toBe(true);
+  });
+
+  it('keeps the view when the visitor drags during the flight back', () => {
+    const layer = create();
+    layer.focus({ kind: 'state', name: 'Westland' });
+    runFrames(1000, 3000);
+    layer.focus({ kind: 'home' });
+    runFrames(4000, 4300);
+    fake.map().trigger('dragstart');
+    const dragged = camera();
+    runFrames(6000);
+    resizeTo(390, 600);
+    expect(camera()).toEqual(dragged);
+  });
+
   it('moves the camera without touching the selection', () => {
     const layer = create();
     layer.focus({ kind: 'project', id: 'sun' });
