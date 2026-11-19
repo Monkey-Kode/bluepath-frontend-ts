@@ -128,6 +128,14 @@ describe('plain search (AC-9.2)', () => {
 });
 
 describe('state search (AC-9.4)', () => {
+  it('leaves Alaska out, as the map does (D-54)', () => {
+    expect(matchStates(ALL, 'alaska')).toEqual([]);
+    expect(matchStates(ALL, 'ak')).toEqual([]);
+    expect(matchStates(ALL, 'arizona').map((state) => state.code)).toEqual([
+      'AZ',
+    ]);
+  });
+
   it('matches a two-letter code or the start of a name, with its plotted count', () => {
     expect(matchStates(ALL, 'ca')).toEqual([
       { code: 'CA', name: 'California', count: 1 },
@@ -221,10 +229,11 @@ describe("a project's state for State search (AC-9.4, AC-2.2)", () => {
       },
     ],
   };
-  // The State field says Alaska, but the pin sits in Arkansas, as with one legacy address.
+  // The State field names the wrong state, but the pin sits in Arkansas, as with one legacy
+  // address.
   const typo = project('typo', {
     plantName: 'Little Rock Solar',
-    state: 'Alaska',
+    state: 'Alabama',
     location: { lat: 34.75, lng: -92.29 },
   });
   const offshore = project('offshore', {
@@ -238,8 +247,8 @@ describe("a project's state for State search (AC-9.4, AC-2.2)", () => {
     expect(matchStates([typo], 'ark', stateOf)).toEqual([
       { code: 'AR', name: 'Arkansas', count: 1 },
     ]);
-    expect(matchStates([typo], 'alaska', stateOf)).toEqual([
-      { code: 'AK', name: 'Alaska', count: 0 },
+    expect(matchStates([typo], 'alabama', stateOf)).toEqual([
+      { code: 'AL', name: 'Alabama', count: 0 },
     ]);
     expect(ids(projectsInState([typo], 'Arkansas', stateOf))).toEqual(['typo']);
   });
@@ -253,7 +262,7 @@ describe("a project's state for State search (AC-9.4, AC-2.2)", () => {
 
   it('uses the State field when the outlines failed to load', () => {
     expect(
-      ids(projectsInState([typo], 'Alaska', stateByOutlines(null))),
+      ids(projectsInState([typo], 'Alabama', stateByOutlines(null))),
     ).toEqual(['typo']);
   });
 });

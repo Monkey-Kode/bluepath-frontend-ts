@@ -2,6 +2,7 @@
  * The state outlines and the mask outside the US (FR-003, D-2). The map loads them from
  * `STATE_OUTLINES_URL`. `scripts/build-state-outlines.md` records how the file is built.
  */
+import { STATE_ABBREVIATIONS } from '@/utils/extractState';
 
 /** A GeoJSON position, as [longitude, latitude]. */
 type Position = readonly number[];
@@ -27,6 +28,15 @@ export interface StateOutlines {
 }
 
 export const STATE_OUTLINES_URL = '/maps/us-states.geojson';
+
+/**
+ * The states on the map, by two-letter code: the 50 states and DC, less Alaska. The client left
+ * Alaska off on Nov 19, because BluePath has no work there yet (D-54). The outlines file leaves it
+ * out too, so the mask covers it.
+ */
+export const MAP_STATES = Object.entries(STATE_ABBREVIATIONS).filter(
+  ([code]) => code !== 'AK',
+);
 
 /** Casts a ray east from the point and counts the edges it crosses. */
 function crossesOddly(ring: Ring, { lat, lng }: google.maps.LatLngLiteral) {
@@ -72,9 +82,10 @@ export function stateAt(
 }
 
 /**
- * The box around a state's outline, for State search (AC-9.4). Alaska's Aleutians pass the 180th
- * meridian, so an east longitude counts as its west equivalent. The box then has west greater
- * than east, which Google reads as crossing the meridian.
+ * The box around a state's outline, for State search (AC-9.4). A state can pass the 180th
+ * meridian, as Alaska's Aleutians do, so an east longitude counts as its west equivalent. The box
+ * then has west greater than east, which Google reads as crossing the meridian. Alaska is off the
+ * map for now (D-54).
  */
 export function boundsOf(
   outlines: StateOutlines,

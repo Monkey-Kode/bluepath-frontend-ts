@@ -4,7 +4,7 @@
  * pick zooms to a marker.
  */
 import { type CategoryKey, categoryOf } from '@/lib/categories';
-import { STATE_ABBREVIATIONS, stateName } from '@/utils/extractState';
+import { stateName } from '@/utils/extractState';
 import {
   clean,
   displayName,
@@ -12,7 +12,7 @@ import {
   locationOf,
   type MapProject,
 } from './display';
-import { type StateOutlines, stateAt } from './outlines';
+import { MAP_STATES, type StateOutlines, stateAt } from './outlines';
 
 /** Plain and State search start at two characters (D-43). */
 export const MIN_QUERY_LENGTH = 2;
@@ -41,9 +41,6 @@ export interface StateResult {
   /** The state's plotted projects. A state without any still matches, so the list can say so. */
   count: number;
 }
-
-/** The 50 states and DC, by two-letter code. */
-const US_STATES = Object.entries(STATE_ABBREVIATIONS);
 
 /** Gives the full name of the state that a plotted project belongs to, or null. */
 export type StateOf = (
@@ -142,7 +139,7 @@ export function matchStates(
     const name = stateOf(project, location);
     if (name) counts.set(name, (counts.get(name) ?? 0) + 1);
   }
-  return US_STATES.filter(([code, name]) => {
+  return MAP_STATES.filter(([code, name]) => {
     const lower = name.toLowerCase();
     return (
       code.toLowerCase() === query ||

@@ -3,7 +3,13 @@ import { readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { STATE_ABBREVIATIONS } from '@/utils/extractState';
-import { boundsOf, contains, type StateOutlines, stateAt } from './outlines';
+import {
+  boundsOf,
+  contains,
+  MAP_STATES,
+  type StateOutlines,
+  stateAt,
+} from './outlines';
 
 const ASSET = fileURLToPath(
   new URL('../../public/maps/us-states.geojson', import.meta.url),
@@ -82,11 +88,18 @@ describe('the state outlines asset (AC-2.2, NFR-003)', () => {
     expect(statSync(ASSET).size).toBeLessThan(100_000);
   });
 
-  it('holds each state and DC once, by the full name the site stores', () => {
+  it('holds each state on the map once, by the full name the site stores', () => {
     const names = readAsset()
       .features.flatMap((f) => f.properties.name ?? [])
       .sort();
-    expect(names).toEqual(Object.values(STATE_ABBREVIATIONS).sort());
+    expect(names).toEqual(MAP_STATES.map(([, name]) => name).sort());
+  });
+
+  it('leaves only Alaska off the map, of the 50 states and DC (D-54)', () => {
+    const codes = new Set(MAP_STATES.map(([code]) => code));
+    expect(
+      Object.keys(STATE_ABBREVIATIONS).filter((code) => !codes.has(code)),
+    ).toEqual(['AK']);
   });
 
   it('holds one mask feature', () => {
@@ -104,9 +117,6 @@ describe('the state outlines asset (AC-2.2, NFR-003)', () => {
     ['Washington', 38.897, -77.036, 'District of Columbia'],
     ['Lansing', 42.733, -84.555, 'Michigan'],
     ['Honolulu', 21.307, -157.858, 'Hawaii'],
-    ['Anchorage', 61.218, -149.9, 'Alaska'],
-    // West of the antimeridian, so its longitude is positive.
-    ['Attu Island', 52.85, 173.0, 'Alaska'],
   ])('places %s in its state', (_, lat, lng, state) => {
     expect(stateAt(readAsset(), { lat, lng })).toBe(state);
   });
@@ -121,6 +131,10 @@ describe('the state outlines asset (AC-2.2, NFR-003)', () => {
     ['Toronto', 43.653, -79.383],
     ['Mexico City', 19.433, -99.133],
     ['San Juan', 18.466, -66.106],
+    // Alaska is off the map for now (D-54).
+    ['Anchorage', 61.218, -149.9],
+    // West of the antimeridian, so its longitude is positive.
+    ['Attu Island', 52.85, 173.0],
     ['Lake Michigan', 43.5, -87.2],
     ['the far northwest', 84.5, -179.5],
     ['the far southeast', -84.5, 179.5],
@@ -132,7 +146,6 @@ describe('the state outlines asset (AC-2.2, NFR-003)', () => {
   it.each([
     ['Newton', 42.337, -71.209],
     ['Honolulu', 21.307, -157.858],
-    ['Attu Island', 52.85, 173.0],
   ])('leaves %s unmasked', (_, lat, lng) => {
     expect(contains(mask(), { lat, lng })).toBe(false);
   });
@@ -191,11 +204,8 @@ describe('boundsOf (AC-9.4)', () => {
     expect(boundsOf(outlines, 'Nowhere')).toBeNull();
   });
 
-  it("frames Alaska's islands with its mainland in the real asset", () => {
-    const alaska = boundsOf(readAsset(), 'Alaska');
-    expect(alaska?.west).toBeGreaterThan(170);
-    expect(alaska?.east).toBeLessThan(-129);
-    expect(alaska?.east).toBeGreaterThan(-132);
+  it('frames a state in the real asset, and has no Alaska to frame', () => {
+    expect(boundsOf(readAsset(), 'Alaska')).toBeNull();
     expect(boundsOf(readAsset(), 'California')).toEqual({
       west: -124.41,
       south: 32.534,

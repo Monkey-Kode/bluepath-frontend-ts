@@ -79,8 +79,8 @@ const LOWER_48: google.maps.LatLngBoundsLiteral = {
 };
 
 /**
- * Panning and zooming stay inside this region (AC-2.10). Alaska's Aleutians cross the
- * antimeridian, so west is greater than east. The mask reaches past every edge, so the white
+ * Panning and zooming stay inside this region (AC-2.10). It crosses the antimeridian, so west is
+ * greater than east. The mask reaches past every edge, so the white
  * surround never ends. The south edge leaves room to center the lower 48 above a phone's legend,
  * where the map's middle sits far south of the lower 48. The east and west edges sit about 140
  * degrees either side of the lower 48's middle. That leaves room for a wide, short open area,
